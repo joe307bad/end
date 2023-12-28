@@ -1,29 +1,43 @@
 import React from 'react';
 import { View } from 'react-native';
 import { Canvas } from '@react-three/fiber';
-import { HeyThere } from '@end/components';
-import { OrthographicCamera, OrbitControls } from '@react-three/drei';
+import {
+  Lights,
+  Planet,
+  Providers,
+  SolarSystem,
+  Sun,
+  SystemDetails,
+} from '@end/components';
+import './app.module.less';
+import { OrbitControls } from '@react-three/drei';
+
+function System() {
+  return (
+    <>
+      <Canvas
+        style={{ height: '100%' }}
+        camera={{ position: [0, 20, 25], fov: 45 }}
+      >
+        <SolarSystem>
+          <Sun />
+          <Planet />
+          <Lights />
+          <OrbitControls />
+        </SolarSystem>
+      </Canvas>
+    </>
+  );
+}
 
 export function App() {
   return (
-    <View>
-      <Canvas>
-        <HeyThere>
-          <OrbitControls />
-          {/* @ts-ignore */}
-          <OrthographicCamera
-            makeDefault
-            zoom={50}
-            top={200}
-            bottom={-200}
-            left={200}
-            right={-200}
-            near={1}
-            far={2000}
-            position={[0, 0, 200]}
-          />
-        </HeyThere>
-      </Canvas>
+    <View style={{ height: '100%' }}>
+      <Providers>
+        <SystemDetails>
+          <System />
+        </SystemDetails>
+      </Providers>
     </View>
   );
 }

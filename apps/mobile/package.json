@@ -20,7 +20,10 @@
     "@react-three/fiber": "*",
     "@react-three/drei": "*",
     "r3f-native-orbitcontrols": "*",
-    "tslib": "*"
+    "tslib": "*",
+    "three": "*",
+    "tamagui": "*",
+    "@tamagui/config": "*"
   },
   "scripts": {
     "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/mobile && cp package-lock.json apps/mobile",
