@@ -8,7 +8,10 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "strict": true,
-    "declaration": true
+    "declaration": true,
+//    "paths": {
+//      "@end/components": ["../../libs/ui/rnw/src"]
+//    }
   },
   "files": [],
   "include": [],

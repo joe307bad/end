@@ -19,7 +19,8 @@
     "@babel/core": "*",
     "@react-three/fiber": "*",
     "@react-three/drei": "*",
-    "r3f-native-orbitcontrols": "*"
+    "r3f-native-orbitcontrols": "*",
+    "tslib": "*"
   },
   "scripts": {
     "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/mobile && cp package-lock.json apps/mobile",
