@@ -32,9 +32,9 @@ function System() {
 
 export function App() {
   return (
-    <View style={{ height: '100%' }}>
+    <View style={{ height: '100%', width: '100%' }}>
       <Providers>
-        <SystemDetails>
+        <SystemDetails name="Galator 9" id="2r23fr" tags={['planetary system']} >
           <System />
         </SystemDetails>
       </Providers>

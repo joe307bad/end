@@ -1,24 +1,54 @@
 import React, { ReactNode } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { TamaguiProvider } from 'tamagui';
-import { H1, H2, H3, H4, H5, H6, Heading } from 'tamagui';
-import config from './tamagui.config';
+import { TamaguiProvider, XStack, YStack, H1 } from 'tamagui';
+import { config } from './tamagui.config';
+import { View, Text } from 'react-native';
 
 export function Providers({ children }: { children: ReactNode }) {
   return <TamaguiProvider config={config}>{children}</TamaguiProvider>;
 }
 
-export function SystemDetails({ children }: { children: ReactNode }) {
+export function Badge({ title, color }: { title: string; color: string }) {
+  return (
+    <View
+      style={{
+        backgroundColor: color,
+        borderRadius: 5,
+        padding: 10,
+        height: 40,
+      }}
+    >
+      <Text style={{ color: 'white' }}>{title}</Text>
+    </View>
+  );
+}
+
+export function SystemDetails({
+  children,
+  name,
+  id,
+  tags,
+}: {
+  children: ReactNode;
+  id: string;
+  name: string;
+  tags: string[];
+}) {
   return (
     <>
-      <H1>Heading 1</H1>
-      <H2>Heading 2</H2>
-      <H3>Heading 3</H3>
-      <H4>Heading 4</H4>
-      <H5>Heading 5</H5>
-      <H6>Heading 6</H6>
-      <Heading>Heading</Heading>
+      <H1>{name}</H1>
+      <YStack
+        width="100%"
+        maxWidth={300}
+        marginHorizontal={15}
+        marginVertical={10}
+      >
+        <XStack height={20} alignItems="center" space="$3">
+          <Badge title="Undiscovered" color="red" />
+          <Badge title={`# - ${id}`} color="blue" />
+        </XStack>
+      </YStack>
       {children}
     </>
   );

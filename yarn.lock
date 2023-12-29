@@ -1834,6 +1834,7 @@ __metadata:
     axios: "npm:^1.0.0"
     babel-jest: "npm:^29.4.1"
     babel-loader: "npm:^9.1.3"
+    babel-plugin-react-native-web: "npm:^0.19.10"
     babel-preset-expo: "npm:~9.5.2"
     detox: "npm:^20.11.1"
     eas-cli: "npm:~5.2.0"
@@ -8250,6 +8251,13 @@ __metadata:
   peerDependencies:
     "@babel/core": ^7.4.0 || ^8.0.0-0 <8.0.0
   checksum: 0b903f5fe2f8c487b4260935dfe60bd9a95bcaee7ae63958f063045093b16d4e8288c232199d411261300aa21f6b106a3cb83c42cc996de013b337f5825a79fe
+  languageName: node
+  linkType: hard
+
+"babel-plugin-react-native-web@npm:^0.19.10":
+  version: 0.19.10
+  resolution: "babel-plugin-react-native-web@npm:0.19.10"
+  checksum: c9599c8d5348f903ece5a720dd6bd4464ce04f7ccbb2e5a8faa64aa6531815d6691e7715dfa8f141e3ad2a470a4094a5c6e27dc8fa45c17277ee7d794fca13a1
   languageName: node
   linkType: hard
 

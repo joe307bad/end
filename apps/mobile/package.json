@@ -23,7 +23,12 @@
     "tslib": "*",
     "three": "*",
     "tamagui": "*",
-    "@tamagui/config": "*"
+    "@tamagui/config": "*",
+    "@tamagui/font-inter": "*",
+    "@tamagui/shorthands": "*",
+    "@tamagui/themes": "*",
+    "@tamagui/react-native-media-driver": "*",
+    "react-native-safe-area-context": "*"
   },
   "scripts": {
     "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/mobile && cp package-lock.json apps/mobile",
