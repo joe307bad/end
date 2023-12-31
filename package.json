@@ -5,7 +5,11 @@
   "private": true,
   "dependencies": {
     "@expo/metro-config": "~0.10.7",
+    "@faker-js/faker": "^8.3.1",
     "@fastify/autoload": "~5.7.1",
+    "@fastify/cors": "^8.5.0",
+    "@fastify/env": "^4.3.0",
+    "@fastify/mongodb": "^8.0.0",
     "@fastify/sensible": "~5.2.0",
     "@react-three/drei": "9.34.3",
     "@react-three/fiber": "^8.3.1",
@@ -19,6 +23,7 @@
     "expo-status-bar": "~1.6.0",
     "expo-three": "^6.2.0",
     "fastify": "~4.13.0",
+    "fastify-cli": "^5.9.0",
     "fastify-plugin": "~4.5.0",
     "r3f-native-orbitcontrols": "^1.0.9",
     "react": "18.2.0",
@@ -101,5 +106,8 @@
     "typescript": "~5.2.2",
     "url-loader": "^4.1.1"
   },
-  "packageManager": "yarn@4.0.2"
+  "packageManager": "yarn@4.0.2",
+  "engines": {
+    "yarn": "4.x"
+  }
 }

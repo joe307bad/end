@@ -8,7 +8,9 @@
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "optionalChainingAssign": true
+    "optionalChainingAssign": true,
+    "esModuleInterop": true,
+    "declaration": false
   },
   "files": [],
   "include": [],

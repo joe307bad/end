@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { TamaguiProvider, XStack, YStack, H1 } from 'tamagui';
+import { TamaguiProvider, XStack, YStack, H1, Button, Input } from 'tamagui';
 import { config } from './tamagui.config';
 import { View, Text } from 'react-native';
 
@@ -29,11 +29,15 @@ export function SystemDetails({
   name,
   id,
   tags,
+  discoverSystem,
+  setName,
 }: {
   children: ReactNode;
-  id: string;
+  id?: string;
   name: string;
   tags: string[];
+  discoverSystem: () => void;
+  setName: (name: string) => void;
 }) {
   return (
     <>
@@ -46,10 +50,17 @@ export function SystemDetails({
       >
         <XStack height={20} alignItems="center" space="$3">
           <Badge title="Undiscovered" color="red" />
-          <Badge title={`# - ${id}`} color="blue" />
+          {id ? <Badge title={`# - ${id}`} color="blue" /> : null}
         </XStack>
       </YStack>
       {children}
+      <Input
+        onChange={(e) => {
+          setName(e.nativeEvent.text);
+        }}
+        placeholder={name}
+      />
+      <Button onPress={discoverSystem}>Discover</Button>
     </>
   );
 }
@@ -69,8 +80,7 @@ export function Sun() {
 
 const random = (a: number, b: number) => a + Math.random() * b;
 const randomInt = (a: number, b: number) => Math.floor(random(a, b));
-const randomColor = () =>
-  `rgb(${randomInt(100, 200)}, ${randomInt(0, 70)}, ${randomInt(0, 50)})`;
+const randomColor = () => `cyan`;
 
 export function Planet() {
   const planetRef = React.useRef();

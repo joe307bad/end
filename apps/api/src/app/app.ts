@@ -24,4 +24,27 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
     dir: path.join(__dirname, 'routes'),
     options: { ...opts },
   });
+
+  await fastify.register(require('@fastify/env'), {
+    schema: {
+      type: 'object',
+      properties: {
+        PORT: { type: 'integer', default: 3000 },
+        NODE_ENV: { type: 'string' },
+        MONGO_URL: { type: 'string' },
+      },
+    },
+  });
+
+  fastify.register(require('@fastify/cors'), {
+    origin: '*',
+    methods: ['POST'],
+  });
+
+  fastify.register(require('@fastify/mongodb'), {
+    // @ts-ignore
+    // mongodb://localhost:27017/end
+    url: `mongodb://${process.env.MONGO_USER}>${process.env.PASSWORD}{process.env}.MONGO_PASSWORD}@https://end-mongo-silent-cherry-2522.fly.dev /end?authSource=admin`,
+  });
 }
+Q

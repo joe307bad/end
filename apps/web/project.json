@@ -4,6 +4,10 @@
   "sourceRoot": "apps/web/src",
   "projectType": "application",
   "targets": {
+    "deploy": {
+      "dependsOn": ["build"],
+      "command": "fly deploy"
+    },
     "build": {
       "executor": "@nx/webpack:webpack",
       "outputs": ["{options.outputPath}"],
@@ -70,6 +74,10 @@
       "options": {
         "jestConfig": "apps/web/jest.config.ts"
       }
+    },
+    "docker-build": {
+      "dependsOn": ["build"],
+      "command": "docker build -f apps/web/Dockerfile . -t web"
     }
   },
   "tags": []

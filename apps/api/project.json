@@ -61,6 +61,10 @@
       "options": {
         "jestConfig": "apps/api/jest.config.ts"
       }
+    },
+    "docker-build": {
+      "dependsOn": ["build"],
+      "command": "docker build -f apps/api/Dockerfile . -t api"
     }
   },
   "tags": []
