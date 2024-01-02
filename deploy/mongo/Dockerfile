@@ -1,8 +1,13 @@
-FROM mongo:6.0.11
+FROM mongo:4.2.6
 
-ENV MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-ENV MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+ENV AUTH yes
+ENV STORAGE_ENGINE wiredTiger
+ENV JOURNALING yes
 
-ADD set_mongodb_password.sh docker-entrypoint-initdb.d/
+ADD deploy/mongo/run.sh /run.sh
+ADD deploy/mongo/set_mongodb_password.sh /set_mongodb_password.sh
+COPY deploy/mongo/mongod.conf /etc/mongod.conf
 
 EXPOSE 27017
+
+CMD ["/run.sh"]
