@@ -107,7 +107,8 @@
     "url-loader": "^4.1.1"
   },
   "scripts": {
-    "tsc": "nx run-many -t tsc"
+    "tsc": "nx run-many -t tsc",
+    "deploy": "nx affected:deploy"
   },
   "packageManager": "yarn@4.0.2",
   "engines": {
