@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { TamaguiProvider, XStack, YStack, H1, Button, Input } from 'tamagui';
+import { TamaguiProvider, XStack, YStack, H1, Button, Input, H2 } from 'tamagui';
 import { config } from './tamagui.config';
 import { View, Text } from 'react-native';
 
@@ -42,6 +42,7 @@ export function SystemDetails({
   return (
     <>
       <H1>{name}</H1>
+      <H2>{Date().toLocaleString()}</H2>
       <YStack
         width="100%"
         maxWidth={300}
