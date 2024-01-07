@@ -47,4 +47,3 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
     url: `mongodb://${process.env.MONGO_USER}>${process.env.PASSWORD}{process.env}.MONGO_PASSWORD}@https://end-mongo-silent-cherry-2522.fly.dev /end?authSource=admin`,
   });
 }
-Q
