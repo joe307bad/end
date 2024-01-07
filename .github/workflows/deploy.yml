@@ -26,7 +26,7 @@ jobs:
         with:
           cmd: install
 
-      - name: Compile all apps
+      - name: Deploy affected
         uses: borales/actions-yarn@v4
         with:
           cmd: deploy
