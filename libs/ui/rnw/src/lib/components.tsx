@@ -36,8 +36,8 @@ export function SystemDetails({
   id?: string;
   name: string;
   tags: string[];
-  discoverSystem: () => void;
-  setName: (name: string) => void;
+  discoverSystem?: () => void;
+  setName?: (name: string) => void;
 }) {
   return (
     <>
@@ -56,7 +56,7 @@ export function SystemDetails({
       {children}
       <Input
         onChange={(e) => {
-          setName(e.nativeEvent.text);
+          setName?.(e?.nativeEvent?.text);
         }}
         placeholder={name}
       />
