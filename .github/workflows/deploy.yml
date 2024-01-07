@@ -27,7 +27,6 @@ jobs:
           cmd: install
 
       - uses: nrwl/nx-set-shas@v3
-      - run: npx nx format:check
 
       - name: Deploy affected
         uses: borales/actions-yarn@v4

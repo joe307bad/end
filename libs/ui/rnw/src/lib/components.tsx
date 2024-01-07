@@ -42,7 +42,7 @@ export function SystemDetails({
   return (
     <>
       <H1>{name}</H1>
-      <H2>{Date().toLocaleString()} - cd-4</H2>
+      <H2>{Date().toLocaleString()} - cd-5</H2>
       <YStack
         width="100%"
         maxWidth={300}
