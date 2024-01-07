@@ -108,7 +108,7 @@
   },
   "scripts": {
     "tsc": "nx run-many -t tsc",
-    "deploy": "nx affected:deploy"
+    "deploy": "nx affected -t deploy"
   },
   "packageManager": "yarn@4.0.2",
   "engines": {
