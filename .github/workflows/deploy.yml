@@ -26,6 +26,10 @@ jobs:
         with:
           cmd: install
 
+      - uses: nrwl/nx-set-shas@v3
+      - run: git branch --track main origin/main
+      - run: npx nx format:check
+
       - name: Deploy affected
         uses: borales/actions-yarn@v4
         with:
