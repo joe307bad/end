@@ -27,7 +27,6 @@ jobs:
           cmd: install
 
       - uses: nrwl/nx-set-shas@v3
-      - run: git branch --track main origin/main
       - run: npx nx format:check
 
       - name: Deploy affected
