@@ -42,8 +42,6 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
   });
 
   fastify.register(require('@fastify/mongodb'), {
-    // @ts-ignore
-    // mongodb://localhost:27017/end
-    url: `mongodb://${process.env.MONGO_USER}>${process.env.PASSWORD}{process.env}.MONGO_PASSWORD}@https://end-mongo-silent-cherry-2522.fly.dev /end?authSource=admin`,
+    url: `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_PROD_URL}/end?authSource=admin`,
   });
 }
