@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 
 export default async function (fastify: FastifyInstance) {
   fastify.get('/', async function () {
-    return { message: 'Hello API' };
+    return { message: 'Hello API - cd-api-1' };
   });
 
   fastify.post('/system', async function createSystem (request, reply) {

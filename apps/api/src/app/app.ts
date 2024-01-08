@@ -32,6 +32,9 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
         PORT: { type: 'integer', default: 3000 },
         NODE_ENV: { type: 'string' },
         MONGO_URL: { type: 'string' },
+        MONGO_USER: { type: 'string' },
+        MONGO_PASSWORD: { type: 'string' },
+        MONGO_PROD_URL: { type: 'string' },
       },
     },
   });
