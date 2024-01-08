@@ -19,10 +19,7 @@ jobs:
         with:
           node-version: 18.x
 
-      - name: Run install
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: install
+      - run: yarn install
 
       - run: git pull
 
@@ -30,5 +27,5 @@ jobs:
         uses: nrwl/nx-set-shas@v3
 
       - name: Deploy affected
-        uses: superfly/flyctl-actions/setup-flyctl@master
-        run: yarn deploy
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: yarn deploy
