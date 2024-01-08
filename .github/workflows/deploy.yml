@@ -38,5 +38,6 @@ jobs:
           envkey_MONGO_USER: ${{ secrets.MONGO_USER }}
           envkey_MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
           envkey_MONGO_PROD_URL: ${{ secrets.MONGO_PROD_URL }}
+          envkey_HOST: 0.0.0.0
 
       - run: yarn deploy

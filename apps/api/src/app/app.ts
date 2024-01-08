@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { FastifyInstance } from 'fastify';
 import AutoLoad from '@fastify/autoload';
+require('dotenv').config()
 
 /* eslint-disable-next-line */
 export interface AppOptions {}
