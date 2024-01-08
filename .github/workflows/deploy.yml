@@ -24,8 +24,6 @@ jobs:
 
       - run: yarn install
 
-      - run: git pull
-
       - name: Set SHAs for nx affected
         uses: nrwl/nx-set-shas@v3
 
@@ -40,4 +38,5 @@ jobs:
           envkey_MONGO_PROD_URL: ${{ secrets.MONGO_PROD_URL }}
           envkey_HOST: 0.0.0.0
 
+      - run: git pull --rebase
       - run: yarn deploy
