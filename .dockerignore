@@ -58,8 +58,6 @@ typings
 
 **/apps/mobile-e2e/artifacts
 
-**/**/.env
-
 # flyctl launch added from .idea/.gitignore
 # Default ignored files
 .idea/shelf
