@@ -32,4 +32,11 @@ jobs:
       - name: Setup fly
         uses: superfly/flyctl-actions/setup-flyctl@master
 
+      - name: Make envfile
+        uses: SpicyPizza/create-envfile@v1.3
+        with:
+          envkey_MONGO_USER: ${{ secrets.MONGO_USER }}
+          envkey_MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+          envkey_MONGO_PROD_URL: ${{ secrets.MONGO_PROD_URL }}
+
       - run: yarn deploy
