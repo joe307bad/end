@@ -4,6 +4,10 @@
   "sourceRoot": "apps/api/src",
   "projectType": "application",
   "targets": {
+    "deploy": {
+      "dependsOn": ["build"],
+      "command": "flyctl deploy --config apps/api/fly.toml --dockerfile apps/api/Dockerfile"
+    },
     "tsc": {
       "executor": "nx:run-commands",
       "options": {
