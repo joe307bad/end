@@ -26,6 +26,7 @@ jobs:
       - name: Set SHAs for nx affected
         uses: nrwl/nx-set-shas@v3
 
-      - name: Deploy affected
-      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Setup fly
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
       - run: yarn deploy
