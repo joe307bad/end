@@ -26,10 +26,10 @@ jobs:
         with:
           cmd: install
 
-      - run: git fetch origin main
+      - run: git pull
       - uses: nrwl/nx-set-shas@v3
 
       - name: Deploy affected
         uses: borales/actions-yarn@v4
         with:
-          cmd: deploy -- --base=origin/main
+          cmd: deploy
