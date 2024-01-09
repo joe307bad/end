@@ -1,7 +1,15 @@
 import React, { ReactNode } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { TamaguiProvider, XStack, YStack, H1, Button, Input, H2 } from 'tamagui';
+import {
+  TamaguiProvider,
+  XStack,
+  YStack,
+  H1,
+  Button,
+  Input,
+  H2,
+} from 'tamagui';
 import { config } from './tamagui.config';
 import { View, Text } from 'react-native';
 
@@ -31,6 +39,7 @@ export function SystemDetails({
   tags,
   discoverSystem,
   setName,
+  h1,
 }: {
   children: ReactNode;
   id?: string;
@@ -38,10 +47,11 @@ export function SystemDetails({
   tags: string[];
   discoverSystem?: () => void;
   setName?: (name: string) => void;
+  h1?: string;
 }) {
   return (
     <>
-      <H1>{name}</H1>
+      <H1 id={h1}>{name}</H1>
       <H2>{Date().toLocaleString()} - cd-13</H2>
       <YStack
         width="100%"

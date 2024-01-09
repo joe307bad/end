@@ -9,9 +9,9 @@ import {
   Sun,
   SystemDetails,
 } from '@end/components';
-import './app.module.less';
 import { OrbitControls } from '@react-three/drei';
 import { faker } from '@faker-js/faker';
+import Styles from './app.module.scss';
 
 function System() {
   return (
@@ -38,7 +38,7 @@ export function App() {
   );
 
   const discoverSystem = useCallback(() => {
-    fetch('http://localhost:3000/system', {
+    fetch('https://end.fly.dev/system', {
       method: 'POST', // *GET, POST, PUT, DELETE, etc.a
       headers: {
         'Content-Type': 'application/json',
@@ -58,6 +58,7 @@ export function App() {
           name={name}
           setName={setName}
           tags={['planetary system']}
+          h1={Styles.h1}
         >
           <System />
         </SystemDetails>
