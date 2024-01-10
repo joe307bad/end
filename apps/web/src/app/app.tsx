@@ -1,17 +1,17 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { Canvas } from '@react-three/fiber';
 import {
+  Landing,
   Lights,
   Planet,
   Providers,
   SolarSystem,
   Sun,
-  SystemDetails,
 } from '@end/components';
 import { OrbitControls } from '@react-three/drei';
 import { faker } from '@faker-js/faker';
-import Styles from './app.module.scss';
+import './app.module.scss';
 
 function System() {
   return (
@@ -53,15 +53,16 @@ export function App() {
   return (
     <View style={{ height: '100%', width: '100%' }}>
       <Providers>
-        <SystemDetails
-          discoverSystem={discoverSystem}
-          name={name}
-          setName={setName}
-          tags={['planetary system']}
-          h1={Styles.h1}
-        >
-          <System />
-        </SystemDetails>
+        <Landing />
+        {/*<SystemDetails*/}
+        {/*  discoverSystem={discoverSystem}*/}
+        {/*  name={name}*/}
+        {/*  setName={setName}*/}
+        {/*  tags={['planetary system']}*/}
+        {/*  h1={Styles.h1}*/}
+        {/*>*/}
+        {/*  <System />*/}
+        {/*</SystemDetails>*/}
       </Providers>
     </View>
   );
