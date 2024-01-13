@@ -12,14 +12,9 @@ import {
 } from 'tamagui';
 import { config } from './tamagui.config';
 import { View, Text } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
 
 export function Providers({ children }: { children: ReactNode }) {
-  return (
-    <NavigationContainer>
-      <TamaguiProvider config={config}>{children}</TamaguiProvider>
-    </NavigationContainer>
-  );
+  return <TamaguiProvider config={config}>{children}</TamaguiProvider>;
 }
 
 export function Badge({ title, color }: { title: string; color: string }) {
@@ -44,7 +39,7 @@ export function SystemDetails({
   tags,
   discoverSystem,
   setName,
-  h1,
+  h1
 }: {
   children: ReactNode;
   id?: string;

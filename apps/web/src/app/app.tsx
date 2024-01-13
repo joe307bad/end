@@ -1,7 +1,8 @@
-import React, { useCallback, useState } from 'react';
+import React, { ReactNode, useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { Canvas } from '@react-three/fiber';
 import {
+  Container,
   Landing,
   Lights,
   Planet,
@@ -12,6 +13,83 @@ import {
 import { OrbitControls } from '@react-three/drei';
 import { faker } from '@faker-js/faker';
 import './app.module.scss';
+
+import {
+  createBrowserRouter,
+  NavigateFunction,
+  RouterProvider,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
+import { Home } from '../pages/Home';
+import { Conquest } from '../pages/Conquest';
+import { Economy } from '../pages/Economy';
+import { Story } from '../pages/Story';
+
+function WithNavigate({
+  children,
+}: {
+  children: (n: NavigateFunction) => ReactNode;
+}) {
+  const navigate = useNavigate();
+  return children(navigate);
+}
+
+function Page({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  console.log({ pathname });
+  return (
+    <Container navigate={navigate} currentRoute={pathname}>
+      {children}
+    </Container>
+  );
+}
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: (
+      <Page>
+        <WithNavigate>
+          {(n) => <Landing goToHome={() => n('/home')} />}
+        </WithNavigate>
+      </Page>
+    ),
+  },
+  {
+    path: '/home',
+    element: (
+      <Page>
+        <Home />
+      </Page>
+    ),
+  },
+  {
+    path: '/story',
+    element: (
+      <Page>
+        <Story />
+      </Page>
+    ),
+  },
+  {
+    path: '/economy',
+    element: (
+      <Page>
+        <Economy />
+      </Page>
+    ),
+  },
+  {
+    path: '/conquest',
+    element: (
+      <Page>
+        <Conquest />
+      </Page>
+    ),
+  },
+]);
 
 function System() {
   return (
@@ -33,27 +111,25 @@ function System() {
 
 export function App() {
   const word = faker.random.word();
-  const [name, setName] = useState(
-    word.charAt(0).toUpperCase() + word.slice(1)
-  );
+  const [n, setName] = useState(word.charAt(0).toUpperCase() + word.slice(1));
 
   const discoverSystem = useCallback(() => {
     fetch('https://end.fly.dev/system', {
-      method: 'POST', // *GET, POST, PUT, DELETE, etc.a
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name: n }),
     })
       .then((response) => response.json())
       .then((data) => console.log(data))
       .catch((error) => console.error(error));
-  }, [name]);
+  }, [n]);
 
   return (
     <View style={{ height: '100%', width: '100%' }}>
       <Providers>
-        <Landing />
+        <RouterProvider router={router} />
         {/*<SystemDetails*/}
         {/*  discoverSystem={discoverSystem}*/}
         {/*  name={name}*/}

@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import Styles from './Landing.module.scss';
 import { Input, XStack, Button, YStack } from 'tamagui';
 
-export function Landing() {
+export function Landing({ goToHome }: { goToHome?: () => void }) {
   return (
     <View id={Styles.landing}>
       <YStack space="$2">
@@ -13,7 +13,9 @@ export function Landing() {
         <XStack alignItems="center" space="$2">
           <Input borderRadius={0} flex={1} />
           <Input borderRadius={0} flex={1} />
-          <Button borderRadius={0}>Login</Button>
+          <Button onPress={() => goToHome?.()} borderRadius={0}>
+            Login
+          </Button>
         </XStack>
       </YStack>
     </View>
