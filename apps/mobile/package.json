@@ -28,7 +28,9 @@
     "@tamagui/shorthands": "*",
     "@tamagui/themes": "*",
     "@tamagui/react-native-media-driver": "*",
-    "react-native-safe-area-context": "*"
+    "react-native-safe-area-context": "*",
+    "metro-react-native-babel-transformer": "*",
+    "react-native-sass-transformer": "*"
   },
   "scripts": {
     "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/mobile && cp package-lock.json apps/mobile",

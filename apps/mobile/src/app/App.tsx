@@ -31,7 +31,7 @@ export default function App() {
   return (
     <SafeAreaView>
       <View style={{ height: '100%', width: '100%' }}>
-        <SystemDetails name="Galator 9" id="2r23fr" tags={['planetary system']}>
+        <SystemDetails name="Galator 92" id="2r23fr" tags={['planetary system']}>
           <System />
         </SystemDetails>
       </View>
