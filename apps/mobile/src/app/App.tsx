@@ -3,39 +3,58 @@ import { Canvas } from '@react-three/fiber/native';
 import { StyleSheet, View } from 'react-native';
 import useControls from 'r3f-native-orbitcontrols';
 import {
+  Landing as LandingView,
   Lights,
   Planet,
   SolarSystem,
   Sun,
   SystemDetails,
 } from '@end/components';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { NavigationContainer } from '@react-navigation/native';
+import { Home } from '../pages/Home';
 
 function System() {
   const [OrbitControls, events] = useControls();
   return (
-    <View {...events} style={styles.container}>
-      <Canvas camera={{ position: [0, 40, 45], fov: 45 }}>
-        <SolarSystem>
-          <Sun />
-          <Planet />
-          <Lights />
-          <OrbitControls />
-        </SolarSystem>
-      </Canvas>
-    </View>
+    <SystemDetails name="Galator 92" id="2r23fr" tags={['planetary system']}>
+      <View {...events} style={styles.container}>
+        <Canvas camera={{ position: [0, 40, 45], fov: 45 }}>
+          <SolarSystem>
+            <Sun />
+            <Planet />
+            <Lights />
+            <OrbitControls />
+          </SolarSystem>
+        </Canvas>
+      </View>
+    </SystemDetails>
+  );
+}
+
+const Drawer = createDrawerNavigator();
+
+function WithNavigate({ children }: { children: (n: any) => any }) {
+  const navigate = () => {};
+  return children(navigate);
+}
+
+function Landing() {
+  return (
+    <WithNavigate>
+      {(n) => <LandingView goToHome={() => n('/home')} />}
+    </WithNavigate>
   );
 }
 
 export default function App() {
   return (
-    <SafeAreaView>
-      <View style={{ height: '100%', width: '100%' }}>
-        <SystemDetails name="Galator 92" id="2r23fr" tags={['planetary system']}>
-          <System />
-        </SystemDetails>
-      </View>
-    </SafeAreaView>
+    <NavigationContainer>
+      <Drawer.Navigator initialRouteName="Landing">
+        <Drawer.Screen name="Landing" component={Landing} />
+        <Drawer.Screen name="Home" component={Home} />
+      </Drawer.Navigator>
+    </NavigationContainer>
   );
 }
 
