@@ -4,7 +4,7 @@
   "sourceRoot": "libs/ui/rnw/src",
   "projectType": "library",
   "targets": {
-    "build": {
+    "tsc": {
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
