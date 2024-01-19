@@ -13,6 +13,7 @@
     "@nx/expo": "*",
     "@expo/metro-config": "*",
     "react-native-svg-transformer": "*",
+    "react-native-reanimated": "*",
     "react": "*",
     "expo-splash-screen": "~0.20.5",
     "expo-status-bar": "~1.6.0",
@@ -28,7 +29,11 @@
     "@tamagui/shorthands": "*",
     "@tamagui/themes": "*",
     "@tamagui/react-native-media-driver": "*",
-    "react-native-safe-area-context": "*"
+    "react-native-safe-area-context": "*",
+    "metro-react-native-babel-transformer": "*",
+    "react-native-sass-transformer": "*",
+    "@react-navigation/drawer": "*",
+    "@react-navigation/native": "*"
   },
   "scripts": {
     "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/mobile && cp package-lock.json apps/mobile",

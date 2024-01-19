@@ -62,7 +62,8 @@ export const config = createTamagui({
   themes: {
     ...themes,
     borderWidth: {right: '10', left: '10'},
-    borderColor: {right: 'white'}
+    borderColor: {right: 'white'},
+    borderRadius: {right: 0, left: 0,}
   },
   tokens,
   media: createMedia({

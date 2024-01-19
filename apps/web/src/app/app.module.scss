@@ -1,0 +1,19 @@
+@font-face {
+  font-family: 'shine';
+  font-style: normal;
+  font-weight: normal;
+  src: url('../assets/ShineTypewriterRegular.ttf') format('truetype'),
+    url('../assets/ShineTypewriterRegular.woff2') format('woff2'),
+    url('../assets/ShineTypewriterRegular.woff') format('woff');
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+
+  #root {
+    height: 100%;
+    width: 100%;
+  }
+}
