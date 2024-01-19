@@ -1,3 +1,4 @@
+import React from 'react';
 import * as Typography from '../Typography';
 import { View } from 'react-native';
 import Styles from './Landing.module.scss';
@@ -5,9 +6,9 @@ import { Input, XStack, Button, YStack } from 'tamagui';
 
 export function Landing({ goToHome }: { goToHome?: () => void }) {
   return (
-    <View id={Styles.landing}>
+    <View id={Styles['landing']}>
       <YStack space="$2">
-        <View id={Styles.h1Container}>
+        <View id={Styles['h1Container']}>
           <Typography.H1>end</Typography.H1>
         </View>
         <XStack alignItems="center" space="$2">
