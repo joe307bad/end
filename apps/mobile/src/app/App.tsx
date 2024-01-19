@@ -34,17 +34,12 @@ function System() {
 
 const Drawer = createDrawerNavigator();
 
-function WithNavigate({ children }: { children: (n: any) => any }) {
-  const navigate = () => {};
-  return children(navigate);
-}
-
-function Landing() {
-  return (
-    <WithNavigate>
-      {(n) => <LandingView goToHome={() => n('/home')} />}
-    </WithNavigate>
-  );
+function Landing({
+  navigation,
+}: {
+  navigation: { navigate(route: string): void };
+}) {
+  return <LandingView goToHome={() => navigation.navigate('Home')} />;
 }
 
 export default function App() {
