@@ -1,8 +1,8 @@
-import { createTamagui } from 'tamagui'
-import { createInterFont } from '@tamagui/font-inter'
-import { shorthands } from '@tamagui/shorthands'
-import { themes, tokens } from '@tamagui/themes'
-import { createMedia } from '@tamagui/react-native-media-driver'
+import { createTamagui, createTokens } from 'tamagui';
+import { createInterFont } from '@tamagui/font-inter';
+import { shorthands } from '@tamagui/shorthands';
+import { themes, size } from '@tamagui/themes';
+import { createMedia } from '@tamagui/react-native-media-driver';
 
 const headingFont = createInterFont({
   size: {
@@ -34,7 +34,7 @@ const headingFont = createInterFont({
   face: {
     700: { normal: 'InterBold' },
   },
-})
+});
 
 // @ts-ignore
 const bodyFont = createInterFont(
@@ -47,9 +47,19 @@ const bodyFont = createInterFont(
     sizeSize: (size) => Math.round(size * 1.1),
     sizeLineHeight: (size) => Math.round(size * 1.1 + (size > 20 ? 10 : 10)),
   }
-)
+);
 
-// @ts-ignore
+export const tokens = createTokens({
+  size,
+  space: { ...size, '-1': -5, '-2': -10 },
+  radius: { 0: 0, 1: 3 },
+  zIndex: { 0: 0, 1: 100, 2: 200 },
+  color: {
+    white: '#fff',
+    black: 'black',
+  },
+});
+
 export const config = createTamagui({
   defaultFont: 'body',
   shouldAddPrefersColorThemes: true,
@@ -61,9 +71,13 @@ export const config = createTamagui({
   },
   themes: {
     ...themes,
-    borderWidth: {right: '10', left: '10'},
-    borderColor: {right: 'white'},
-    borderRadius: {right: 0, left: 0,}
+    dark: {
+      background: tokens.color.black,
+      color: 'white',
+    },
+    borderWidth: { right: '10', left: '10' },
+    borderColor: { right: 'white' },
+    borderRadius: { right: 0, left: 0 },
   },
   tokens,
   media: createMedia({
@@ -82,4 +96,4 @@ export const config = createTamagui({
     hoverNone: { hover: 'none' },
     pointerCoarse: { pointer: 'coarse' },
   }),
-})
+});
