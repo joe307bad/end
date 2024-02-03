@@ -10,11 +10,13 @@ import {
   Input,
   H2,
 } from 'tamagui';
-import { config } from './tamagui.config';
+import { config, tokens } from './tamagui.config';
 import { View, Text } from 'react-native';
 
+export const tamaguiTokens = tokens;
+
 export function Providers({ children }: { children: ReactNode }) {
-  return <TamaguiProvider config={config}>{children}</TamaguiProvider>;
+  return <TamaguiProvider  defaultTheme="dark" config={config}>{children}</TamaguiProvider>;
 }
 
 export function Badge({ title, color }: { title: string; color: string }) {

@@ -6,12 +6,14 @@ import {
   Landing as LandingView,
   Lights,
   Planet,
+  Providers,
   SolarSystem,
   Sun,
   SystemDetails,
+  tamaguiTokens
 } from '@end/components';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, NavigationContainer } from '@react-navigation/native';
 import { Home } from '../pages/Home';
 
 function System() {
@@ -42,14 +44,25 @@ function Landing({
   return <LandingView goToHome={() => navigation.navigate('Home')} />;
 }
 
+const MyTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: tamaguiTokens.color.black.val,
+    primary: 'rgb(255, 45, 85)',
+  },
+};
+
 export default function App() {
   return (
-    <NavigationContainer>
-      <Drawer.Navigator initialRouteName="Landing">
-        <Drawer.Screen name="Landing" component={Landing} />
-        <Drawer.Screen name="Home" component={Home} />
-      </Drawer.Navigator>
-    </NavigationContainer>
+    <Providers>
+      <NavigationContainer theme={MyTheme}>
+        <Drawer.Navigator initialRouteName="Landing">
+          <Drawer.Screen name="Landing" component={Landing} />
+          <Drawer.Screen name="Home" component={Home} />
+        </Drawer.Navigator>
+      </NavigationContainer>
+    </Providers>
   );
 }
 
