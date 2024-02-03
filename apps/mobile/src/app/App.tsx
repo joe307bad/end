@@ -10,11 +10,12 @@ import {
   SolarSystem,
   Sun,
   SystemDetails,
-  tamaguiTokens
+  tamaguiTokens,
 } from '@end/components';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { DarkTheme, NavigationContainer } from '@react-navigation/native';
 import { Home } from '../pages/Home';
+import * as Font from 'expo-font';
 
 function System() {
   const [OrbitControls, events] = useControls();
@@ -53,7 +54,25 @@ const MyTheme = {
   },
 };
 
-export default function App() {
+export default class App extends React.Component<any, any> {
+  state = {
+    fontLoaded: false,
+  };
+
+  async componentDidMount() {
+    await Font.loadAsync({
+      ShineTypewriterRegular: require('../../assets/ShineTypewriterRegular.ttf'),
+    });
+    this.setState({ fontLoaded: true });
+  }
+
+  render() {
+    console.log({ loaded: this.state.fontLoaded });
+    return this.state.fontLoaded ? <Routes /> : <></>;
+  }
+}
+
+export function Routes() {
   return (
     <Providers>
       <NavigationContainer theme={MyTheme}>
