@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { Canvas } from '@react-three/fiber';
 import {
   Container,
+  ContainerWithNav,
   Landing,
   Lights,
   Planet,
@@ -38,11 +39,11 @@ function WithNavigate({
 function Page({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  console.log({ pathname });
+
   return (
-    <Container navigate={navigate} currentRoute={pathname}>
+    <ContainerWithNav navigate={navigate} currentRoute={pathname}>
       {children}
-    </Container>
+    </ContainerWithNav>
   );
 }
 
@@ -50,11 +51,11 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: (
-      <Page>
+      <Container>
         <WithNavigate>
           {(n) => <Landing goToHome={() => n('/home')} />}
         </WithNavigate>
-      </Page>
+      </Container>
     ),
   },
   {

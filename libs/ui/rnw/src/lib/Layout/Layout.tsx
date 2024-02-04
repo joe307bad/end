@@ -34,7 +34,7 @@ function NavButton({
   );
 }
 
-export function Container({
+export function ContainerWithNav({
   children,
   navigate,
   currentRoute,

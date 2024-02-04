@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber/native';
 import { StyleSheet, View } from 'react-native';
 import useControls from 'r3f-native-orbitcontrols';
 import {
+  Container,
   Landing as LandingView,
   Lights,
   Planet,
@@ -37,12 +38,12 @@ function System() {
 
 const Drawer = createDrawerNavigator();
 
-function Landing({
-  navigation,
-}: {
-  navigation: { navigate(route: string): void };
-}) {
-  return <LandingView goToHome={() => navigation.navigate('Home')} />;
+function Landing() {
+  return (
+    <Container>
+      <LandingView goToHome={() => {}} />
+    </Container>
+  );
 }
 
 const MyTheme = {
@@ -67,19 +68,27 @@ export default class App extends React.Component<any, any> {
   }
 
   render() {
-    console.log({ loaded: this.state.fontLoaded });
     return this.state.fontLoaded ? <Routes /> : <></>;
   }
 }
 
 export function Routes() {
+  const loggedIn = false;
   return (
     <Providers>
       <NavigationContainer theme={MyTheme}>
-        <Drawer.Navigator initialRouteName="Landing">
-          <Drawer.Screen name="Landing" component={Landing} />
-          <Drawer.Screen name="Home" component={Home} />
-        </Drawer.Navigator>
+        {!loggedIn ? (
+          <Drawer.Navigator
+            initialRouteName="Landing"
+            screenOptions={{ headerShown: false, swipeEdgeWidth: 0 }}
+          >
+            <Drawer.Screen name="Landing" component={Landing} />
+          </Drawer.Navigator>
+        ) : (
+          <Drawer.Navigator initialRouteName="Landing">
+            <Drawer.Screen name="Home" component={Home} />
+          </Drawer.Navigator>
+        )}
       </NavigationContainer>
     </Providers>
   );

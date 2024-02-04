@@ -16,7 +16,11 @@ import { View, Text } from 'react-native';
 export const tamaguiTokens = tokens;
 
 export function Providers({ children }: { children: ReactNode }) {
-  return <TamaguiProvider  defaultTheme="dark" config={config}>{children}</TamaguiProvider>;
+  return (
+    <TamaguiProvider defaultTheme="dark" config={config}>
+      {children}
+    </TamaguiProvider>
+  );
 }
 
 export function Badge({ title, color }: { title: string; color: string }) {
@@ -41,7 +45,7 @@ export function SystemDetails({
   tags,
   discoverSystem,
   setName,
-  h1
+  h1,
 }: {
   children: ReactNode;
   id?: string;
@@ -155,5 +159,15 @@ function Ecliptic({ xRadius = 1, zRadius = 1 }) {
     <line geometry={lineGeometry}>
       <lineBasicMaterial attach="material" color="#BFBBDA" linewidth={10} />
     </line>
+  );
+}
+
+export function Container({ children }: { children: ReactNode }) {
+  return (
+    <View style={{ display: 'flex', alignItems: 'center', padding: 50 }}>
+      <View style={{ maxWidth: "100%" }}>
+        {children}
+      </View>
+    </View>
   );
 }
