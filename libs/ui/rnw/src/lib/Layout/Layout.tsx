@@ -1,5 +1,9 @@
 import React, { ReactNode } from 'react';
+import { MenuSquare } from '@tamagui/lucide-icons';
 import { Button, Header, View, XStack } from 'tamagui';
+import { tw } from '../components';
+import { useWindowDimensions } from 'react-native';
+import * as R from 'remeda';
 
 function NavButton({
   children,
@@ -34,6 +38,32 @@ function NavButton({
   );
 }
 
+function useResponsive() {
+  const { height, width } = useWindowDimensions();
+
+  return {
+    bp: (bps: [common: string, sm?: string, md?: string, lg?: string]) => {
+      const [common, sm, md, lg] = bps;
+
+      const styles = (() => {
+        if (height > 1000) {
+          return lg;
+        }
+
+        if (height > 800) {
+          return md;
+        }
+
+        return sm;
+      })();
+
+      const s = `${common} ${!R.isEmpty(styles) ? styles : ''}`
+      // @ts-ignore
+      return tw.style(s);
+    },
+  };
+}
+
 export function ContainerWithNav({
   children,
   navigate,
@@ -43,8 +73,10 @@ export function ContainerWithNav({
   currentRoute: string;
   navigate: (route: string, options: { replace: boolean }) => void;
 }) {
+  const { bp } = useResponsive();
   return (
     <View style={{ display: 'flex', alignItems: 'center' }}>
+      <MenuSquare size="$2" style={bp(['', '', 'hidden'])} />
       <View style={{ width: 500, maxWidth: '100%' }}>
         <Header style={{ alignItems: 'center' }}>
           <XStack alignItems="center">

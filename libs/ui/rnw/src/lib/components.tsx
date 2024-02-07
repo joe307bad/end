@@ -11,30 +11,22 @@ import {
   H2,
 } from 'tamagui';
 import { config, tokens } from './tamagui.config';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
+import { Badge } from './Display';
+import t from 'twrnc';
+import { useDeviceContext } from 'twrnc';
+
+export const tw = t as (a: any) => any;
 
 export const tamaguiTokens = tokens;
 
 export function Providers({ children }: { children: ReactNode }) {
+  // @ts-ignore
+  useDeviceContext(tw);
   return (
     <TamaguiProvider defaultTheme="dark" config={config}>
       {children}
     </TamaguiProvider>
-  );
-}
-
-export function Badge({ title, color }: { title: string; color: string }) {
-  return (
-    <View
-      style={{
-        backgroundColor: color,
-        borderRadius: 5,
-        padding: 10,
-        height: 40,
-      }}
-    >
-      <Text style={{ color: 'white' }}>{title}</Text>
-    </View>
   );
 }
 
@@ -165,9 +157,7 @@ function Ecliptic({ xRadius = 1, zRadius = 1 }) {
 export function Container({ children }: { children: ReactNode }) {
   return (
     <View style={{ display: 'flex', alignItems: 'center', padding: 50 }}>
-      <View style={{ maxWidth: "100%" }}>
-        {children}
-      </View>
+      <View style={{ maxWidth: '100%' }}>{children}</View>
     </View>
   );
 }

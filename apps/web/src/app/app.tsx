@@ -2,6 +2,7 @@ import React, { ReactNode, useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { Canvas } from '@react-three/fiber';
 import {
+  Badge,
   Container,
   ContainerWithNav,
   Landing,
@@ -17,6 +18,7 @@ import './app.module.scss';
 
 import {
   createBrowserRouter,
+  Link,
   NavigateFunction,
   RouterProvider,
   useLocation,
@@ -53,7 +55,14 @@ const router = createBrowserRouter([
     element: (
       <Container>
         <WithNavigate>
-          {(n) => <Landing goToHome={() => n('/home')} />}
+          {(n) => (
+            <>
+              <Landing goToHome={() => n('/home')} />
+              <Link to={'#'}>
+                <Badge title="Download the Android app" />
+              </Link>
+            </>
+          )}
         </WithNavigate>
       </Container>
     ),
