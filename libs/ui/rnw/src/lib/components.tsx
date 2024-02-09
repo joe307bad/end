@@ -16,7 +16,7 @@ import { Badge } from './Display';
 import t from 'twrnc';
 import { useDeviceContext } from 'twrnc';
 
-export const tw = t as (a: any) => any;
+export const tw = t as any;
 
 export const tamaguiTokens = tokens;
 
