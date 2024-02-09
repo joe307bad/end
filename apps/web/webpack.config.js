@@ -4,6 +4,7 @@ const { merge } = require('webpack-merge');
 
 module.exports = composePlugins(withNx(), withReact(), (config) => {
   return merge(config, {
+    stats: { warnings: false },
     resolve: {
       alias: {
         'react-native$': 'react-native-web',
@@ -12,8 +13,7 @@ module.exports = composePlugins(withNx(), withReact(), (config) => {
         './Platform': 'react-native-web/dist/exports/Platform',
         'react-native/Libraries/Utilities/codegenNativeComponent':
           'react-native-web/Libraries/Utilities/codegenNativeComponent',
-        './ReactNativeSVG':
-          'react-native-svg/lib/module/ReactNativeSVG.web.js',
+        './ReactNativeSVG': 'react-native-svg/lib/module/ReactNativeSVG.web.js',
       },
     },
     module: {
