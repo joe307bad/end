@@ -1,7 +1,19 @@
 import * as t from 'tamagui';
 import React, { ReactNode } from 'react';
-import Styles from './Typography.module.scss';
+import { Text } from 'react-native';
 
 export function H1({ children }: { children?: ReactNode }): ReactNode {
-  return <t.H1 id={Styles['h1']}>{children}</t.H1>;
+  return (
+    <t.H1 style={{ fontFamily: 'ShineTypewriterRegular' }}>
+      <Text
+        style={{
+          fontFamily: 'ShineTypewriterRegular',
+          fontSize: 50,
+          color: 'white',
+        }}
+      >
+        {children}
+      </Text>
+    </t.H1>
+  );
 }

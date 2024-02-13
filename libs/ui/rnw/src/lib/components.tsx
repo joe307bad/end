@@ -10,25 +10,23 @@ import {
   Input,
   H2,
 } from 'tamagui';
-import { config } from './tamagui.config';
-import { View, Text } from 'react-native';
+import { config, tokens } from './tamagui.config';
+import { View } from 'react-native';
+import { Badge } from './Display';
+import t from 'twrnc';
+import { useDeviceContext } from 'twrnc';
+
+export const tw = t as any;
+
+export const tamaguiTokens = tokens;
 
 export function Providers({ children }: { children: ReactNode }) {
-  return <TamaguiProvider config={config}>{children}</TamaguiProvider>;
-}
-
-export function Badge({ title, color }: { title: string; color: string }) {
+  // @ts-ignore
+  useDeviceContext(tw);
   return (
-    <View
-      style={{
-        backgroundColor: color,
-        borderRadius: 5,
-        padding: 10,
-        height: 40,
-      }}
-    >
-      <Text style={{ color: 'white' }}>{title}</Text>
-    </View>
+    <TamaguiProvider defaultTheme="dark" config={config}>
+      {children}
+    </TamaguiProvider>
   );
 }
 
@@ -39,7 +37,7 @@ export function SystemDetails({
   tags,
   discoverSystem,
   setName,
-  h1
+  h1,
 }: {
   children: ReactNode;
   id?: string;
@@ -153,5 +151,13 @@ function Ecliptic({ xRadius = 1, zRadius = 1 }) {
     <line geometry={lineGeometry}>
       <lineBasicMaterial attach="material" color="#BFBBDA" linewidth={10} />
     </line>
+  );
+}
+
+export function Container({ children }: { children: ReactNode }) {
+  return (
+    <View style={{ display: 'flex', alignItems: 'center', padding: 50 }}>
+      <View style={{ maxWidth: '100%' }}>{children}</View>
+    </View>
   );
 }

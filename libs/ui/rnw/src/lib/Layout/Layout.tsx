@@ -1,5 +1,9 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useCallback, useState } from 'react';
+import { MenuSquare } from '@tamagui/lucide-icons';
 import { Button, Header, View, XStack } from 'tamagui';
+import { tw } from '../components';
+import { useWindowDimensions } from 'react-native';
+import * as R from 'remeda';
 
 function NavButton({
   children,
@@ -11,6 +15,8 @@ function NavButton({
   navigate: (route: string, options: { replace: boolean }) => void;
 }) {
   const active = `/${children.toLowerCase()}` === currentRoute;
+  const { bp } = useResponsive();
+  const s = bp(['', '', 'bg-transparent']);
 
   const style = {
     borderBottomWidth: active ? 2 : 0,
@@ -18,11 +24,11 @@ function NavButton({
     borderRightWidth: 0,
     borderLeftWidth: 0,
     borderTopWidth: 0,
+    ...s,
   };
 
   return (
     <Button
-      backgroundColor={'transparent'}
       style={style}
       hoverStyle={style}
       pressStyle={style}
@@ -34,7 +40,39 @@ function NavButton({
   );
 }
 
-export function Container({
+function useResponsive(rerender?: any) {
+  const { width } = useWindowDimensions();
+
+  const bp = useCallback(
+    (bps: [common: string, sm?: string, md?: string, lg?: string]) => {
+      const [common, sm, md, lg] = bps;
+
+      const styles = (() => {
+        if (width > 1000) {
+          return [lg, md].join(' ');
+        }
+
+        if (width > 800) {
+          return md;
+        }
+
+        return sm;
+      })();
+
+      const s = `${common} ${!R.isEmpty(styles) ? styles : ''}`;
+
+      // @ts-ignore
+      return tw.style(s);
+    },
+    [rerender, width]
+  );
+
+  return {
+    bp,
+  };
+}
+
+export function ContainerWithNav({
   children,
   navigate,
   currentRoute,
@@ -43,11 +81,25 @@ export function Container({
   currentRoute: string;
   navigate: (route: string, options: { replace: boolean }) => void;
 }) {
+  const [menuOpen, toggleMenu] = useState<boolean>(false);
+  const { bp } = useResponsive(menuOpen);
+
   return (
     <View style={{ display: 'flex', alignItems: 'center' }}>
-      <View style={{ width: 500, maxWidth: '100%' }}>
+      <View style={bp(['w-full items-end'])}>
+        <View onPress={() => toggleMenu((prevState) => !prevState)}>
+          <MenuSquare size="$2" style={bp(['block p-2 ', '', 'hidden'])} />
+        </View>
+      </View>
+      <View
+        style={bp([
+          '',
+          `${menuOpen ? '' : 'hidden'} absolute right-0 top-12`,
+          '',
+        ])}
+      >
         <Header style={{ alignItems: 'center' }}>
-          <XStack alignItems="center">
+          <View style={bp(['flex flex-column', '', 'flex-row'])}>
             <NavButton currentRoute={currentRoute} navigate={navigate}>
               Home
             </NavButton>
@@ -60,9 +112,14 @@ export function Container({
             <NavButton currentRoute={currentRoute} navigate={navigate}>
               Conquest
             </NavButton>
-          </XStack>
+          </View>
         </Header>
-        {children}
+      </View>
+      <View
+        id="content"
+        style={tw.style('flex items-center max-w-full')}
+      >
+        <View style={tw.style('w-[500px] max-w-full')}>{children}</View>
       </View>
     </View>
   );

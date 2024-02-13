@@ -2,7 +2,9 @@ import React, { ReactNode, useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { Canvas } from '@react-three/fiber';
 import {
+  Badge,
   Container,
+  ContainerWithNav,
   Landing,
   Lights,
   Planet,
@@ -16,6 +18,7 @@ import './app.module.scss';
 
 import {
   createBrowserRouter,
+  Link,
   NavigateFunction,
   RouterProvider,
   useLocation,
@@ -38,11 +41,11 @@ function WithNavigate({
 function Page({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  console.log({ pathname });
+
   return (
-    <Container navigate={navigate} currentRoute={pathname}>
+    <ContainerWithNav navigate={navigate} currentRoute={pathname}>
       {children}
-    </Container>
+    </ContainerWithNav>
   );
 }
 
@@ -50,11 +53,18 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: (
-      <Page>
+      <Container>
         <WithNavigate>
-          {(n) => <Landing goToHome={() => n('/home')} />}
+          {(n) => (
+            <>
+              <Landing goToHome={() => n('/home')} />
+              <Link to={'#'}>
+                <Badge title="Download the Android app" />
+              </Link>
+            </>
+          )}
         </WithNavigate>
-      </Page>
+      </Container>
     ),
   },
   {
