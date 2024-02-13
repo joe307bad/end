@@ -98,7 +98,7 @@ export function ContainerWithNav({
           '',
         ])}
       >
-        <Header style={{ alignItems: 'center' }}>
+        <Header style={tw`z-1`}>
           <View style={bp(['flex flex-column', '', 'flex-row'])}>
             <NavButton currentRoute={currentRoute} navigate={navigate}>
               Home
