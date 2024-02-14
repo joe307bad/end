@@ -1,5 +1,5 @@
-FROM nginx:latest
+FROM codecentric/single-page-application-server:latest
 
-COPY ./dist/apps/web /usr/share/nginx/html
+COPY ./dist/apps/web /app
 
 EXPOSE 80
