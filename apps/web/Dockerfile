@@ -1,7 +1,6 @@
-FROM codecentric/single-page-application-server:latest
+FROM nginx:latest
 
-COPY ./dist/apps/web /app
-
-COPY ./apps/web/runtime-config.yaml /config/config.yaml
+COPY ./apps/web/default.conf /etc/nginx/conf.d/default.conf
+COPY ./dist/apps/web /usr/share/nginx/html
 
 EXPOSE 80
