@@ -12,7 +12,7 @@ function NavButton({
 }: {
   children: string;
   currentRoute: string;
-  navigate: (route: string, options: { replace: boolean }) => void;
+  navigate: (route: string, options?: { replace?: boolean }) => void;
 }) {
   const active = `/${children.toLowerCase()}` === currentRoute;
   const { bp } = useResponsive();
@@ -33,7 +33,7 @@ function NavButton({
       hoverStyle={style}
       pressStyle={style}
       borderRadius={0}
-      onPress={() => navigate(`/${children.toLowerCase()}`, { replace: true })}
+      onPress={() => navigate(`/${children.toLowerCase()}`)}
     >
       {children}
     </Button>
@@ -79,7 +79,7 @@ export function ContainerWithNav({
 }: {
   children: ReactNode;
   currentRoute: string;
-  navigate: (route: string, options: { replace: boolean }) => void;
+  navigate: (route: string, options?: { replace?: boolean }) => void;
 }) {
   const [menuOpen, toggleMenu] = useState<boolean>(false);
   const { bp } = useResponsive(menuOpen);
@@ -115,10 +115,7 @@ export function ContainerWithNav({
           </View>
         </Header>
       </View>
-      <View
-        id="content"
-        style={tw.style('flex items-center max-w-full')}
-      >
+      <View id="content" style={tw.style('flex items-center max-w-full')}>
         <View style={tw.style('w-[500px] max-w-full')}>{children}</View>
       </View>
     </View>
