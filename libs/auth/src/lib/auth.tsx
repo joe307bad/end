@@ -1,7 +1,7 @@
-import { createContext, ReactNode, useCallback, useContext } from 'react';
+import React, { createContext, ReactNode, useCallback, useContext } from 'react';
 
 interface Context {
-  getToken: () => string;
+  getToken: () => string | null;
   setToken: (jwt: string) => void;
 }
 
