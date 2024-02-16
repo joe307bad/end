@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import * as Typography from '../Typography';
-import { Input, XStack, YStack } from 'tamagui';
+import { Input, XStack, YStack, Text } from 'tamagui';
 import { PrimaryButton } from '../Display';
 import { EndApi } from '@end/data';
 
@@ -8,11 +8,16 @@ export function Landing({ goToHome }: { goToHome?: () => void }) {
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState<string | undefined>();
 
   const login = useCallback(() => {
-    const api = new EndApi('http://localhost:3000/api');
+    const api = new EndApi('http://192.168.50.163:3000/api');
     setLoading(true);
-    api.login(userName, password).then(() => setLoading(false));
+    api.login(userName, password).then(async (res: Response) => {
+      setLoading(false);
+      const json = await res.json();
+      setToken(JSON.stringify(json));
+    });
   }, [userName, password]);
 
   return (
@@ -36,6 +41,7 @@ export function Landing({ goToHome }: { goToHome?: () => void }) {
       <PrimaryButton loading={loading} onPress={login}>
         Login
       </PrimaryButton>
+      <Text style={{ maxWidth: 100 }}>Token: {token}</Text>
     </YStack>
   );
 }
