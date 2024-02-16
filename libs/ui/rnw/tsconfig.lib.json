@@ -9,7 +9,10 @@
       "@nx/react/typings/image.d.ts"
     ],
     "jsx": "react",
-    "paths": { "@end/*": ["dist/libs/*"] }
+    "paths": {
+      "@end/data": ["libs/data/src/index.ts"],
+      "@end/auth": ["libs/auth/src/index.ts"]
+    }
   },
   "include": ["src/**/*.ts"],
   "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts"]

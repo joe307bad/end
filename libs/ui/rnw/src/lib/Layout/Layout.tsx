@@ -9,10 +9,12 @@ function NavButton({
   children,
   navigate,
   currentRoute,
+  onPress,
 }: {
   children: string;
   currentRoute: string;
-  navigate: (route: string, options?: { replace?: boolean }) => void;
+  navigate?: (route: string, options?: { replace?: boolean }) => void;
+  onPress?: () => void;
 }) {
   const active = `/${children.toLowerCase()}` === currentRoute;
   const { bp } = useResponsive();
@@ -33,7 +35,9 @@ function NavButton({
       hoverStyle={style}
       pressStyle={style}
       borderRadius={0}
-      onPress={() => navigate(`/${children.toLowerCase()}`)}
+      onPress={() =>
+        onPress ? onPress() : navigate?.(`/${children.toLowerCase()}`)
+      }
     >
       {children}
     </Button>
@@ -76,10 +80,12 @@ export function ContainerWithNav({
   children,
   navigate,
   currentRoute,
+  logOut,
 }: {
   children: ReactNode;
   currentRoute: string;
-  navigate: (route: string, options?: { replace?: boolean }) => void;
+  navigate?: (route: string, options?: { replace?: boolean }) => void;
+  logOut?: () => void;
 }) {
   const [menuOpen, toggleMenu] = useState<boolean>(false);
   const { bp } = useResponsive(menuOpen);
@@ -103,14 +109,8 @@ export function ContainerWithNav({
             <NavButton currentRoute={currentRoute} navigate={navigate}>
               Home
             </NavButton>
-            <NavButton currentRoute={currentRoute} navigate={navigate}>
-              Story
-            </NavButton>
-            <NavButton currentRoute={currentRoute} navigate={navigate}>
-              Economy
-            </NavButton>
-            <NavButton currentRoute={currentRoute} navigate={navigate}>
-              Conquest
+            <NavButton currentRoute={currentRoute} onPress={logOut}>
+              Logout
             </NavButton>
           </View>
         </Header>

@@ -15,6 +15,8 @@ import { View } from 'react-native';
 import { Badge } from './Display';
 import t from 'twrnc';
 import { useDeviceContext } from 'twrnc';
+import { EndApiProvider } from '@end/data';
+import { AuthProvider } from '@end/auth';
 
 export const tw = t as any;
 
@@ -24,9 +26,13 @@ export function Providers({ children }: { children: ReactNode }) {
   // @ts-ignore
   useDeviceContext(tw);
   return (
-    <TamaguiProvider defaultTheme="dark" config={config}>
-      {children}
-    </TamaguiProvider>
+    <AuthProvider>
+      <EndApiProvider>
+        <TamaguiProvider defaultTheme="dark" config={config}>
+          {children}
+        </TamaguiProvider>
+      </EndApiProvider>
+    </AuthProvider>
   );
 }
 

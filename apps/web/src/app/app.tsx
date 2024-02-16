@@ -17,17 +17,18 @@ import { faker } from '@faker-js/faker';
 import './app.module.scss';
 
 import {
-  createBrowserRouter,
   Link,
   NavigateFunction,
-  RouterProvider,
   useLocation,
   useNavigate,
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Outlet,
+  Navigate,
 } from 'react-router-dom';
 import { Home } from '../pages/Home';
-import { Conquest } from '../pages/Conquest';
-import { Economy } from '../pages/Economy';
-import { Story } from '../pages/Story';
+import { useAuth } from '@end/auth';
 
 function WithNavigate({
   children,
@@ -41,65 +42,23 @@ function WithNavigate({
 function Page({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { deleteToken } = useAuth();
+
+  const logOut = useCallback(() => {
+    deleteToken();
+    navigate('/', { replace: true });
+  }, []);
 
   return (
-    <ContainerWithNav navigate={navigate} currentRoute={pathname}>
+    <ContainerWithNav
+      navigate={navigate}
+      currentRoute={pathname}
+      logOut={logOut}
+    >
       {children}
     </ContainerWithNav>
   );
 }
-
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: (
-      <Container>
-        <WithNavigate>
-          {(n) => (
-            <>
-              <Landing goToHome={() => n('/home')} />
-              <Link to={'#'}>
-                <Badge title="Download the Android app" />
-              </Link>
-            </>
-          )}
-        </WithNavigate>
-      </Container>
-    ),
-  },
-  {
-    path: '/home',
-    element: (
-      <Page>
-        <Home />
-      </Page>
-    ),
-  },
-  {
-    path: '/story',
-    element: (
-      <Page>
-        <Story />
-      </Page>
-    ),
-  },
-  {
-    path: '/economy',
-    element: (
-      <Page>
-        <Economy />
-      </Page>
-    ),
-  },
-  {
-    path: '/conquest',
-    element: (
-      <Page>
-        <Conquest />
-      </Page>
-    ),
-  },
-]);
 
 function System() {
   return (
@@ -116,6 +75,47 @@ function System() {
         </SolarSystem>
       </Canvas>
     </>
+  );
+}
+
+const PrivateRoutes = () => {
+  const { getToken } = useAuth();
+
+  return getToken() ? (
+    <Page>
+      <Outlet />
+    </Page>
+  ) : (
+    <Navigate to="/" />
+  );
+};
+
+function AppRoutes() {
+  return (
+    <Router>
+      <Routes>
+        <Route element={<PrivateRoutes />}>
+          <Route path="/home" element={<Home />} />
+        </Route>
+        <Route
+          path="/"
+          element={
+            <Container>
+              <WithNavigate>
+                {(n) => (
+                  <>
+                    <Landing goToHome={() => n('/home')} />
+                    <Link to={'#'}>
+                      <Badge title="Download the Android app" />
+                    </Link>
+                  </>
+                )}
+              </WithNavigate>
+            </Container>
+          }
+        />
+      </Routes>
+    </Router>
   );
 }
 
@@ -139,7 +139,7 @@ export function App() {
   return (
     <View style={{ height: '100%', width: '100%' }}>
       <Providers>
-        <RouterProvider router={router} />
+        <AppRoutes />
         {/*<SystemDetails*/}
         {/*  discoverSystem={discoverSystem}*/}
         {/*  name={name}*/}

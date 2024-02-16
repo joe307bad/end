@@ -2,21 +2,29 @@ import React, { useCallback, useState } from 'react';
 import * as Typography from '../Typography';
 import { Input, XStack, YStack, Text } from 'tamagui';
 import { PrimaryButton } from '../Display';
-import { EndApi } from '@end/data';
+import { useEndApi } from '@end/data';
+import { useAuth } from '@end/auth';
 
-export function Landing({ goToHome }: { goToHome?: () => void }) {
+type Props = {
+  goToHome?: () => void;
+};
+
+export function Landing({ goToHome }: Props) {
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [token, setToken] = useState<string | undefined>();
+  const { EndApi } = useEndApi();
+  const { setToken } = useAuth();
 
   const login = useCallback(() => {
-    const api = new EndApi('http://192.168.50.163:3000/api');
     setLoading(true);
-    api.login(userName, password).then(async (res: Response) => {
+    EndApi.login(userName, password).then(async (res: Response) => {
       setLoading(false);
-      const json = await res.json();
-      setToken(JSON.stringify(json));
+      const json: { access_token: string } = await res.json();
+      if (json?.access_token) {
+        setToken(json.access_token);
+        goToHome?.();
+      }
     });
   }, [userName, password]);
 
@@ -41,7 +49,6 @@ export function Landing({ goToHome }: { goToHome?: () => void }) {
       <PrimaryButton loading={loading} onPress={login}>
         Login
       </PrimaryButton>
-      <Text style={{ maxWidth: 100 }}>Token: {token}</Text>
     </YStack>
   );
 }
