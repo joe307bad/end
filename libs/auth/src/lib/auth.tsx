@@ -4,17 +4,18 @@ import React, {
   useCallback,
   useContext,
 } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Context {
-  getToken: () => string | null;
-  setToken: (jwt: string | undefined) => void;
-  deleteToken: () => void;
+  getToken: () => Promise<string | null>;
+  setToken: (jwt: string | undefined) => Promise<void>;
+  deleteToken: () => Promise<void>;
 }
 
 const AuthContext = createContext<Context>({
-  getToken: () => '',
-  setToken: (jwt) => {},
-  deleteToken: () => {},
+  getToken: () => Promise.resolve(null),
+  setToken: (jwt) => Promise.resolve(),
+  deleteToken: () => Promise.resolve(),
 });
 
 export function useAuth() {
@@ -23,13 +24,17 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const getToken = useCallback(() => {
-    return localStorage.getItem('end_jwt');
+    return AsyncStorage.getItem('end_jwt');
   }, []);
   const setToken = useCallback((jwt: string | undefined) => {
-    return jwt && localStorage.setItem('end_jwt', jwt);
+    if (!jwt) {
+      return Promise.resolve();
+    }
+
+    return AsyncStorage.setItem('end_jwt', jwt);
   }, []);
   const deleteToken = useCallback(() => {
-    return localStorage.removeItem('end_jwt');
+    return AsyncStorage.removeItem('end_jwt');
   }, []);
 
   return (

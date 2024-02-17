@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useState } from 'react';
+import React, { ReactNode, useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Canvas } from '@react-three/fiber';
 import {
@@ -44,8 +44,8 @@ function Page({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const { deleteToken } = useAuth();
 
-  const logOut = useCallback(() => {
-    deleteToken();
+  const logOut = useCallback(async () => {
+    await deleteToken();
     navigate('/', { replace: true });
   }, []);
 
@@ -80,8 +80,19 @@ function System() {
 
 const PrivateRoutes = () => {
   const { getToken } = useAuth();
+  const [token, setToken] = useState<string | null | 'LOADING'>('LOADING');
 
-  return getToken() ? (
+  useEffect(() => {
+    getToken().then((t) => {
+      setToken(t);
+    });
+  }, []);
+
+  if (token === 'LOADING') {
+    return null;
+  }
+
+  return token ? (
     <Page>
       <Outlet />
     </Page>

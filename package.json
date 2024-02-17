@@ -16,6 +16,7 @@
     "@nestjs/core": "^10.0.2",
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/platform-express": "^10.0.2",
+    "@react-native-async-storage/async-storage": "1.18.2",
     "@react-navigation/drawer": "^6.6.6",
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/native-stack": "^6.9.17",
