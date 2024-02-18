@@ -8,8 +8,7 @@
       "@nx/react/typings/cssmodule.d.ts",
       "@nx/react/typings/image.d.ts"
     ],
-    "jsx": "react",
-    "paths": { "@end/*": ["dist/libs/*"] }
+    "jsx": "react"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts"]

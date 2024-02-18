@@ -4,14 +4,27 @@
   "sourceRoot": "libs/ui/rnw/src",
   "projectType": "library",
   "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/ui/rnw",
+        "main": "libs/ui/rnw/src/index.ts",
+        "tsConfig": "libs/ui/rnw/tsconfig.json",
+        "assets": ["libs/ui/rnw/*.md"]
+      }
+    },
     "tsc": {
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/libs/ui/rnw",
         "main": "libs/ui/rnw/src/index.ts",
-        "tsConfig": "libs/ui/rnw/tsconfig.lib.json",
-        "assets": ["libs/ui/rnw/*.md"]
+        "tsConfig": "libs/ui/rnw/tsconfig.json",
+        "assets": ["libs/ui/rnw/*.md"],
+        "noEmit": true,
+        "baseDir": "../../../",
+        "rootDir": "../../../"
       }
     },
     "lint": {

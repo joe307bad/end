@@ -10,8 +10,20 @@
       "options": {
         "outputPath": "dist/libs/data",
         "main": "libs/data/src/index.ts",
-        "tsConfig": "libs/data/tsconfig.lib.json",
+        "tsConfig": "libs/data/tsconfig.json",
         "assets": ["libs/data/*.md"]
+      }
+    },
+    "tsc": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/data",
+        "main": "libs/data/src/index.ts",
+        "tsConfig": "libs/data/tsconfig.json",
+        "assets": ["libs/data/*.md"],
+        "baseDir": "../../../",
+        "rootDir": "../../../"
       }
     },
     "lint": {
