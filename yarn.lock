@@ -2061,8 +2061,10 @@ __metadata:
     "@swc/cli": "npm:~0.1.62"
     "@swc/core": "npm:~1.3.85"
     "@swc/helpers": "npm:~0.5.2"
+    "@tamagui/animations-react-native": "npm:1.80.4"
     "@tamagui/config": "npm:1.80.4"
     "@tamagui/lucide-icons": "npm:1.80.4"
+    "@tamagui/toast": "npm:1.80.4"
     "@testing-library/jest-dom": "npm:5.16.5"
     "@testing-library/jest-native": "npm:~5.4.3"
     "@testing-library/react": "npm:14.0.0"
@@ -2082,6 +2084,7 @@ __metadata:
     babel-plugin-react-native-web: "npm:^0.19.10"
     babel-preset-expo: "npm:~9.5.2"
     bcrypt: "npm:^5.1.1"
+    burnt: "npm:^0.12.2"
     detox: "npm:^20.11.1"
     dotenv: "npm:^16.3.1"
     eas-cli: "npm:~5.2.0"
@@ -6831,6 +6834,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tamagui/toast@npm:1.80.4":
+  version: 1.80.4
+  resolution: "@tamagui/toast@npm:1.80.4"
+  dependencies:
+    "@tamagui/animate-presence": "npm:1.80.4"
+    "@tamagui/compose-refs": "npm:1.80.4"
+    "@tamagui/constants": "npm:1.80.4"
+    "@tamagui/core": "npm:1.80.4"
+    "@tamagui/create-context": "npm:1.80.4"
+    "@tamagui/dismissable": "npm:1.80.4"
+    "@tamagui/helpers": "npm:1.80.4"
+    "@tamagui/polyfill-dev": "npm:1.80.4"
+    "@tamagui/portal": "npm:1.80.4"
+    "@tamagui/stacks": "npm:1.80.4"
+    "@tamagui/text": "npm:1.80.4"
+    "@tamagui/use-controllable-state": "npm:1.80.4"
+    "@tamagui/visually-hidden": "npm:1.80.4"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 70494ce824415344fc89d3e658e3e7b76367f81869c9f69b4540ca3cd82674d11e8aee1cb6676a607e9c669acf7e174cea1c31590094bb2c1ba6d620b75fb01e
+  languageName: node
+  linkType: hard
+
 "@tamagui/toggle-group@npm:1.80.4":
   version: 1.80.4
   resolution: "@tamagui/toggle-group@npm:1.80.4"
@@ -9625,6 +9652,20 @@ __metadata:
   bin:
     bunyan: bin/bunyan
   checksum: c7b3adc07a4db3256f857dcba42b97dd6c35ab054cb26766643aae2b90e1b614795cdf231774ddaf374572d952f52ef4f4205047e15414e155e478aa0672e041
+  languageName: node
+  linkType: hard
+
+"burnt@npm:^0.12.2":
+  version: 0.12.2
+  resolution: "burnt@npm:0.12.2"
+  dependencies:
+    sf-symbols-typescript: "npm:^1.0.0"
+    sonner: "npm:^0.3.5"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: d51fd844c26b66572f4f0a50ad210d6956a5bfa3885e7a136d634d7cbad64bc00ed443d8096378c0896f9d3b2e004023bb832a3295b20599368f94346037198f
   languageName: node
   linkType: hard
 
@@ -22104,6 +22145,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"sf-symbols-typescript@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "sf-symbols-typescript@npm:1.0.0"
+  checksum: 690314f401fb37b79382decf158fc7f511de5c113ec3fb265ce4e1e06341050d17c1327c581342367f0ba6e41d2b3e82637789fab8cd41a4470ef952e05241bb
+  languageName: node
+  linkType: hard
+
 "shallow-clone@npm:^3.0.0":
   version: 3.0.1
   resolution: "shallow-clone@npm:3.0.1"
@@ -22327,6 +22375,16 @@ __metadata:
   dependencies:
     atomic-sleep: "npm:^1.0.0"
   checksum: 57a3d560efb77f4576db111168ee2649c99e7869fda6ce0ec2a4e5458832d290ba58d74b073ddb5827d9a30f96d23cff79157993d919e1a6d5f28d8b6391c7f0
+  languageName: node
+  linkType: hard
+
+"sonner@npm:^0.3.5":
+  version: 0.3.5
+  resolution: "sonner@npm:0.3.5"
+  peerDependencies:
+    react: ^18.0.0
+    react-dom: ^18.0.0
+  checksum: 92f1599ec354bd24f9da585756f0960a0940accdc18700a8eb923ed07ad0b194a0d61d21b7bf73b646d58f0ed221a4efa996cfa126ffd0870579d6ba02198457
   languageName: node
   linkType: hard
 
