@@ -149,7 +149,7 @@ export function App() {
 
   return (
     <View style={{ height: '100%', width: '100%' }}>
-      <Providers>
+      <Providers baseUrl={process.env.API_BASE_URL as string}>
         <AppRoutes />
         {/*<SystemDetails*/}
         {/*  discoverSystem={discoverSystem}*/}

@@ -1,8 +1,17 @@
 const { composePlugins, withNx } = require('@nx/webpack');
 const { withReact } = require('@nx/react');
 const { merge } = require('webpack-merge');
+const webpack = require('webpack');
+require('dotenv').config();
 
 module.exports = composePlugins(withNx(), withReact(), (config) => {
+  config.plugins.push(
+    new webpack.DefinePlugin({
+      'process.env': {
+        API_BASE_URL: JSON.stringify(process.env.API_BASE_URL),
+      },
+    })
+  );
   return merge(config, {
     stats: { warnings: false },
     resolve: {

@@ -4,6 +4,10 @@
   "sourceRoot": "apps/nest/src",
   "projectType": "application",
   "targets": {
+    "deploy": {
+      "dependsOn": ["build"],
+      "command": "flyctl deploy --config apps/nest/fly.toml --dockerfile apps/nest/Dockerfile"
+    },
     "tsc": {
       "executor": "nx:run-commands",
       "options": {
@@ -21,7 +25,8 @@
         "main": "apps/nest/src/main.ts",
         "tsConfig": "apps/nest/tsconfig.app.json",
         "assets": ["apps/nest/src/assets"],
-        "webpackConfig": "apps/nest/webpack.config.js"
+        "webpackConfig": "apps/nest/webpack.config.js",
+        "generatePackageJson": true
       },
       "configurations": {
         "development": {},
