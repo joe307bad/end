@@ -13,6 +13,8 @@ jobs:
       MONGO_USER: ${{ secrets.MONGO_USER }}
       MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
       MONGO_PROD_URL: ${{ secrets.MONGO_PROD_URL }}
+      API_BASE_URL: ${{ secrets.API_BASE_URL }}
+      NEST_JWT_SECRET: ${{ secrets.NEST_JWT_SECRET }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -36,6 +38,8 @@ jobs:
           envkey_MONGO_USER: ${{ secrets.MONGO_USER }}
           envkey_MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
           envkey_MONGO_PROD_URL: ${{ secrets.MONGO_PROD_URL }}
+          envkey_API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          envkey_NEST_JWT_SECRET: ${{ secrets.NEST_JWT_SECRET }}
           envkey_HOST: 0.0.0.0
 
       - run: git pull --rebase
