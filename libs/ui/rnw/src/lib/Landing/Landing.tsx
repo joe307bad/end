@@ -22,7 +22,7 @@ export function Landing({ goToHome }: Props) {
       setLoading(false);
       const json: { access_token: string } = await res.json();
       if (json?.access_token) {
-        setToken(json.access_token);
+        await setToken(json.access_token);
         goToHome?.();
       }
     });
