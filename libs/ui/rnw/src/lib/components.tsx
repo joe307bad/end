@@ -15,18 +15,30 @@ import { View } from 'react-native';
 import { Badge } from './Display';
 import t from 'twrnc';
 import { useDeviceContext } from 'twrnc';
+import { EndApiProvider } from '@end/data';
+import { AuthProvider } from '@end/auth';
 
 export const tw = t as any;
 
 export const tamaguiTokens = tokens;
 
-export function Providers({ children }: { children: ReactNode }) {
+export function Providers({
+  children,
+  baseUrl,
+}: {
+  children: ReactNode;
+  baseUrl?: string;
+}) {
   // @ts-ignore
   useDeviceContext(tw);
   return (
-    <TamaguiProvider defaultTheme="dark" config={config}>
-      {children}
-    </TamaguiProvider>
+    <AuthProvider>
+      <EndApiProvider baseUrl={baseUrl}>
+        <TamaguiProvider defaultTheme="dark" config={config}>
+          {children}
+        </TamaguiProvider>
+      </EndApiProvider>
+    </AuthProvider>
   );
 }
 

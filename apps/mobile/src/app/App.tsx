@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Canvas } from '@react-three/fiber/native';
 import { StyleSheet, View } from 'react-native';
 import useControls from 'r3f-native-orbitcontrols';
@@ -38,10 +38,14 @@ function System() {
 
 const Drawer = createDrawerNavigator();
 
-function Landing() {
+function Landing({
+  setLoggedIn,
+}: {
+  setLoggedIn: (loggedIn: boolean) => void;
+}) {
   return (
     <Container>
-      <LandingView goToHome={() => {}} />
+      <LandingView goToHome={() => setLoggedIn(true)} />
     </Container>
   );
 }
@@ -73,7 +77,8 @@ export default class App extends React.Component<any, any> {
 }
 
 export function Routes() {
-  const loggedIn = false;
+  const [loggedIn, setLoggedIn] = useState(false);
+
   return (
     <Providers>
       <NavigationContainer theme={MyTheme}>
@@ -82,7 +87,10 @@ export function Routes() {
             initialRouteName="Landing"
             screenOptions={{ headerShown: false, swipeEdgeWidth: 0 }}
           >
-            <Drawer.Screen name="Landing" component={Landing} />
+            <Drawer.Screen
+              name="Landing"
+              component={() => <Landing setLoggedIn={setLoggedIn} />}
+            />
           </Drawer.Navigator>
         ) : (
           <Drawer.Navigator initialRouteName="Landing">

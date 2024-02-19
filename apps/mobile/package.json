@@ -35,7 +35,10 @@
     "@react-navigation/drawer": "*",
     "@react-navigation/native": "*",
     "expo-font": "*",
-    "twrnc": "*"
+    "twrnc": "*",
+    "@tamagui/lucide-icons": "*",
+    "remeda": "*",
+    "@react-native-async-storage/async-storage": "*"
   },
   "scripts": {
     "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/mobile && cp package-lock.json apps/mobile",
