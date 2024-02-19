@@ -5,7 +5,7 @@ export class EndApi {
     this.apiUrl = apiUrl;
   }
 
-  login(username: string, password: string) {
+  login(userName: string, password: string) {
     return fetch(`${this.apiUrl}/auth/login`, {
       method: 'POST',
       headers: {
@@ -13,7 +13,7 @@ export class EndApi {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        username,
+        userName,
         password,
       }),
     });

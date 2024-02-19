@@ -13,7 +13,7 @@ import { MongooseModule } from '@nestjs/mongoose';
     UsersModule,
     ConfigModule.forRoot(),
     MongooseModule.forRoot(
-      `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_PROD_URL}/end?authSource=admin`
+      `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_PROD_URL}?authSource=admin`
     ),
   ],
   controllers: [AppController],
