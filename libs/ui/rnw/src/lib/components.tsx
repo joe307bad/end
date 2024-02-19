@@ -17,6 +17,7 @@ import t from 'twrnc';
 import { useDeviceContext } from 'twrnc';
 import { EndApiProvider } from '@end/data';
 import { AuthProvider } from '@end/auth';
+import { ToastProvider, ToastViewport } from '@tamagui/toast';
 
 export const tw = t as any;
 
@@ -32,13 +33,15 @@ export function Providers({
   // @ts-ignore
   useDeviceContext(tw);
   return (
-    <AuthProvider>
-      <EndApiProvider baseUrl={baseUrl}>
-        <TamaguiProvider defaultTheme="dark" config={config}>
-          {children}
-        </TamaguiProvider>
-      </EndApiProvider>
-    </AuthProvider>
+    <ToastProvider burntOptions={{ from: 'bottom' }}>
+      <AuthProvider>
+        <EndApiProvider baseUrl={baseUrl}>
+          <TamaguiProvider defaultTheme="dark" config={config}>
+            {children}
+          </TamaguiProvider>
+        </EndApiProvider>
+      </AuthProvider>
+    </ToastProvider>
   );
 }
 

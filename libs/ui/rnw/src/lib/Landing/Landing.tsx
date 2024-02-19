@@ -4,9 +4,35 @@ import { Input, XStack, YStack, Text } from 'tamagui';
 import { PrimaryButton } from '../Display';
 import { useEndApi } from '@end/data';
 import { useAuth } from '@end/auth';
+import {Toast, ToastViewport, useToastController, useToastState} from '@tamagui/toast';
 
 type Props = {
   goToHome?: () => void;
+};
+
+const CurrentToast = () => {
+  const currentToast = useToastState();
+  console.log({currentToast})
+  return (
+    <Toast
+      key={currentToast?.id}
+      duration={currentToast?.duration}
+      enterStyle={{ opacity: 0, scale: 0.5, y: -25 }}
+      exitStyle={{ opacity: 0, scale: 1, y: -20 }}
+      y={0}
+      opacity={1}
+      scale={1}
+      animation="medium"
+      viewportName={currentToast?.viewportName}
+    >
+      <YStack>
+        <Toast.Title>{currentToast?.title}</Toast.Title>
+        {!!currentToast?.message && (
+          <Toast.Description>{currentToast?.message}</Toast.Description>
+        )}
+      </YStack>
+    </Toast>
+  );
 };
 
 export function Landing({ goToHome }: Props) {
@@ -15,17 +41,23 @@ export function Landing({ goToHome }: Props) {
   const [loading, setLoading] = useState(false);
   const { EndApi } = useEndApi();
   const { setToken } = useAuth();
+  const toast = useToastController();
 
   const login = useCallback(() => {
     setLoading(true);
-    EndApi.login(userName, password).then(async (res: Response) => {
-      setLoading(false);
-      const json: { access_token: string } = await res.json();
-      if (json?.access_token) {
-        await setToken(json.access_token);
-        goToHome?.();
-      }
-    });
+    EndApi.login(userName, password)
+      .then(async (res: Response) => {
+        setLoading(false);
+        const json: { access_token: string } = await res.json();
+        if (json?.access_token) {
+          await setToken(json.access_token);
+          goToHome?.();
+        }
+      })
+      .catch((e) => {
+        setLoading(false);
+        toast.show('Error logging in', { message: e?.message });
+      });
   }, [userName, password]);
 
   return (
@@ -49,6 +81,8 @@ export function Landing({ goToHome }: Props) {
       <PrimaryButton loading={loading} onPress={login}>
         Login
       </PrimaryButton>
+      <CurrentToast />
+      <ToastViewport bottom={0} />
     </YStack>
   );
 }
