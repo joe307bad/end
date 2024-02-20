@@ -1,0 +1,23 @@
+{
+  "name": "wm-web",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/wm/web/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/wm/web",
+        "main": "libs/wm/web/src/index.ts",
+        "tsConfig": "libs/wm/web/tsconfig.lib.json",
+        "assets": ["libs/wm/web/*.md"]
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
+    }
+  },
+  "tags": []
+}
