@@ -4,7 +4,7 @@ import { Input, XStack, YStack, Text } from 'tamagui';
 import { PrimaryButton } from '../Display';
 import { useEndApi } from '@end/data';
 import { useAuth } from '@end/auth';
-import {Toast, ToastViewport, useToastController, useToastState} from '@tamagui/toast';
+import { Toast, useToastController, useToastState } from '@tamagui/toast';
 
 type Props = {
   goToHome?: () => void;
@@ -12,7 +12,7 @@ type Props = {
 
 const CurrentToast = () => {
   const currentToast = useToastState();
-  console.log({currentToast})
+
   return (
     <Toast
       key={currentToast?.id}
@@ -52,11 +52,15 @@ export function Landing({ goToHome }: Props) {
         if (json?.access_token) {
           await setToken(json.access_token);
           goToHome?.();
+        } else {
+          toast.show('An error occurred. Try again.', {
+            message: (res as any)?.message,
+          });
         }
       })
       .catch((e) => {
         setLoading(false);
-        toast.show('Error logging in', { message: e?.message });
+        toast.show('An error occurred. Try again.', { message: e?.message });
       });
   }, [userName, password]);
 
@@ -82,7 +86,6 @@ export function Landing({ goToHome }: Props) {
         Login
       </PrimaryButton>
       <CurrentToast />
-      <ToastViewport bottom={0} />
     </YStack>
   );
 }
