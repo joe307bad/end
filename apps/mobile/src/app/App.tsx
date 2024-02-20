@@ -17,6 +17,7 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import { DarkTheme, NavigationContainer } from '@react-navigation/native';
 import { Home } from '../pages/Home';
 import * as Font from 'expo-font';
+import { LogBox } from 'react-native';
 
 function System() {
   const [OrbitControls, events] = useControls();
@@ -65,6 +66,7 @@ export default class App extends React.Component<any, any> {
   };
 
   async componentDidMount() {
+    LogBox.ignoreAllLogs();
     await Font.loadAsync({
       ShineTypewriterRegular: require('../../assets/ShineTypewriterRegular.ttf'),
     });
@@ -80,7 +82,7 @@ export function Routes() {
   const [loggedIn, setLoggedIn] = useState(false);
 
   return (
-    <Providers>
+    <Providers baseUrl={process?.env?.EXPO_PUBLIC_API_BASE_URL}>
       <NavigationContainer theme={MyTheme}>
         {!loggedIn ? (
           <Drawer.Navigator

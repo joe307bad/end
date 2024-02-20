@@ -38,6 +38,7 @@ export function Providers({
         <EndApiProvider baseUrl={baseUrl}>
           <TamaguiProvider defaultTheme="dark" config={config}>
             {children}
+            <ToastViewport bottom={0} />
           </TamaguiProvider>
         </EndApiProvider>
       </AuthProvider>
