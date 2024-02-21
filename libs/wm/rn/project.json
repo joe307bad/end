@@ -14,6 +14,18 @@
         "assets": ["libs/wm/rn/*.md"]
       }
     },
+    "tsc": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/wm/rn",
+        "main": "libs/wm/rn/src/index.ts",
+        "tsConfig": "libs/wm/rn/tsconfig.json",
+        "assets": ["libs/wm/rn/*.md"],
+        "baseDir": "../../../",
+        "rootDir": "../../../"
+      }
+    },
     "lint": {
       "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"]
