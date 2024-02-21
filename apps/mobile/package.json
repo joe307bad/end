@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
+    "react-native-gesture-handler": "*",
     "@testing-library/jest-native": "*",
     "@testing-library/react-native": "*",
     "metro-config": "*",
@@ -40,7 +41,10 @@
     "remeda": "*",
     "@react-native-async-storage/async-storage": "*",
     "@tamagui/toast": "*",
-    "@tamagui/animations-react-native": "*"
+    "@tamagui/animations-react-native": "*",
+    "@nozbe/watermelondb": "*",
+    "reflect-metadata": "*",
+    "react-native-screens": "*"
   },
   "scripts": {
     "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/mobile && cp package-lock.json apps/mobile",

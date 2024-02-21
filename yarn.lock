@@ -2101,6 +2101,7 @@ __metadata:
     "@fastify/env": "npm:^4.3.0"
     "@fastify/mongodb": "npm:^8.0.0"
     "@fastify/sensible": "npm:~5.2.0"
+    "@morrowdigital/watermelondb-expo-plugin": "npm:^2.3.1"
     "@nestjs/common": "npm:^10.0.2"
     "@nestjs/config": "npm:^3.2.0"
     "@nestjs/core": "npm:^10.0.2"
@@ -2173,6 +2174,7 @@ __metadata:
     eslint-plugin-react: "npm:7.32.2"
     eslint-plugin-react-hooks: "npm:4.6.0"
     expo: "npm:49.0.16"
+    expo-build-properties: "npm:~0.8.3"
     expo-font: "npm:~11.4.0"
     expo-gl: "npm:~13.0.1"
     expo-modules-core: "npm:~1.5.12"
@@ -3735,6 +3737,13 @@ __metadata:
   dependencies:
     sparse-bitfield: "npm:^3.0.3"
   checksum: b59fb1ed62b1a31ad26bbca8a5d81a4f4c0b880c95616a3650f6eb57f27b6ae83e5597fd6a63ddf899d4ace6979a79eb0024f50d33d871ef7f93f73f1106e816
+  languageName: node
+  linkType: hard
+
+"@morrowdigital/watermelondb-expo-plugin@npm:^2.3.1":
+  version: 2.3.1
+  resolution: "@morrowdigital/watermelondb-expo-plugin@npm:2.3.1"
+  checksum: e87d986d9ad5eef4184fde648d9d233b2db68403216eb3dbcbd53560319655fc7e53630230f7c53d8e6eea26b8797342755b3082671170a8a8dd532a9f7ad4e4
   languageName: node
   linkType: hard
 

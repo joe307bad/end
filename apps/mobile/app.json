@@ -42,6 +42,9 @@
         }
       ],
       [
+        "@morrowdigital/watermelondb-expo-plugin"
+      ],
+      [
         "expo-build-properties",
         {
           "android": {
@@ -53,7 +56,7 @@
             }
           }
         }
-      ]
+      ],
     ]
   }
 }

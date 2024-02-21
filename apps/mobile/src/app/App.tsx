@@ -15,9 +15,12 @@ import {
 } from '@end/components';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { DarkTheme, NavigationContainer } from '@react-navigation/native';
-import { Home } from '../pages/Home';
+import Home from '../pages/Home';
 import * as Font from 'expo-font';
 import { LogBox } from 'react-native';
+import { DatabaseProvider } from '@nozbe/watermelondb/react';
+import { database } from '@end/wm/rn';
+import { useAuth } from '@end/auth';
 
 function System() {
   const [OrbitControls, events] = useControls();
@@ -79,27 +82,30 @@ export default class App extends React.Component<any, any> {
 }
 
 export function Routes() {
-  const [loggedIn, setLoggedIn] = useState(false);
+  const { getToken } = useAuth();
+  const [loggedIn, setLoggedIn] = useState(!!getToken());
 
   return (
     <Providers baseUrl={process?.env?.EXPO_PUBLIC_API_BASE_URL}>
-      <NavigationContainer theme={MyTheme}>
-        {!loggedIn ? (
-          <Drawer.Navigator
-            initialRouteName="Landing"
-            screenOptions={{ headerShown: false, swipeEdgeWidth: 0 }}
-          >
-            <Drawer.Screen
-              name="Landing"
-              component={() => <Landing setLoggedIn={setLoggedIn} />}
-            />
-          </Drawer.Navigator>
-        ) : (
-          <Drawer.Navigator initialRouteName="Landing">
-            <Drawer.Screen name="Home" component={Home} />
-          </Drawer.Navigator>
-        )}
-      </NavigationContainer>
+      <DatabaseProvider database={database}>
+        <NavigationContainer theme={MyTheme}>
+          {!loggedIn ? (
+            <Drawer.Navigator
+              initialRouteName="Landing"
+              screenOptions={{ headerShown: false, swipeEdgeWidth: 0 }}
+            >
+              <Drawer.Screen
+                name="Landing"
+                component={() => <Landing setLoggedIn={setLoggedIn} />}
+              />
+            </Drawer.Navigator>
+          ) : (
+            <Drawer.Navigator initialRouteName="Landing">
+              <Drawer.Screen name="Home" component={Home} />
+            </Drawer.Navigator>
+          )}
+        </NavigationContainer>
+      </DatabaseProvider>
     </Providers>
   );
 }
