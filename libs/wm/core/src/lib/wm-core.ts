@@ -10,7 +10,7 @@ import { Model } from '@nozbe/watermelondb';
 import { field } from '@nozbe/watermelondb/decorators';
 
 export class Planet extends Model {
-  static table = 'planets';
+  static override table = 'planets';
   // @ts-ignore
   @field('name') name: string;
 }

@@ -15,15 +15,9 @@
       }
     },
     "tsc": {
-      "executor": "@nx/js:tsc",
-      "outputs": ["{options.outputPath}"],
+      "executor": "nx:run-commands",
       "options": {
-        "outputPath": "dist/libs/wm/core",
-        "main": "libs/wm/core/src/index.ts",
-        "tsConfig": "libs/wm/core/tsconfig.json",
-        "assets": ["libs/wm/core/*.md"],
-        "baseDir": "../../../",
-        "rootDir": "../../../"
+        "command": "tsc --noEmit -p libs/wm/core/tsconfig.lib.json"
       }
     },
     "lint": {
