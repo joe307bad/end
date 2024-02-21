@@ -153,7 +153,6 @@
     "webpack-merge": "^5.10.0"
   },
   "scripts": {
-    "build:libs": "nx run-many -t build -p auth data ui",
     "tsc": "nx run-many -t tsc",
     "deploy": "nx affected -t deploy"
   },
