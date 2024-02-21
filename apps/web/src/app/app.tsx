@@ -108,7 +108,6 @@ function AppRoutes() {
     <Router>
       <Routes>
         <Route element={<PrivateRoutes />}>
-          {/* @ts-ignore */}
           <Route path="/home" element={<Home />} />
         </Route>
         <Route

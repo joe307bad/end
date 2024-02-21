@@ -1,5 +1,5 @@
 import { H1, PrimaryButton } from '@end/components';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, ComponentType, ReactNode } from 'react';
 import { database } from '@end/wm/web';
 import { Planet } from '@end/wm/core';
 import {
@@ -7,6 +7,7 @@ import {
   withDatabase,
   withObservables,
 } from '@nozbe/watermelondb/react';
+import { Database, Model, Query } from '@nozbe/watermelondb';
 
 function Home({ allPlanets }: { allPlanets: Planet[] }) {
   console.log({ allPlanets });
@@ -19,18 +20,6 @@ function Home({ allPlanets }: { allPlanets: Planet[] }) {
     });
   }, []);
 
-  // useEffect(() => {
-  //   if (database) {
-  //     database
-  //       .get('planets')
-  //       .query()
-  //       .fetch()
-  //       .then((p) => {
-  //         setPlanets(p);
-  //       });
-  //   }
-  // }, [database]);
-
   return (
     <>
       <H1>Home</H1>
@@ -41,8 +30,10 @@ function Home({ allPlanets }: { allPlanets: Planet[] }) {
 
 export default compose(
   withDatabase,
-  // @ts-ignore
-  withObservables([], ({ database }) => ({
-    allPlanets: database.get('planets').query(),
-  }))
+  withObservables(
+    [],
+    ({ database }: { database: Database }): { allPlanets: Query<Planet> } => ({
+      allPlanets: database.get<Planet>('planets').query(),
+    })
+  ) as (arg0: unknown) => ComponentType
 )(Home);
