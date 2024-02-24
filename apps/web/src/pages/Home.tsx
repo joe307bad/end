@@ -24,7 +24,11 @@ function Home({ allPlanets }: { allPlanets: Planet[] }) {
     <>
       <H1>Home</H1>
       <PrimaryButton onPress={addPlanet}>Add planet</PrimaryButton>
-      <PrimaryButton onPress={() => getToken().then((t) => sync(t))}>
+      <PrimaryButton
+        onPress={() =>
+          getToken().then((t) => sync(t, process.env.API_BASE_URL))
+        }
+      >
         Sync
       </PrimaryButton>
       <ul>

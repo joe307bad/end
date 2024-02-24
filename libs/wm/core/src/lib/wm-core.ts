@@ -38,7 +38,7 @@ export const migrations = schemaMigrations({
   ],
 });
 
-export const syncFactory = (database: Database) => (token: string | null) =>
+export const syncFactory = (database: Database) => (token: string | null, apiUrl: string) =>
   synchronize({
     database,
     pullChanges: async ({ lastPulledAt, schemaVersion, migration }) => {
@@ -46,7 +46,7 @@ export const syncFactory = (database: Database) => (token: string | null) =>
         JSON.stringify(migration)
       )}&tables=${JSON.stringify(Object.keys(schema.tables))}`;
       const response = await fetch(
-        `${process.env.API_BASE_URL}/sync?${urlParams}`,
+        `${apiUrl}/sync?${urlParams}`,
         {
           method: 'GET',
           headers: new Headers({
@@ -63,7 +63,7 @@ export const syncFactory = (database: Database) => (token: string | null) =>
     },
     pushChanges: async ({ changes, lastPulledAt }) => {
       const response = await fetch(
-        `${process.env.API_BASE_URL}/sync?last_pulled_at=${lastPulledAt}`,
+        `${apiUrl}/sync?last_pulled_at=${lastPulledAt}`,
         {
           method: 'POST',
           headers: new Headers({
