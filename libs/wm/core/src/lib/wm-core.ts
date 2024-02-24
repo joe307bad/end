@@ -38,7 +38,7 @@ export const migrations = schemaMigrations({
   ],
 });
 
-export const syncFactory = (database: Database) => (token: string | null, apiUrl: string) =>
+export const syncFactory = (database: Database) => (token: string | null, apiUrl?: string) =>
   synchronize({
     database,
     pullChanges: async ({ lastPulledAt, schemaVersion, migration }) => {
