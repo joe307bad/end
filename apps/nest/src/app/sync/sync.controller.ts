@@ -8,23 +8,22 @@ import {
   Query,
 } from '@nestjs/common';
 import { SyncDatabaseChangeSet } from '@nozbe/watermelondb/sync';
+import { SyncService } from './sync.service';
+import { ObjectId } from 'bson';
 
 @Controller('sync')
 export class SyncController {
-  constructor(private readonly unitService: any) {}
+  constructor(private readonly syncService: SyncService) {}
 
   @Get()
   async pullChanges(@Query() query: Record<string, string>) {
     const { last_pulled_at, tables } = query;
     const lastPulledAt = last_pulled_at === 'null' ? 0 : Number(last_pulled_at);
     try {
-      const deleted = (
-        await this.unitService.getCreatedAfterTimestamp('deleted', lastPulledAt)
-      ).map((u: any) => u.deleted_id);
-
-      // TODO should we have a table type that consumes this
-      // tables var and creates units of type table and then
-      // every other units type is the id of one of these "table units"
+      const deleted = await this.syncService.getCreatedAfterTimestamp(
+        'deleted',
+        lastPulledAt
+      );
 
       const changes = await tables
         .split(',')
@@ -34,18 +33,18 @@ export class SyncController {
         }, [])
         .reduce<Promise<any>>(async (acc, unitType) => {
           const a = await acc;
-          const created = await this.unitService.getCreatedAfterTimestamp(
+          const created = await this.syncService.getCreatedAfterTimestamp(
             unitType,
             lastPulledAt
           );
 
-          const deletedFromThisTable = await this.unitService.getDeletedByType(
+          const deletedFromThisTable = await this.syncService.getDeletedByType(
             unitType
           );
 
           a[unitType] = {
             created,
-            updated: await this.unitService.getUpdatedAfterTimestamp(
+            updated: await this.syncService.getUpdatedAfterTimestamp(
               unitType,
               lastPulledAt,
               created
@@ -92,7 +91,7 @@ export class SyncController {
                 unit._id = unit.id;
                 unit.created_on_server = last_pulled_at;
                 delete unit.id;
-                this.unitService.create({ type: table, ...unit }).catch((e) => {
+                this.syncService.create({ table, ...unit }).catch((e) => {
                   console.error(
                     new HttpException(
                       `Push Changes Failed: ${e.toString()}`,
@@ -110,7 +109,7 @@ export class SyncController {
                 unit._id = unit.id;
                 unit.updated_on_server = last_pulled_at;
                 delete unit.id;
-                this.unitService.update({ type: table, ...unit }).catch((e) => {
+                this.syncService.update({ table, ...unit }).catch((e) => {
                   throw new HttpException(
                     `Push Changes Failed: ${e.toString()}`,
                     HttpStatus.INTERNAL_SERVER_ERROR
@@ -124,9 +123,9 @@ export class SyncController {
                 // then deletes that unit, then syncs, we lose the most recent edit
                 // since watermelondb discards the edits if the record is marked
                 // for deletion
-                this.unitService
+                this.syncService
                   .update({
-                    type: table,
+                    table,
                     ...{
                       _id: id,
                       deleted: true,

@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { User } from '../users/users.service';
+import { Model, Types } from 'mongoose';
 
-@Schema()
+@Schema({ strict: false })
 export class Entity {
   @Prop({ required: true })
   table: string;
+
+  @Prop()
+  _id: string;
 }
 
 export const EntitySchema = SchemaFactory.createForClass(Entity);
@@ -19,112 +21,52 @@ export class CreateEntitySchema {
 export class SyncService {
   constructor(@InjectModel(Entity.name) private entityModel: Model<Entity>) {}
 
-  findAll(): Promise<Entity[]> {
-    return this.entityModel.find({});
-  }
-
-  getAllByType(table: string) {
-    return this.entityModel.find({
-      table,
-    });
-  }
-
-  findById(id: string): Promise<Entity> {
-    return this.entityModel.find({ id }).then((response) => response[0]);
-  }
-
   getCreatedAfterTimestamp(table: string, timestamp: number) {
-    return this.entityModel.find({
-      table,
-      created_on_server: timestamp,
-    });
-  }
-
-  getDeletedByType(type: string) {
-    return this.unitRepo
+    return this.entityModel
       .find({
-        selector: {
-          type: { $eq: type },
-          deleted: { $eq: true },
-        },
-        limit: 1000,
+        table,
+        created_on_server: { $gt: timestamp },
       })
+      .exec()
       .then((response) =>
-        response.docs.map((d) => {
-          // @ts-ignore
-          d.id = d._id;
-          delete d._id;
-          delete d._rev;
-          delete d.type;
-          return d;
+        response.map((d: any) => {
+          return {
+            id: d._id,
+            ...d
+          };
         })
       );
   }
 
-  getDeletedAfterTimestamp(type: string, timestamp: number) {
-    return this.unitRepo
-      .find({
-        selector: {
-          type: { $eq: type },
-          created_on_server: { $gt: timestamp },
-        },
-        limit: 1000,
-      })
-      .then((response) =>
-        response.docs.map((d) => {
-          // @ts-ignore
-          d.id = d._id;
-          delete d._id;
-          delete d._rev;
-          delete d.type;
-          return d;
-        })
-      );
+  getDeletedByType(table: string) {
+    return this.entityModel.find({ table, deleted: true }).exec();
   }
 
   async getUpdatedAfterTimestamp(
-    type: string,
+    table: string,
     timestamp: number,
     created: any[]
   ) {
-    const c = created.map((c) => c.id);
-    const b = await this.unitRepo
+    const createdIds = created.map((c) => c.id);
+    return this.entityModel
       .find({
-        selector: {
-          type: { $eq: type },
-          _id: { $nin: c },
-          deleted: { $eq: false },
-          updated_on_server: { $gt: timestamp },
-        },
-        limit: 1000,
+        table,
+        delete: false,
+        updated_on_server: timestamp,
       })
-      .then((response) =>
-        response.docs.map((d) => {
-          // @ts-ignore
-          d.id = d._id;
-          delete d._id;
-          delete d._rev;
-          delete d.type;
-          return d;
-        })
-      );
-
-    return b;
+      .exec()
+      .then((r) => r.filter((e) => !createdIds.some((id) => id === e.id)));
   }
 
-  create(unit: any): Promise<DocumentInsertResponse> {
-    return this.unitRepo.insert(unit);
-  }
-
-  async update(unit: any): Promise<DocumentInsertResponse> {
-    const existingEntity = await this.unitRepo
-      .get(unit._id)
-      .catch((e) => false);
-
-    return this.unitRepo.insert({
-      // @ts-ignore
-      ...(existingEntity !== false ? existingEntity : {}),
-      ...unit,
+  create(entity: any): Promise<{ id: Types.ObjectId | string }> {
+    return this.entityModel.create(entity).then((r: any) => {
+      return { id: r._id };
     });
+  }
+
+  async update(entity: any): Promise<{ id: Types.ObjectId }> {
+    return this.entityModel
+      .updateOne({ _id: entity.id }, entity)
+      .then((r) => ({ id: r.upsertedId }));
   }
 }

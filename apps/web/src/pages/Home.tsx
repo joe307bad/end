@@ -1,6 +1,6 @@
 import { H1, PrimaryButton } from '@end/components';
 import { useCallback, ComponentType } from 'react';
-import { database } from '@end/wm/web';
+import { database, sync } from '@end/wm/web';
 import { Planet } from '@end/wm/core';
 import {
   compose,
@@ -8,8 +8,10 @@ import {
   withObservables,
 } from '@nozbe/watermelondb/react';
 import { Database, Query } from '@nozbe/watermelondb';
+import { useAuth } from '@end/auth';
 
 function Home({ allPlanets }: { allPlanets: Planet[] }) {
+  const { getToken } = useAuth();
   const addPlanet = useCallback(async () => {
     await database.write(async () => {
       await database.get('planets').create((planet: any) => {
@@ -21,12 +23,15 @@ function Home({ allPlanets }: { allPlanets: Planet[] }) {
   return (
     <>
       <H1>Home</H1>
+      <PrimaryButton onPress={addPlanet}>Add planet</PrimaryButton>
+      <PrimaryButton onPress={() => getToken().then((t) => sync(t))}>
+        Sync
+      </PrimaryButton>
       <ul>
         {allPlanets.map((planet) => (
           <li>{planet.name}</li>
         ))}
       </ul>
-      <PrimaryButton onPress={addPlanet}>Add planet</PrimaryButton>
     </>
   );
 }

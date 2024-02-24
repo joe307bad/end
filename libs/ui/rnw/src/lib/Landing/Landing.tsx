@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import * as Typography from '../Typography';
 import { Input, XStack, YStack, Text } from 'tamagui';
 import { PrimaryButton } from '../Display';
@@ -80,6 +80,11 @@ export function Landing({ goToHome }: Props) {
           secureTextEntry={true}
           padding="$0.5"
           width="50%"
+          onKeyPress={(event: any) => {
+            if (event.code === 'Enter' || event.code === 'NumpadEnter') {
+              login();
+            }
+          }}
         />
       </XStack>
       <PrimaryButton loading={loading} onPress={login}>
