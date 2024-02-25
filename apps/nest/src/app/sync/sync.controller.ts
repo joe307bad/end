@@ -19,11 +19,6 @@ export class SyncController {
     const { last_pulled_at, tables } = query;
     const lastPulledAt = last_pulled_at === 'null' ? 0 : Number(last_pulled_at);
     try {
-      const deleted = await this.syncService.getCreatedAfterTimestamp(
-        'deleted',
-        lastPulledAt
-      );
-
       const changes = await tables
         .split(',')
         .reduce<any[]>((acc, i) => {
@@ -37,9 +32,11 @@ export class SyncController {
             lastPulledAt
           );
 
-          const deletedFromThisTable = await this.syncService.getDeletedByType(
-            table
-          );
+          const deletedFromThisTable =
+            await this.syncService.getDeletedByTypeAfterTimestamp(
+              table,
+              lastPulledAt
+            );
 
           a[table] = {
             created,
@@ -48,9 +45,7 @@ export class SyncController {
               lastPulledAt,
               created
             ),
-            deleted: deletedFromThisTable
-              .filter((u: any) => deleted.some((d) => d === u.id))
-              .map((d: any) => d.id),
+            deleted: deletedFromThisTable.map((d: any) => d.id),
           };
 
           return a;
@@ -118,15 +113,12 @@ export class SyncController {
               break;
             case 'deleted':
               changes[table][changeType].forEach(async (id) => {
-                // with this method, if a user edits a unit on the front end
-                // then deletes that unit, then syncs, we lose the most recent edit
-                // since watermelondb discards the edits if the record is marked
-                // for deletion
                 this.syncService
                   .update({
                     table,
                     ...{
                       _id: id,
+                      deleted_on_server: last_pulled_at,
                       deleted: true,
                     },
                   })

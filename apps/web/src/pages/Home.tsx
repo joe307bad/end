@@ -32,9 +32,17 @@ function Home({ allPlanets }: { allPlanets: Planet[] }) {
     });
   }, [allPlanets]);
 
+  const deletePlanet = useCallback(async () => {
+    await database.write(async () => {
+      const randomPlanet = faker.helpers.arrayElement(allPlanets);
+      await randomPlanet.markAsDeleted();
+    });
+  }, [allPlanets]);
+
   return (
     <>
       <H1>Home</H1>
+      <PrimaryButton onPress={deletePlanet}>Delete Planet</PrimaryButton>
       <PrimaryButton onPress={editPlanet}>Edit Planet</PrimaryButton>
       <PrimaryButton onPress={addPlanet}>Add planet</PrimaryButton>
       <PrimaryButton

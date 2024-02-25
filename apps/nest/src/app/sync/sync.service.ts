@@ -26,6 +26,7 @@ export class SyncService {
       .find({
         table,
         created_on_server: { $gt: timestamp },
+        deleted: { $ne: true },
       })
       .exec()
       .then((response) =>
@@ -38,8 +39,9 @@ export class SyncService {
       );
   }
 
-  getDeletedByType(table: string) {
-    return this.entityModel.find({ table, deleted: true }).exec();
+  getDeletedByTypeAfterTimestamp(table: string, timestamp: number) {
+    return this.entityModel.find({ table, deleted: true,
+      deleted_on_server: { $gt: timestamp } }).exec();
   }
 
   async getUpdatedAfterTimestamp(
@@ -52,7 +54,7 @@ export class SyncService {
       .find({
         table,
         _id: { $nin: createdIds },
-        delete: { $ne: true },
+        deleted: { $ne: true },
         updated_on_server: { $gt: timestamp },
       })
       .exec()
