@@ -101,7 +101,10 @@ export function Routes() {
             </Drawer.Navigator>
           ) : (
             <Drawer.Navigator initialRouteName="Landing">
-              <Drawer.Screen name="Home" component={Home} />
+              <Drawer.Screen
+                name="Home"
+                component={() => <Home logOut={() => setLoggedIn(false)} />}
+              />
             </Drawer.Navigator>
           )}
         </NavigationContainer>

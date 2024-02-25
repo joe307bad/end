@@ -53,6 +53,7 @@ export function Landing({ goToHome }: Props) {
           await setToken(json.access_token);
           goToHome?.();
         } else {
+          console.log({res})
           toast.show('An error occurred. Try again.', {
             message: (res as any)?.message,
           });
