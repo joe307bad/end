@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { SyncDatabaseChangeSet } from '@nozbe/watermelondb/sync';
 import { SyncService } from './sync.service';
-import { ObjectId } from 'bson';
 
 @Controller('sync')
 export class SyncController {
@@ -31,21 +30,21 @@ export class SyncController {
           acc.push(i.replace(/[^A-Za-z0-9_]/g, ''));
           return acc;
         }, [])
-        .reduce<Promise<any>>(async (acc, unitType) => {
+        .reduce<Promise<any>>(async (acc, table) => {
           const a = await acc;
           const created = await this.syncService.getCreatedAfterTimestamp(
-            unitType,
+            table,
             lastPulledAt
           );
 
           const deletedFromThisTable = await this.syncService.getDeletedByType(
-            unitType
+            table
           );
 
-          a[unitType] = {
+          a[table] = {
             created,
             updated: await this.syncService.getUpdatedAfterTimestamp(
-              unitType,
+              table,
               lastPulledAt,
               created
             ),
@@ -85,13 +84,13 @@ export class SyncController {
           switch (changeType) {
             case 'created':
               // TODO change this to a createMany
-              changes[table][changeType].forEach((unit) => {
-                delete unit._status;
-                delete unit._changed;
-                unit._id = unit.id;
-                unit.created_on_server = last_pulled_at;
-                delete unit.id;
-                this.syncService.create({ table, ...unit }).catch((e) => {
+              changes[table][changeType].forEach((entity) => {
+                delete entity._status;
+                delete entity._changed;
+                entity._id = entity.id;
+                entity.created_on_server = last_pulled_at;
+                delete entity.id;
+                this.syncService.create({ table, ...entity }).catch((e) => {
                   console.error(
                     new HttpException(
                       `Push Changes Failed: ${e.toString()}`,
@@ -103,13 +102,13 @@ export class SyncController {
               break;
             case 'updated':
               // TODO change this to a updateMany
-              changes[table][changeType].forEach((unit) => {
-                delete unit._status;
-                delete unit._changed;
-                unit._id = unit.id;
-                unit.updated_on_server = last_pulled_at;
-                delete unit.id;
-                this.syncService.update({ table, ...unit }).catch((e) => {
+              changes[table][changeType].forEach((entity) => {
+                delete entity._status;
+                delete entity._changed;
+                entity._id = entity.id;
+                entity.updated_on_server = last_pulled_at;
+                delete entity.id;
+                this.syncService.update({ table, ...entity }).catch((e) => {
                   throw new HttpException(
                     `Push Changes Failed: ${e.toString()}`,
                     HttpStatus.INTERNAL_SERVER_ERROR

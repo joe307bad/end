@@ -32,7 +32,7 @@ export class SyncService {
         response.map((d: any) => {
           return {
             id: d._id,
-            ...d
+            ...d,
           };
         })
       );
@@ -51,11 +51,19 @@ export class SyncService {
     return this.entityModel
       .find({
         table,
-        delete: false,
-        updated_on_server: timestamp,
+        _id: { $nin: createdIds },
+        delete: { $ne: true },
+        updated_on_server: { $gt: timestamp },
       })
       .exec()
-      .then((r) => r.filter((e) => !createdIds.some((id) => id === e.id)));
+      .then((response) =>
+        response.map((d: any) => {
+          return {
+            id: d._id,
+            ...d,
+          };
+        })
+      );
   }
 
   create(entity: any): Promise<{ id: Types.ObjectId | string }> {
@@ -66,7 +74,7 @@ export class SyncService {
 
   async update(entity: any): Promise<{ id: Types.ObjectId }> {
     return this.entityModel
-      .updateOne({ _id: entity.id }, entity)
+      .updateOne({ _id: entity._id }, entity)
       .then((r) => ({ id: r.upsertedId }));
   }
 }

@@ -7,8 +7,10 @@ import {
   withDatabase,
   withObservables,
 } from '@nozbe/watermelondb/react';
-import { Database, Query } from '@nozbe/watermelondb';
+import { Database, Model, Query } from '@nozbe/watermelondb';
 import { useAuth } from '@end/auth';
+import { faker } from '@faker-js/faker';
+import {Observable} from "rxjs";
 
 function Home({ allPlanets }: { allPlanets: Planet[] }) {
   const { getToken } = useAuth();
@@ -20,9 +22,20 @@ function Home({ allPlanets }: { allPlanets: Planet[] }) {
     });
   }, []);
 
+  const editPlanet = useCallback(async () => {
+    await database.write(async () => {
+      const randomPlanet = faker.helpers.arrayElement(allPlanets);
+      const planet: any = await database.get('planets').find(randomPlanet.id);
+      await planet.update(() => {
+        planet.name = `changed-${Math.random().toString()}`;
+      });
+    });
+  }, [allPlanets]);
+
   return (
     <>
       <H1>Home</H1>
+      <PrimaryButton onPress={editPlanet}>Edit Planet</PrimaryButton>
       <PrimaryButton onPress={addPlanet}>Add planet</PrimaryButton>
       <PrimaryButton
         onPress={() =>
@@ -44,8 +57,11 @@ export default compose(
   withDatabase,
   withObservables(
     [],
-    ({ database }: { database: Database }): { allPlanets: Query<Planet> } => ({
-      allPlanets: database.get<Planet>('planets').query(),
+    ({ database }: { database: Database }): { allPlanets: Observable<Planet[]> } => ({
+      allPlanets: database
+        .get<Planet>('planets')
+        .query()
+        .observeWithColumns(['name']),
     })
   ) as (arg0: unknown) => ComponentType
 )(Home);
