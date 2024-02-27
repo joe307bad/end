@@ -1,5 +1,4 @@
-import { H1, PrimaryButton } from '@end/components';
-import React, { useCallback, ComponentType } from 'react';
+import React, { useCallback, ComponentType, ReactNode } from 'react';
 import { Planet } from '@end/wm/core';
 import {
   compose,
@@ -18,11 +17,13 @@ function H({
   database,
   sync,
   apiUrl,
+  children,
 }: {
   allPlanets: Planet[];
   database: Database;
   sync: (token: string | null, apiUrl?: string) => void;
   apiUrl?: string;
+  children?: ReactNode;
 }) {
   const { getToken } = useAuth();
   const addPlanet = useCallback(async () => {
@@ -50,21 +51,7 @@ function H({
     });
   }, [allPlanets]);
 
-  return (
-    <>
-      <H1>Home</H1>
-      <PrimaryButton onPress={deletePlanet}>Delete Planet</PrimaryButton>
-      <PrimaryButton onPress={editPlanet}>Edit Planet</PrimaryButton>
-      <PrimaryButton onPress={addPlanet}>Add planet</PrimaryButton>
-      <PrimaryButton onPress={() => getToken().then((t) => sync(t, apiUrl))}>
-        Sync
-      </PrimaryButton>
-      <FlatList
-        data={allPlanets}
-        renderItem={({ item }) => <Text>{item.name}</Text>}
-      />
-    </>
-  );
+  return <>{children}</>;
 }
 
 export const Home = compose(
