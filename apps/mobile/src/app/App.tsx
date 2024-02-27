@@ -21,7 +21,6 @@ import { LogBox } from 'react-native';
 import { DatabaseProvider } from '@nozbe/watermelondb/react';
 import { database } from '@end/wm/rn';
 import { useAuth } from '@end/auth';
-import Config from 'react-native-config';
 
 function System() {
   const [OrbitControls, events] = useControls();
