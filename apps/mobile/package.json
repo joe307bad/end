@@ -44,7 +44,9 @@
     "@tamagui/animations-react-native": "*",
     "@nozbe/watermelondb": "*",
     "reflect-metadata": "*",
-    "react-native-screens": "*"
+    "react-native-screens": "*",
+    "@faker-js/faker": "*",
+    "rxjs": "*"
   },
   "scripts": {
     "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/mobile && cp package-lock.json apps/mobile",

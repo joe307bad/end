@@ -1,5 +1,5 @@
 import LokiJSAdapter from '@nozbe/watermelondb/adapters/lokijs';
-import { databaseFactory, migrations, schema } from '@end/wm/core';
+import {databaseFactory, migrations, schema, syncFactory} from '@end/wm/core';
 
 const adapter = new LokiJSAdapter({
   schema,
@@ -35,3 +35,5 @@ const adapter = new LokiJSAdapter({
 });
 
 export const database = databaseFactory(adapter);
+
+export const sync = syncFactory(database);

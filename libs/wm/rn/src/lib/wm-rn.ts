@@ -1,5 +1,5 @@
 import SQLiteAdapter from '@nozbe/watermelondb/adapters/sqlite';
-import { databaseFactory, migrations, schema } from '@end/wm/core';
+import {databaseFactory, migrations, schema, syncFactory} from '@end/wm/core';
 
 const adapter = new SQLiteAdapter({
   schema,
@@ -17,3 +17,5 @@ const adapter = new SQLiteAdapter({
 });
 
 export const database = databaseFactory(adapter);
+
+export const sync = syncFactory(database);
