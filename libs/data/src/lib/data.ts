@@ -6,6 +6,8 @@ export class EndApi {
   }
 
   login(userName: string, password: string) {
+    console.log(this.apiUrl);
+    console.log(userName, password);
     return fetch(`${this.apiUrl}/auth/login`, {
       method: 'POST',
       headers: {

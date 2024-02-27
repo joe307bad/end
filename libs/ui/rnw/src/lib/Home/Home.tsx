@@ -1,5 +1,5 @@
 import { H1, PrimaryButton } from '@end/components';
-import { useCallback, ComponentType } from 'react';
+import React, { useCallback, ComponentType } from 'react';
 import { Planet } from '@end/wm/core';
 import {
   compose,
@@ -17,10 +17,12 @@ function H({
   allPlanets,
   database,
   sync,
+  apiUrl,
 }: {
   allPlanets: Planet[];
   database: Database;
   sync: (token: string | null, apiUrl?: string) => void;
+  apiUrl?: string;
 }) {
   const { getToken } = useAuth();
   const addPlanet = useCallback(async () => {
@@ -54,11 +56,7 @@ function H({
       <PrimaryButton onPress={deletePlanet}>Delete Planet</PrimaryButton>
       <PrimaryButton onPress={editPlanet}>Edit Planet</PrimaryButton>
       <PrimaryButton onPress={addPlanet}>Add planet</PrimaryButton>
-      <PrimaryButton
-        onPress={() =>
-          getToken().then((t) => sync(t, process.env.API_BASE_URL))
-        }
-      >
+      <PrimaryButton onPress={() => getToken().then((t) => sync(t, apiUrl))}>
         Sync
       </PrimaryButton>
       <FlatList
