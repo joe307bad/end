@@ -10,11 +10,10 @@ export default function Home() {
     <H database={database} sync={sync} apiUrl={process.env.API_BASE_URL}>
       <Canvas
         style={{ height: '100%' }}
-        camera={{ position: [0, 150, 25], fov: 45 }}
+        camera={{ position: [0, 160, 25], fov: 45 }}
       >
         <OrbitControls />
         <Hexasphere />
-        <ambientLight />
       </Canvas>
     </H>
   );
