@@ -1,10 +1,8 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import '@react-three/fiber';
 // @ts-ignore
 import HS from './hexasphere.lib';
 import { PointTextHelper } from '@jniac/three-point-text-helper';
-import { DirectionalLight, DirectionalLightHelper } from 'three';
-import { useHelper } from '@react-three/drei';
 
 const depthRatio = 1.04;
 
@@ -12,78 +10,16 @@ function withDepthRatio(n: number) {
   return (n * depthRatio) - n;
 }
 
-function TileMesh({ positions, indices, color, raised, onClick }: any) {
+function TileMesh({ positions, indices, color, raised, onClick, target }: any) {
 
   const mesh: any = useRef();
-  const [b, setB] = useState<any>(null);
-  const [d, setD] = useState<any>(null);
+  const geo: any = useRef();
 
-  useEffect(() => {
-
-    const c = Array.from<any>(positions);
-    // v5
-    c.push(positions[0] - withDepthRatio(positions[0]), positions[1] - withDepthRatio(positions[1]), positions[2] - withDepthRatio(positions[2]));
-
-    // v6
-    c.push(positions[3] - withDepthRatio(positions[3]), positions[4] - withDepthRatio(positions[4]), positions[5] - withDepthRatio(positions[5]));
-
-    // v7
-    c.push(positions[6] - withDepthRatio(positions[6]), positions[7] - withDepthRatio(positions[7]), positions[8] - withDepthRatio(positions[8]));
-
-    // v8
-    c.push(positions[9] - withDepthRatio(positions[9]), positions[10] - withDepthRatio(positions[10]), positions[11] - withDepthRatio(positions[11]));
-
-    // v9
-    c.push(positions[12] - withDepthRatio(positions[12]), positions[13] - withDepthRatio(positions[13]), positions[14] - withDepthRatio(positions[14]));
-
-    if (positions.length > 15) {
-      // v10
-      c.push(positions[15] - withDepthRatio(positions[15]), positions[16] - withDepthRatio(positions[16]), positions[17] - withDepthRatio(positions[17]));
+  useLayoutEffect(() => {
+    if (geo.current) {
+      geo.current.attributes.position.needsUpdate = true;
     }
-
-    setB(new Float32Array(c));
-
-  }, [positions]);
-
-  useEffect(() => {
-
-    const z = Array.from<any>(indices);
-
-    // face 1
-    z.push(0, 5, 6);
-    z.push(0, 6, 1);
-
-    // face 2
-    z.push(2, 7, 8);
-    z.push(8, 3, 2);
-
-    // face 3
-    z.push(1, 6, 7);
-    z.push(7, 2, 1);
-
-    // face 4
-    z.push(3, 8, 9);
-    z.push(9, 4, 3);
-
-    // face 5
-    z.push(4, 9, 5);
-    z.push(0, 4, 5);
-
-    if (positions.length > 15) {
-      // face 6
-      z.push(4, 9, 10);
-
-      // face 7
-      z.push(4, 10, 11);
-      z.push(4, 11, 5);
-
-      // face 8
-      z.push(5, 11, 6);
-    }
-
-    setD(new Uint16Array(z));
-
-  }, [indices, positions]);
+  }, [raised, positions]);
 
   useEffect(() => {
 
@@ -92,37 +28,30 @@ function TileMesh({ positions, indices, color, raised, onClick }: any) {
     // console.log({ d });
     // console.log({ 'indices.length': d?.length });
 
-    // if (mesh.current && b && d) {
-    //   const pth = new PointTextHelper();
-    //   mesh.current.add(pth);
-    //   pth.displayVertices(b, {
-    //     color: 'white',
-    //     size: 10,
-    //     format: (index) => `${index}`
-    //   });
-    // }
-  }, [mesh.current, b, d]);
+    if (mesh.current) {
+      const pth = new PointTextHelper();
+      mesh.current.add(pth);
+      // pth.displayVertices(positions, {
+      //   color: 'white',
+      //   size: 10,
+      //   format: (index) => `${index}`
+      // });
+    }
+  }, [mesh.current]);
 
-  useEffect(() => {
-    setB((b: any) => {
-      const c = [...Array.from<any>(b)];
-      return new Float32Array(c)
-    });
-  }, [raised, positions])
-
-  return (!b || !d) ? null : (
+  return !target ? null : (
     <mesh ref={mesh} onClick={onClick}>
-      <bufferGeometry onUpdate={self => self.computeVertexNormals()}>
+      <bufferGeometry ref={geo} onUpdate={self => self.computeVertexNormals()}>
         <bufferAttribute
           attach="attributes-position"
-          array={b}
-          count={b.length / 3}
+          array={positions}
+          count={positions.length / 3}
           itemSize={3}
         />
         <bufferAttribute
           attach="index"
-          array={d}
-          count={d.length}
+          array={indices}
+          count={indices.length}
           itemSize={1}
         />
       </bufferGeometry>
@@ -132,11 +61,11 @@ function TileMesh({ positions, indices, color, raised, onClick }: any) {
 
 export function Hexasphere() {
 
-  const [raised, setRaised] = useState<number[]>([])
+  const [raised, setRaised] = useState<number[]>([]);
 
   const tiles = useMemo(() => {
     // @ts-ignore
-    const hexasphere: any = new HS(50, 2, 1);
+    const hexasphere: any = new HS(50, 4, 1);
     const tiles: any = [];
 
     const raise = (i: number) => raised.some(r => r === i);
@@ -145,12 +74,31 @@ export function Hexasphere() {
       const v: any = [];
       t.boundary.forEach((bp: any) => {
         if (raise(i)) {
-          console.log(i)
           v.push(parseFloat(bp.x) * depthRatio, parseFloat(bp.y) * depthRatio, parseFloat(bp.z) * depthRatio);
         } else {
           v.push(parseFloat(bp.x), parseFloat(bp.y), parseFloat(bp.z));
         }
       });
+
+      // v6
+      v.push(v[0] - withDepthRatio(v[0]), v[1] - withDepthRatio(v[1]), v[2] - withDepthRatio(v[2]));
+      //
+      // // v7
+      v.push(v[3] - withDepthRatio(v[3]), v[4] - withDepthRatio(v[4]), v[5] - withDepthRatio(v[5]));
+      //
+      // // v8
+      v.push(v[6] - withDepthRatio(v[6]), v[7] - withDepthRatio(v[7]), v[8] - withDepthRatio(v[8]));
+      //
+      // // v9
+      v.push(v[9] - withDepthRatio(v[9]), v[10] - withDepthRatio(v[10]), v[11] - withDepthRatio(v[11]));
+      //
+      // // v10
+      v.push(v[12] - withDepthRatio(v[12]), v[13] - withDepthRatio(v[13]), v[14] - withDepthRatio(v[14]));
+      //
+      // if (v.length > 15 ) {
+      // v11
+      v.push(v[15] - withDepthRatio(v[15]), v[16] - withDepthRatio(v[16]), v[17] - withDepthRatio(v[17]));
+      // }
 
       const positions = new Float32Array(v);
 
@@ -158,8 +106,37 @@ export function Hexasphere() {
 
       indices.push(0, 1, 2, 0, 2, 3, 0, 3, 4);
 
-      if (positions.length > 15) {
-        indices.push(0, 4, 5);
+      // face 1
+      indices.push(0, 5, 6);
+      indices.push(0, 6, 1);
+
+      // face 2
+      indices.push(2, 7, 8);
+      indices.push(8, 3, 2);
+
+      // face 3
+      indices.push(1, 6, 7);
+      indices.push(7, 2, 1);
+
+      // face 4
+      indices.push(3, 8, 9);
+      indices.push(9, 4, 3);
+
+      // face 5
+      indices.push(4, 5, 0);
+
+      if (positions.length > 33) {
+        // face 6
+        indices.push(4, 9, 10);
+
+        // face 7
+        indices.push(4, 10, 11);
+        indices.push(4, 11, 5);
+
+        // face 8
+        indices.push(5, 11, 6);
+      } else {
+        indices.push(4, 9, 5);
       }
 
       tiles.push({
@@ -170,27 +147,26 @@ export function Hexasphere() {
       });
     });
 
-
     return tiles;
   }, [raised]);
 
-  const dirLight = useRef<DirectionalLight>(null);
-  useHelper(dirLight, DirectionalLightHelper, 1, 'red');
+  // const dirLight = useRef<DirectionalLight>(null);
+  // useHelper(dirLight, DirectionalLightHelper, 1, 'red');
 
   function onClick(i: number) {
     setRaised((prev: number[]) => {
       const newPrev = [...prev];
       newPrev.push(i);
       return newPrev;
-    })
+    });
   }
 
   return (
     <>
       <ambientLight />
-      <directionalLight ref={dirLight} castShadow={true} position={[0, 100, 25]} />
+      <directionalLight position={[0, 100, 25]} />
       <mesh onUpdate={(self) => self.matrixWorldNeedsUpdate = true}>
-        {tiles.map((t: any, i: any) => <TileMesh key={i} {...t} onClick={() => onClick(i)} />)}
+        {tiles.map((t: any, i: any) => <TileMesh key={i} {...t} index={i} onClick={() => onClick(i)} target={true} />)}
       </mesh>
     </>
   );
