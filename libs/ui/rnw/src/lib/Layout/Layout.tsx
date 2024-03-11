@@ -115,7 +115,7 @@ export function ContainerWithNav({
           </View>
         </Header>
       </View>
-      <View id="content" style={tw.style('flex items-center w-full h-full')}>
+      <View id="content" style={tw.style('flex items-center w-full flex-1')}>
         <View style={tw.style('w-[500px] w-full h-full')}>{children}</View>
       </View>
     </View>

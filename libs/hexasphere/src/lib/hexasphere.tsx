@@ -10,7 +10,7 @@ function withDepthRatio(n: number) {
   return (n * depthRatio) - n;
 }
 
-function TileMesh({ positions, indices, color, raised, onClick, target }: any) {
+function TileMesh({ positions, indices, color, raised, onClick, target, highlighted }: any) {
 
   const mesh: any = useRef();
   const geo: any = useRef();
@@ -55,22 +55,25 @@ function TileMesh({ positions, indices, color, raised, onClick, target }: any) {
           itemSize={1}
         />
       </bufferGeometry>
-      <meshStandardMaterial color={color} />
+      <meshStandardMaterial color={highlighted ? 'red' : color} />
     </mesh>);
 }
+
+const hexasphere = new HS(50, 4, 1);
 
 export function Hexasphere() {
 
   const [raised, setRaised] = useState<number[]>([]);
+  const [highlighted, setHighlighted] = useState<string[]>([]);
 
   const tiles = useMemo(() => {
     // @ts-ignore
-    const hexasphere: any = new HS(50, 4, 1);
     const tiles: any = [];
 
     const raise = (i: number) => raised.some(r => r === i);
 
     hexasphere.tiles.forEach((t: any, i: number) => {
+
       const v: any = [];
       t.boundary.forEach((bp: any) => {
         if (raise(i)) {
@@ -82,23 +85,23 @@ export function Hexasphere() {
 
       // v6
       v.push(v[0] - withDepthRatio(v[0]), v[1] - withDepthRatio(v[1]), v[2] - withDepthRatio(v[2]));
-      //
-      // // v7
+
+      // v7
       v.push(v[3] - withDepthRatio(v[3]), v[4] - withDepthRatio(v[4]), v[5] - withDepthRatio(v[5]));
-      //
-      // // v8
+
+      // v8
       v.push(v[6] - withDepthRatio(v[6]), v[7] - withDepthRatio(v[7]), v[8] - withDepthRatio(v[8]));
-      //
-      // // v9
+
+      // v9
       v.push(v[9] - withDepthRatio(v[9]), v[10] - withDepthRatio(v[10]), v[11] - withDepthRatio(v[11]));
-      //
-      // // v10
+
+      // v10
       v.push(v[12] - withDepthRatio(v[12]), v[13] - withDepthRatio(v[13]), v[14] - withDepthRatio(v[14]));
-      //
-      // if (v.length > 15 ) {
+
+
       // v11
       v.push(v[15] - withDepthRatio(v[15]), v[16] - withDepthRatio(v[16]), v[17] - withDepthRatio(v[17]));
-      // }
+
 
       const positions = new Float32Array(v);
 
@@ -139,21 +142,28 @@ export function Hexasphere() {
         indices.push(4, 9, 5);
       }
 
+      const { x, y, z } = t.centerPoint;
+      const id = `${x},${y},${z}`;
+
       tiles.push({
         positions,
         indices: new Uint16Array(indices),
         color: raise(i) ? 'green' : 'blue',
-        raised: raise(i)
+        raised: raise(i),
+        id
       });
     });
 
     return tiles;
-  }, [raised]);
+  }, [raised, hexasphere]);
 
   // const dirLight = useRef<DirectionalLight>(null);
   // useHelper(dirLight, DirectionalLightHelper, 1, 'red');
 
-  function onClick(i: number) {
+  function onClick(i: number, id: string) {
+
+    setHighlighted(hexasphere.tileLookup[id].neighborIds);
+
     setRaised((prev: number[]) => {
       const newPrev = [...prev];
       newPrev.push(i);
@@ -166,7 +176,10 @@ export function Hexasphere() {
       <ambientLight />
       <directionalLight position={[0, 100, 25]} />
       <mesh onUpdate={(self) => self.matrixWorldNeedsUpdate = true}>
-        {tiles.map((t: any, i: any) => <TileMesh key={i} {...t} index={i} onClick={() => onClick(i)} target={true} />)}
+        {tiles.map((t: any, i: any) => <TileMesh key={i} {...t} index={i}
+                                                 onClick={() => onClick(i, t.id)}
+                                                 highlighted={highlighted.some(h => h === t.id)}
+                                                 target={true} />)}
       </mesh>
     </>
   );
