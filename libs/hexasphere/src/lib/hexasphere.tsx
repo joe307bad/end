@@ -3,6 +3,8 @@ import '@react-three/fiber';
 // @ts-ignore
 import HS from './hexasphere.lib';
 import { PointTextHelper } from '@jniac/three-point-text-helper';
+import { faker } from '@faker-js/faker';
+import { useFrame } from '@react-three/fiber';
 
 const depthRatio = 1.04;
 
@@ -10,7 +12,7 @@ function withDepthRatio(n: number) {
   return (n * depthRatio) - n;
 }
 
-function TileMesh({ positions, indices, color, raised, onClick, target, highlighted }: any) {
+function TileMesh({ positions, indices, color, onClick, target, highlighted }: any) {
 
   const mesh: any = useRef();
   const geo: any = useRef();
@@ -19,7 +21,7 @@ function TileMesh({ positions, indices, color, raised, onClick, target, highligh
     if (geo.current) {
       geo.current.attributes.position.needsUpdate = true;
     }
-  }, [raised, positions]);
+  }, [positions]);
 
   useEffect(() => {
 
@@ -65,12 +67,14 @@ export function Hexasphere() {
 
   const [raised, setRaised] = useState<number[]>([]);
   const [highlighted, setHighlighted] = useState<string[]>([]);
+  const seed = useMemo(() => faker.number.int({ min: 2, max: 12 }), []);
+  const seed1 = useMemo(() => faker.number.int({ min: 2, max: 12 }), []);
 
   const tiles = useMemo(() => {
     // @ts-ignore
     const tiles: any = [];
 
-    const raise = (i: number) => raised.some(r => r === i);
+    const raise = (i: number) => i % seed === 0 || i % seed1 === 0;
 
     hexasphere.tiles.forEach((t: any, i: number) => {
 
@@ -171,16 +175,64 @@ export function Hexasphere() {
     });
   }
 
+
+  const mesh: any = useRef();
+  useFrame(() => {
+    if (mesh.current && highlighted.length === 0) {
+      mesh.current.rotation.z += 0.005;
+    }
+  });
+
+  const stars = useMemo(() => {
+    const createStar = () => {
+
+      const randomY = faker.number.int({ min: -1000, max: -50 });
+      const randomY1 = faker.number.int({ min: 50, max: 1000 });
+
+      const randomX = faker.number.int({ min: -1000, max: -50 });
+      const randomX1 = faker.number.int({ min: 50, max: 1000 });
+
+      const randomZ = faker.number.int({ min: -1000, max: -50 });
+      const randomZ1 = faker.number.int({ min: 50, max: 1000 });
+
+
+      return [faker.helpers.arrayElement([randomX, randomX1]), faker.helpers.arrayElement([randomY, randomY1]), faker.helpers.arrayElement([randomZ, randomZ1])];
+    };
+
+    const createStars = (stars = 5) => {
+      return new Array(stars)
+        .fill(undefined)
+        .flatMap(createStar);
+    };
+
+    return new Float32Array(createStars(4000));
+  }, []);
+
   return (
     <>
       <ambientLight />
       <directionalLight position={[0, 100, 25]} />
-      <mesh onUpdate={(self) => self.matrixWorldNeedsUpdate = true}>
+      <mesh ref={mesh} onUpdate={(self) => self.matrixWorldNeedsUpdate = true}>
         {tiles.map((t: any, i: any) => <TileMesh key={i} {...t} index={i}
                                                  onClick={() => onClick(i, t.id)}
                                                  highlighted={highlighted.some(h => h === t.id)}
                                                  target={true} />)}
       </mesh>
+      <points>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            count={stars.length / 3}
+            itemSize={3}
+            array={stars}
+          />
+        </bufferGeometry>
+        <pointsMaterial
+          size={2}
+          color={'white'}
+          transparent
+        />
+      </points>
     </>
   );
 }
