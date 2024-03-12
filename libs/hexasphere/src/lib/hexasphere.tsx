@@ -1,4 +1,10 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import '@react-three/fiber';
 // @ts-ignore
 import HS from './hexasphere.lib';
@@ -8,11 +14,18 @@ import { useFrame } from '@react-three/fiber';
 const depthRatio = 1.04;
 
 function withDepthRatio(n: number) {
-  return (n * depthRatio) - n;
+  return n * depthRatio - n;
 }
 
-function TileMesh({ positions, indices, color, onClick, target, highlighted }: any) {
-
+function TileMesh({
+  positions,
+  indices,
+  color,
+  onClick,
+  target,
+  highlighted,
+  selected
+}: any) {
   const mesh: any = useRef();
   const geo: any = useRef();
 
@@ -23,7 +36,6 @@ function TileMesh({ positions, indices, color, onClick, target, highlighted }: a
   }, [positions]);
 
   useEffect(() => {
-
     // console.log({ b });
     // console.log({ 'positions.length': b?.length });
     // console.log({ d });
@@ -42,7 +54,10 @@ function TileMesh({ positions, indices, color, onClick, target, highlighted }: a
 
   return !target ? null : (
     <mesh ref={mesh} onClick={onClick}>
-      <bufferGeometry ref={geo} onUpdate={self => self.computeVertexNormals()}>
+      <bufferGeometry
+        ref={geo}
+        onUpdate={(self) => self.computeVertexNormals()}
+      >
         <bufferAttribute
           attach="attributes-position"
           array={positions}
@@ -56,18 +71,23 @@ function TileMesh({ positions, indices, color, onClick, target, highlighted }: a
           itemSize={1}
         />
       </bufferGeometry>
-      <meshStandardMaterial color={highlighted ? 'red' : color} />
-    </mesh>);
+      <meshStandardMaterial
+        color={selected ? 'yellow' : highlighted ? 'red' : color}
+      />
+    </mesh>
+  );
 }
 
 const hexasphere = new HS(50, 4, 1);
 
 export function Hexasphere() {
-
-  const [raised, setRaised] = useState<number[]>([]);
   const [highlighted, setHighlighted] = useState<string[]>([]);
   const seed = useMemo(() => faker.number.int({ min: 2, max: 12 }), []);
   const seed1 = useMemo(() => faker.number.int({ min: 2, max: 12 }), []);
+  const land = useMemo(() => faker.color.rgb({ format: 'hex' }), []);
+  const water = useMemo(() => faker.color.rgb({ format: 'hex' }), []);
+  const starColor = useMemo(() => faker.color.rgb({ format: 'hex' }), []);
+  const [selected, setSelected] = useState<string>();
 
   const tiles = useMemo(() => {
     // @ts-ignore
@@ -76,35 +96,60 @@ export function Hexasphere() {
     const raise = (i: number) => i % seed === 0 || i % seed1 === 0;
 
     hexasphere.tiles.forEach((t: any, i: number) => {
-
       const v: any = [];
       t.boundary.forEach((bp: any) => {
         if (raise(i)) {
-          v.push(parseFloat(bp.x) * depthRatio, parseFloat(bp.y) * depthRatio, parseFloat(bp.z) * depthRatio);
+          v.push(
+            parseFloat(bp.x) * depthRatio,
+            parseFloat(bp.y) * depthRatio,
+            parseFloat(bp.z) * depthRatio
+          );
         } else {
           v.push(parseFloat(bp.x), parseFloat(bp.y), parseFloat(bp.z));
         }
       });
 
       // v6
-      v.push(v[0] - withDepthRatio(v[0]), v[1] - withDepthRatio(v[1]), v[2] - withDepthRatio(v[2]));
+      v.push(
+        v[0] - withDepthRatio(v[0]),
+        v[1] - withDepthRatio(v[1]),
+        v[2] - withDepthRatio(v[2])
+      );
 
       // v7
-      v.push(v[3] - withDepthRatio(v[3]), v[4] - withDepthRatio(v[4]), v[5] - withDepthRatio(v[5]));
+      v.push(
+        v[3] - withDepthRatio(v[3]),
+        v[4] - withDepthRatio(v[4]),
+        v[5] - withDepthRatio(v[5])
+      );
 
       // v8
-      v.push(v[6] - withDepthRatio(v[6]), v[7] - withDepthRatio(v[7]), v[8] - withDepthRatio(v[8]));
+      v.push(
+        v[6] - withDepthRatio(v[6]),
+        v[7] - withDepthRatio(v[7]),
+        v[8] - withDepthRatio(v[8])
+      );
 
       // v9
-      v.push(v[9] - withDepthRatio(v[9]), v[10] - withDepthRatio(v[10]), v[11] - withDepthRatio(v[11]));
+      v.push(
+        v[9] - withDepthRatio(v[9]),
+        v[10] - withDepthRatio(v[10]),
+        v[11] - withDepthRatio(v[11])
+      );
 
       // v10
-      v.push(v[12] - withDepthRatio(v[12]), v[13] - withDepthRatio(v[13]), v[14] - withDepthRatio(v[14]));
-
+      v.push(
+        v[12] - withDepthRatio(v[12]),
+        v[13] - withDepthRatio(v[13]),
+        v[14] - withDepthRatio(v[14])
+      );
 
       // v11
-      v.push(v[15] - withDepthRatio(v[15]), v[16] - withDepthRatio(v[16]), v[17] - withDepthRatio(v[17]));
-
+      v.push(
+        v[15] - withDepthRatio(v[15]),
+        v[16] - withDepthRatio(v[16]),
+        v[17] - withDepthRatio(v[17])
+      );
 
       const positions = new Float32Array(v);
 
@@ -151,40 +196,38 @@ export function Hexasphere() {
       tiles.push({
         positions,
         indices: new Uint16Array(indices),
-        color: raise(i) ? 'green' : 'blue',
+        color: raise(i) ? land : water,
         raised: raise(i),
-        id
+        id,
       });
     });
 
     return tiles;
-  }, [raised, hexasphere]);
+  }, [hexasphere]);
 
   // const dirLight = useRef<DirectionalLight>(null);
   // useHelper(dirLight, DirectionalLightHelper, 1, 'red');
 
   function onClick(i: number, id: string) {
-
-    setHighlighted(hexasphere.tileLookup[id].neighborIds);
-
-    setRaised((prev: number[]) => {
-      const newPrev = [...prev];
-      newPrev.push(i);
-      return newPrev;
-    });
+    setSelected(id);
+    setHighlighted(
+      hexasphere.tileLookup[id].neighborIds.filter((id: string) =>
+        tiles.some(
+          (t: { id: string; raised: boolean }) => t.raised && t.id === id
+        )
+      )
+    );
   }
-
 
   const mesh: any = useRef();
   useFrame(() => {
-    if (mesh.current && highlighted.length === 0) {
+    if (mesh.current && highlighted.length === 0 && !selected) {
       mesh.current.rotation.z += 0.005;
     }
   });
 
   const stars = useMemo(() => {
     const createStar = () => {
-
       const randomY = faker.number.int({ min: -1000, max: -50 });
       const randomY1 = faker.number.int({ min: 50, max: 1000 });
 
@@ -194,14 +237,15 @@ export function Hexasphere() {
       const randomZ = faker.number.int({ min: -1000, max: -50 });
       const randomZ1 = faker.number.int({ min: 50, max: 1000 });
 
-
-      return [faker.helpers.arrayElement([randomX, randomX1]), faker.helpers.arrayElement([randomY, randomY1]), faker.helpers.arrayElement([randomZ, randomZ1])];
+      return [
+        faker.helpers.arrayElement([randomX, randomX1]),
+        faker.helpers.arrayElement([randomY, randomY1]),
+        faker.helpers.arrayElement([randomZ, randomZ1]),
+      ];
     };
 
     const createStars = (stars = 5) => {
-      return new Array(stars)
-        .fill(undefined)
-        .flatMap(createStar);
+      return new Array(stars).fill(undefined).flatMap(createStar);
     };
 
     return new Float32Array(createStars(4000));
@@ -211,11 +255,21 @@ export function Hexasphere() {
     <>
       <ambientLight />
       <directionalLight position={[0, 100, 25]} />
-      <mesh ref={mesh} onUpdate={(self) => self.matrixWorldNeedsUpdate = true}>
-        {tiles.map((t: any, i: any) => <TileMesh key={i} {...t} index={i}
-                                                 onClick={() => onClick(i, t.id)}
-                                                 highlighted={highlighted.some(h => h === t.id)}
-                                                 target={true} />)}
+      <mesh
+        ref={mesh}
+        onUpdate={(self) => (self.matrixWorldNeedsUpdate = true)}
+      >
+        {tiles.map((t: any, i: any) => (
+          <TileMesh
+            key={i}
+            {...t}
+            index={i}
+            onClick={() => onClick(i, t.id)}
+            highlighted={highlighted.some((h) => h === t.id)}
+            selected={selected === t.id}
+            target={true}
+          />
+        ))}
       </mesh>
       <points>
         <bufferGeometry>
@@ -226,11 +280,7 @@ export function Hexasphere() {
             array={stars}
           />
         </bufferGeometry>
-        <pointsMaterial
-          size={2}
-          color={'white'}
-          transparent
-        />
+        <pointsMaterial size={2} color={starColor} transparent />
       </points>
     </>
   );
