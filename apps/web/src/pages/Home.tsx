@@ -1,10 +1,9 @@
-import { Home as H, PrimaryButton, useResponsive } from '@end/components';
+import { Home as H, Planet, PrimaryButton } from '@end/components';
 import { database, sync } from '@end/wm/web';
-import { OrbitControls } from '@react-three/drei';
-import { Canvas } from '@react-three/fiber';
 import React, { useState } from 'react';
-import { Hexasphere } from '@end/hexasphere';
+import { Canvas } from '@react-three/fiber';
 import { useWindowDimensions } from 'react-native';
+import { OrbitControls } from '@react-three/drei';
 
 export default function Home() {
   const [seed, setSeed] = useState(Math.random());
@@ -17,7 +16,7 @@ export default function Home() {
         camera={{ position: [0, width < 600 ? 300 : 160, 25], fov: 45 }}
       >
         <OrbitControls />
-        <Hexasphere key={seed} />
+        <Planet seed={seed} />
       </Canvas>
       <PrimaryButton onPress={() => setSeed(Math.random())}>New Planet</PrimaryButton>
     </H>

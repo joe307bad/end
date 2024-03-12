@@ -2,7 +2,6 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 're
 import '@react-three/fiber';
 // @ts-ignore
 import HS from './hexasphere.lib';
-import { PointTextHelper } from '@jniac/three-point-text-helper';
 import { faker } from '@faker-js/faker';
 import { useFrame } from '@react-three/fiber';
 
@@ -31,8 +30,8 @@ function TileMesh({ positions, indices, color, onClick, target, highlighted }: a
     // console.log({ 'indices.length': d?.length });
 
     if (mesh.current) {
-      const pth = new PointTextHelper();
-      mesh.current.add(pth);
+      // const pth = new PointTextHelper();
+      // mesh.current.add(pth);
       // pth.displayVertices(positions, {
       //   color: 'white',
       //   size: 10,
