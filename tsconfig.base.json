@@ -18,6 +18,7 @@
       "@end/auth": ["libs/auth/src/index.ts"],
       "@end/components": ["libs/ui/rnw/src/index.ts"],
       "@end/data": ["libs/data/src/index.ts"],
+      "@end/hexasphere": ["libs/hexasphere/src/index.ts"],
       "@end/rnw": ["ui/src/index.ts"],
       "@end/wm/core": ["libs/wm/core/src/index.ts"],
       "@end/wm/rn": ["libs/wm/rn/src/index.ts"],

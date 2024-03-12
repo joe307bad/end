@@ -2101,6 +2101,7 @@ __metadata:
     "@fastify/env": "npm:^4.3.0"
     "@fastify/mongodb": "npm:^8.0.0"
     "@fastify/sensible": "npm:~5.2.0"
+    "@jniac/three-point-text-helper": "npm:^1.0.8"
     "@morrowdigital/watermelondb-expo-plugin": "npm:^2.3.1"
     "@nestjs/common": "npm:^10.0.2"
     "@nestjs/config": "npm:^3.2.0"
@@ -3617,6 +3618,13 @@ __metadata:
     "@types/yargs": "npm:^17.0.8"
     chalk: "npm:^4.0.0"
   checksum: ea4e493dd3fb47933b8ccab201ae573dcc451f951dc44ed2a86123cd8541b82aa9d2b1031caf9b1080d6673c517e2dcc25a44b2dc4f3fbc37bfc965d444888c0
+  languageName: node
+  linkType: hard
+
+"@jniac/three-point-text-helper@npm:^1.0.8":
+  version: 1.0.8
+  resolution: "@jniac/three-point-text-helper@npm:1.0.8"
+  checksum: a5b131622d2d82ac3f22736d430579c974ce376576d64ec6e0844cfe34884655bf268b382370e3bb47c8a67ed57b8a76169f438c40f44399284e58630d14e4c4
   languageName: node
   linkType: hard
 

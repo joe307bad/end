@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Canvas } from '@react-three/fiber/native';
-import { StyleSheet, View } from 'react-native';
+import { StatusBar, StyleSheet, View } from 'react-native';
 import useControls from 'r3f-native-orbitcontrols';
 import {
   Container,
@@ -11,7 +11,7 @@ import {
   SolarSystem,
   Sun,
   SystemDetails,
-  tamaguiTokens,
+  tamaguiTokens
 } from '@end/components';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { DarkTheme, NavigationContainer } from '@react-navigation/native';
@@ -30,7 +30,6 @@ function System() {
         <Canvas camera={{ position: [0, 40, 45], fov: 45 }}>
           <SolarSystem>
             <Sun />
-            <Planet />
             <Lights />
             <OrbitControls />
           </SolarSystem>
@@ -43,8 +42,8 @@ function System() {
 const Drawer = createDrawerNavigator();
 
 function Landing({
-  setLoggedIn,
-}: {
+                   setLoggedIn
+                 }: {
   setLoggedIn: (loggedIn: boolean) => void;
 }) {
   return (
@@ -59,19 +58,19 @@ const MyTheme = {
   colors: {
     ...DarkTheme.colors,
     background: tamaguiTokens.color.black.val,
-    primary: 'rgb(255, 45, 85)',
-  },
+    primary: 'rgb(255, 45, 85)'
+  }
 };
 
 export default class App extends React.Component<any, any> {
   state = {
-    fontLoaded: false,
+    fontLoaded: false
   };
 
   async componentDidMount() {
     LogBox.ignoreAllLogs();
     await Font.loadAsync({
-      ShineTypewriterRegular: require('../../assets/ShineTypewriterRegular.ttf'),
+      ShineTypewriterRegular: require('../../assets/ShineTypewriterRegular.ttf')
     });
     this.setState({ fontLoaded: true });
   }
@@ -88,6 +87,7 @@ export function Routes() {
   return (
     <Providers baseUrl={process?.env?.EXPO_PUBLIC_API_BASE_URL}>
       <DatabaseProvider database={database}>
+        <StatusBar translucent backgroundColor={'black'} />
         <NavigationContainer theme={MyTheme}>
           {!loggedIn ? (
             <Drawer.Navigator
@@ -117,6 +117,6 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     height: '100%',
-    backgroundColor: 'white',
-  },
+    backgroundColor: 'white'
+  }
 });

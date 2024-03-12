@@ -1,18 +1,12 @@
 import React, { ReactNode, useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { Canvas } from '@react-three/fiber';
 import {
   Badge,
   Container,
   ContainerWithNav,
   Landing,
-  Lights,
-  Planet,
   Providers,
-  SolarSystem,
-  Sun,
 } from '@end/components';
-import { OrbitControls } from '@react-three/drei';
 import { faker } from '@faker-js/faker';
 import './app.module.scss';
 
@@ -59,24 +53,6 @@ function Page({ children }: { children: ReactNode }) {
     >
       {children}
     </ContainerWithNav>
-  );
-}
-
-function System() {
-  return (
-    <>
-      <Canvas
-        style={{ height: '100%' }}
-        camera={{ position: [0, 20, 25], fov: 45 }}
-      >
-        <SolarSystem>
-          <Sun />
-          <Planet />
-          <Lights />
-          <OrbitControls />
-        </SolarSystem>
-      </Canvas>
-    </>
   );
 }
 

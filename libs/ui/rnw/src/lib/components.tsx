@@ -1,5 +1,5 @@
-import React, { ReactNode } from 'react';
-import { useFrame } from '@react-three/fiber';
+import React, { ReactNode, useState } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import {
   TamaguiProvider,
@@ -8,25 +8,27 @@ import {
   H1,
   Button,
   Input,
-  H2,
+  H2
 } from 'tamagui';
 import { config, tokens } from './tamagui.config';
-import { View } from 'react-native';
-import { Badge } from './Display';
+import { useWindowDimensions, View } from 'react-native';
+import { Badge, PrimaryButton } from './Display';
 import t from 'twrnc';
 import { useDeviceContext } from 'twrnc';
 import { EndApiProvider } from '@end/data';
 import { AuthProvider } from '@end/auth';
 import { ToastProvider, ToastViewport } from '@tamagui/toast';
+import { OrbitControls } from '@react-three/drei';
+import { Hexasphere } from '@end/hexasphere';
 
 export const tw = t as any;
 
 export const tamaguiTokens = tokens;
 
 export function Providers({
-  children,
-  baseUrl,
-}: {
+                            children,
+                            baseUrl
+                          }: {
   children: ReactNode;
   baseUrl?: string;
 }) {
@@ -47,14 +49,14 @@ export function Providers({
 }
 
 export function SystemDetails({
-  children,
-  name,
-  id,
-  tags,
-  discoverSystem,
-  setName,
-  h1,
-}: {
+                                children,
+                                name,
+                                id,
+                                tags,
+                                discoverSystem,
+                                setName,
+                                h1
+                              }: {
   children: ReactNode;
   id?: string;
   name: string;
@@ -107,14 +109,14 @@ const random = (a: number, b: number) => a + Math.random() * b;
 const randomInt = (a: number, b: number) => Math.floor(random(a, b));
 const randomColor = () => `cyan`;
 
-export function Planet() {
+export function PlanetWithMoon() {
   const planetRef = React.useRef();
   const planet: any = {
     id: 1,
     color: randomColor(),
     xRadius: (1 + 1.5) * 4,
     zRadius: (1 + 1.5) * 2,
-    size: random(0.5, 1),
+    size: random(0.5, 1)
   };
 
   useFrame(({ clock }) => {
@@ -139,6 +141,13 @@ export function Planet() {
       </mesh>
       <Ecliptic xRadius={planet.xRadius} zRadius={planet.zRadius} />
     </>
+  );
+}
+
+export function Planet({ seed }: { seed: number }) {
+
+  return (
+    <Hexasphere key={seed} />
   );
 }
 

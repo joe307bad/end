@@ -91,7 +91,7 @@ export function ContainerWithNav({
   const { bp } = useResponsive(menuOpen);
 
   return (
-    <View style={{ display: 'flex', alignItems: 'center' }}>
+    <View style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
       <View style={bp(['w-full items-end'])}>
         <View onPress={() => toggleMenu((prevState) => !prevState)}>
           <MenuSquare size="$2" style={bp(['block p-2 ', '', 'hidden'])} />
@@ -115,8 +115,8 @@ export function ContainerWithNav({
           </View>
         </Header>
       </View>
-      <View id="content" style={tw.style('flex items-center max-w-full')}>
-        <View style={tw.style('w-[500px] max-w-full')}>{children}</View>
+      <View id="content" style={tw.style('flex items-center w-full flex-1')}>
+        <View style={tw.style('w-[500px] w-full h-full')}>{children}</View>
       </View>
     </View>
   );
