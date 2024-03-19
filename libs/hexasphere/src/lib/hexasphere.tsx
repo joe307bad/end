@@ -10,8 +10,11 @@ import '@react-three/fiber';
 import HS from './hexasphere.lib';
 import { faker } from '@faker-js/faker';
 import { useFrame } from '@react-three/fiber';
+import { PortalPath } from '@end/components';
 
 const depthRatio = 1.04;
+
+const eloiseColor = 'white';
 
 function withDepthRatio(n: number) {
   return n * depthRatio - n;
@@ -24,7 +27,7 @@ function TileMesh({
   onClick,
   target,
   highlighted,
-  selected
+  selected,
 }: any) {
   const mesh: any = useRef();
   const geo: any = useRef();
@@ -36,10 +39,6 @@ function TileMesh({
   }, [positions]);
 
   useEffect(() => {
-    // console.log({ b });
-    // console.log({ 'positions.length': b?.length });
-    // console.log({ d });
-    // console.log({ 'indices.length': d?.length });
 
     if (mesh.current) {
       // const pth = new PointTextHelper();
@@ -72,6 +71,7 @@ function TileMesh({
         />
       </bufferGeometry>
       <meshStandardMaterial
+        // color={eloiseColor}
         color={selected ? 'yellow' : highlighted ? 'red' : color}
       />
     </mesh>
@@ -198,6 +198,7 @@ export function Hexasphere() {
         indices: new Uint16Array(indices),
         color: raise(i) ? land : water,
         raised: raise(i),
+        centerPoint: t.centerPoint,
         id,
       });
     });
@@ -251,6 +252,17 @@ export function Hexasphere() {
     return new Float32Array(createStars(4000));
   }, []);
 
+  const [from, to] = useMemo(() => {
+    const from = faker.number.int({ min: 0, max: 162 });
+    var to = faker.number.int({ min: 0, max: 162 });
+
+    while (from === to) {
+      to = faker.number.int({ min: 0, max: 162 });
+    }
+
+    return [from, to];
+  }, []);
+
   return (
     <>
       <ambientLight />
@@ -270,6 +282,7 @@ export function Hexasphere() {
             target={true}
           />
         ))}
+        <PortalPath from={tiles[from].centerPoint} to={tiles[to].centerPoint} />
       </mesh>
       <points>
         <bufferGeometry>
