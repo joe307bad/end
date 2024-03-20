@@ -202,6 +202,12 @@ function getPointInBetweenByPerc(
 
 const center = new THREE.Vector3(0, 0, 0);
 
+const consoleLogCondition = (distance: number, log: any) => {
+  if (distance < 15) {
+    console.log(log);
+  }
+};
+
 export function PortalPath({
   // actual radius is 50, add 6 to raise portal curve above surface
   radius = 50 + 6,
@@ -217,18 +223,18 @@ export function PortalPath({
       const fromV = new THREE.Vector3(from.x, from.y, from.z);
       const toV = new THREE.Vector3(to.x, to.y, to.z);
 
-      console.log(fromV.distanceTo(toV));
+      const distance = fromV.distanceTo(toV);
 
       const surfaceOfPortalCurve: THREE.Vector3[] = [];
-      let liftoffCurveHandle: THREE.Vector3 | null = new THREE.Vector3();
-      let liftoffCurveMeetsPortalCurve: THREE.Vector3 | null =
-        new THREE.Vector3();
-      let landingCurveHandle: THREE.Vector3 | null = new THREE.Vector3();
-      let landingCurveMeetsPortalCurve: THREE.Vector3 | null =
-        new THREE.Vector3();
+      let liftoffCurveHandle: THREE.Vector3 | null = null;
+      let liftoffCurveMeetsPortalCurve: THREE.Vector3 | null = null;
+      let landingCurveHandle: THREE.Vector3 | null = null;
+      let landingCurveMeetsPortalCurve: THREE.Vector3 | null = null;
 
-      for (let index = 0; index < 64; index++) {
-        const percent = index * (1 / 64);
+      const pointsOnPortalCurve = 64;
+
+      for (let index = 0; index < pointsOnPortalCurve; index++) {
+        const percent = index * (1 / pointsOnPortalCurve);
         // every 1/64 %, plot a point between from and to
         const pointBetweenFromAndTo = getPointInBetweenByPerc(
           fromV,
@@ -252,23 +258,33 @@ export function PortalPath({
         // move point between from and to the portal curve
         pointBetweenFromAndTo.add(movePointBetweenFromOrToToPortalCurve);
 
+        consoleLogCondition(distance, {
+          liftoffCurveHandleX: liftoffCurveHandle?.x,
+        });
         // 10% of portal curve is traveled
-        if (percent > 0.1 && !liftoffCurveHandle.x) {
+        if (percent > 0.1 && liftoffCurveHandle === null) {
+          consoleLogCondition(distance, {
+            liftoffCurveHandle: pointBetweenFromAndTo.x,
+          });
           liftoffCurveHandle = pointBetweenFromAndTo;
         }
 
+        consoleLogCondition(distance, { percent });
         // point where liftoff meets the surface of the portal curve (25% of portal curve)
-        if (percent > 0.25 && !liftoffCurveMeetsPortalCurve.x) {
+        if (percent > 0.25 && liftoffCurveMeetsPortalCurve === null) {
+          consoleLogCondition(distance, {
+            liftoffCurveMeetsPortalCurve: pointBetweenFromAndTo.x,
+          });
           liftoffCurveMeetsPortalCurve = pointBetweenFromAndTo;
         }
 
         // point where landing starts to begin (75% of portal curve)
-        if (percent > 0.75 && !landingCurveMeetsPortalCurve.x) {
+        if (percent > 0.75 && landingCurveMeetsPortalCurve === null) {
           landingCurveMeetsPortalCurve = pointBetweenFromAndTo;
         }
 
         // 90% of portal curve is travelled
-        if (percent > 0.9 && !landingCurveHandle.x) {
+        if (percent > 0.9 && landingCurveHandle === null) {
           landingCurveHandle = pointBetweenFromAndTo;
         }
 
@@ -277,47 +293,64 @@ export function PortalPath({
         }
       }
 
-      const portal = new THREE.CatmullRomCurve3([
-        liftoffCurveMeetsPortalCurve,
-        ...surfaceOfPortalCurve,
-        landingCurveMeetsPortalCurve,
-      ]);
+      const portal =
+        liftoffCurveMeetsPortalCurve && landingCurveMeetsPortalCurve
+          ? new THREE.CatmullRomCurve3([
+              liftoffCurveMeetsPortalCurve,
+              ...surfaceOfPortalCurve,
+              landingCurveMeetsPortalCurve,
+            ])
+          : null;
 
-      const liftoffCurve = new THREE.QuadraticBezierCurve3(
-        fromV,
-        liftoffCurveHandle,
-        liftoffCurveMeetsPortalCurve
-      );
+      const liftoffCurve =
+        liftoffCurveHandle && liftoffCurveMeetsPortalCurve
+          ? new THREE.QuadraticBezierCurve3(
+              fromV,
+              liftoffCurveHandle,
+              liftoffCurveMeetsPortalCurve
+            )
+          : null;
 
-      const landingCurve = new THREE.QuadraticBezierCurve3(
-        toV,
-        landingCurveHandle,
-        landingCurveMeetsPortalCurve
-      );
+      const landingCurve =
+        landingCurveHandle && landingCurveMeetsPortalCurve
+          ? new THREE.QuadraticBezierCurve3(
+              toV,
+              landingCurveHandle,
+              landingCurveMeetsPortalCurve
+            )
+          : null;
 
-      const liftoffCurvePoints = liftoffCurve.getPoints(50);
-      const landingCurvePoints = landingCurve.getPoints(50);
+      const liftoffCurvePoints = liftoffCurve?.getPoints(50);
+      const landingCurvePoints = landingCurve?.getPoints(50);
       return {
-        portalCurve: new THREE.BufferGeometry().setFromPoints(
-          portal.getPoints(50)
-        ),
+        portalCurve: portal
+          ? new THREE.BufferGeometry().setFromPoints(portal.getPoints(50))
+          : null,
         fromTo: new Float32Array([from.x, from.y, from.z, to.x, to.y, to.z]),
-        liftOff: new Float32Array([
-          liftoffCurveMeetsPortalCurve.x,
-          liftoffCurveMeetsPortalCurve.y,
-          liftoffCurveMeetsPortalCurve.z,
-        ]),
-        landing: new Float32Array([
-          landingCurveMeetsPortalCurve.x,
-          landingCurveMeetsPortalCurve.y,
-          landingCurveMeetsPortalCurve.z,
-        ]),
-        liftoffCurve: new THREE.BufferGeometry().setFromPoints(
-          liftoffCurvePoints
-        ),
-        landingCurve: new THREE.BufferGeometry().setFromPoints(
-          landingCurvePoints
-        ),
+        liftOff:
+          liftoffCurveMeetsPortalCurve && liftoffCurveHandle
+            ? new Float32Array([
+                liftoffCurveMeetsPortalCurve.x,
+                liftoffCurveMeetsPortalCurve.y,
+                liftoffCurveMeetsPortalCurve.z,
+                liftoffCurveHandle.x,
+                liftoffCurveHandle.y,
+                liftoffCurveHandle.z,
+              ])
+            : null,
+        landing: landingCurveMeetsPortalCurve
+          ? new Float32Array([
+              landingCurveMeetsPortalCurve.x,
+              landingCurveMeetsPortalCurve.y,
+              landingCurveMeetsPortalCurve.z,
+            ])
+          : null,
+        liftoffCurve: liftoffCurvePoints
+          ? new THREE.BufferGeometry().setFromPoints(liftoffCurvePoints)
+          : null,
+        landingCurve: landingCurvePoints
+          ? new THREE.BufferGeometry().setFromPoints(landingCurvePoints)
+          : null,
       };
     }, []);
 
@@ -335,28 +368,30 @@ export function PortalPath({
       <line geometry={landingCurve}>
         <lineBasicMaterial attach="material" color="#BFBBDA" linewidth={50} />
       </line>
-      <points>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            count={fromTo.length / 3}
-            itemSize={3}
-            array={fromTo}
-          />
-        </bufferGeometry>
-        <pointsMaterial size={5} color="blue" transparent />
-      </points>
-      <points>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            count={liftOff.length / 3}
-            itemSize={3}
-            array={liftOff}
-          />
-        </bufferGeometry>
-        <pointsMaterial size={5} color="green" transparent />
-      </points>
+      {/*<points>*/}
+      {/*  <bufferGeometry>*/}
+      {/*    <bufferAttribute*/}
+      {/*      attach="attributes-position"*/}
+      {/*      count={fromTo.length / 3}*/}
+      {/*      itemSize={3}*/}
+      {/*      array={fromTo}*/}
+      {/*    />*/}
+      {/*  </bufferGeometry>*/}
+      {/*  <pointsMaterial size={5} color="blue" transparent />*/}
+      {/*</points>*/}
+      {/*{liftOff ? (*/}
+      {/*  <points>*/}
+      {/*    <bufferGeometry>*/}
+      {/*      <bufferAttribute*/}
+      {/*        attach="attributes-position"*/}
+      {/*        count={liftOff.length / 3}*/}
+      {/*        itemSize={3}*/}
+      {/*        array={liftOff}*/}
+      {/*      />*/}
+      {/*    </bufferGeometry>*/}
+      {/*    <pointsMaterial size={5} color="green" transparent />*/}
+      {/*  </points>*/}
+      {/*) : null}*/}
       {/*<points>*/}
       {/*  <bufferGeometry>*/}
       {/*    <bufferAttribute*/}

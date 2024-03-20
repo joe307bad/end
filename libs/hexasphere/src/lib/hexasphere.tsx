@@ -223,7 +223,7 @@ export function Hexasphere() {
   const mesh: any = useRef();
   useFrame(() => {
     if (mesh.current && highlighted.length === 0 && !selected) {
-      //mesh.current.rotation.z += 0.005;
+      mesh.current.rotation.z += 0.005;
     }
   });
 
@@ -271,22 +271,23 @@ export function Hexasphere() {
         ref={mesh}
         onUpdate={(self) => (self.matrixWorldNeedsUpdate = true)}
       >
-        {/*{tiles.map((t: any, i: any) => (*/}
-        {/*  <TileMesh*/}
-        {/*    key={i}*/}
-        {/*    {...t}*/}
-        {/*    index={i}*/}
-        {/*    onClick={() => onClick(i, t.id)}*/}
-        {/*    highlighted={highlighted.some((h) => h === t.id)}*/}
-        {/*    selected={selected === t.id}*/}
-        {/*    target={true}*/}
-        {/*  />*/}
-        {/*))}*/}
-        {/*<PortalPath from={tiles[from].centerPoint} to={tiles[to].centerPoint} />*/}
+        {tiles.map((t: any, i: any) => (
+          <TileMesh
+            key={i}
+            {...t}
+            index={i}
+            onClick={() => onClick(i, t.id)}
+            highlighted={highlighted.some((h) => h === t.id)}
+            selected={selected === t.id}
+            target={true}
+          />
+        ))}
+        {/*<PortalPath from={tiles[143].centerPoint} to={tiles[7].centerPoint} />*/}
+        <PortalPath from={tiles[from].centerPoint} to={tiles[to].centerPoint} />
       </mesh>
-      {/* TODO when an adjacent hexagon and pentagon are connected via portal, it doesnt work */}
-      <PortalPath from={tiles[143].centerPoint} to={tiles[7].centerPoint} />
-      <PortalPath from={tiles[105].centerPoint} to={tiles[134].centerPoint} />
+      {/*/!* TODO when an adjacent hexagon and pentagon are connected via portal, it doesnt work *!/*/}
+      {/*<PortalPath from={tiles[143].centerPoint} to={tiles[7].centerPoint} />*/}
+      {/*<PortalPath from={tiles[105].centerPoint} to={tiles[134].centerPoint} />*/}
       <points>
         <bufferGeometry>
           <bufferAttribute
