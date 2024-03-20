@@ -260,9 +260,6 @@ export function Hexasphere() {
       to = faker.number.int({ min: 0, max: 161 });
     }
 
-    console.log(hexasphere.tiles.length);
-    console.log({from, to})
-
     return [from, to];
   }, []);
 
@@ -274,22 +271,22 @@ export function Hexasphere() {
         ref={mesh}
         onUpdate={(self) => (self.matrixWorldNeedsUpdate = true)}
       >
-        {tiles.map((t: any, i: any) => (
-          <TileMesh
-            key={i}
-            {...t}
-            index={i}
-            onClick={() => onClick(i, t.id)}
-            highlighted={highlighted.some((h) => h === t.id)}
-            selected={selected === t.id}
-            target={true}
-          />
-        ))}
+        {/*{tiles.map((t: any, i: any) => (*/}
+        {/*  <TileMesh*/}
+        {/*    key={i}*/}
+        {/*    {...t}*/}
+        {/*    index={i}*/}
+        {/*    onClick={() => onClick(i, t.id)}*/}
+        {/*    highlighted={highlighted.some((h) => h === t.id)}*/}
+        {/*    selected={selected === t.id}*/}
+        {/*    target={true}*/}
+        {/*  />*/}
+        {/*))}*/}
         {/*<PortalPath from={tiles[from].centerPoint} to={tiles[to].centerPoint} />*/}
       </mesh>
       {/* TODO when an adjacent hexagon and pentagon are connected via portal, it doesnt work */}
       <PortalPath from={tiles[143].centerPoint} to={tiles[7].centerPoint} />
-
+      <PortalPath from={tiles[105].centerPoint} to={tiles[134].centerPoint} />
       <points>
         <bufferGeometry>
           <bufferAttribute
