@@ -12,6 +12,7 @@
     "@fastify/mongodb": "^8.0.0",
     "@fastify/sensible": "~5.2.0",
     "@jniac/three-point-text-helper": "^1.0.8",
+    "@lume/three-meshline": "^4.0.5",
     "@morrowdigital/watermelondb-expo-plugin": "^2.3.1",
     "@nestjs/common": "^10.0.2",
     "@nestjs/config": "^3.2.0",
@@ -69,6 +70,7 @@
     "rxjs": "^7.8.0",
     "tamagui": "^1.80.4",
     "three": "^0.160.0",
+    "three.meshline": "^1.4.0",
     "tslib": "^2.3.0",
     "twrnc": "^3.6.8"
   },

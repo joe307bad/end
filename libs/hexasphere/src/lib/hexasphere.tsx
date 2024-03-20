@@ -11,6 +11,7 @@ import HS from './hexasphere.lib';
 import { faker } from '@faker-js/faker';
 import { useFrame } from '@react-three/fiber';
 import { PortalPath } from '@end/components';
+import * as THREE from 'three';
 
 const depthRatio = 1.04;
 
@@ -39,7 +40,6 @@ function TileMesh({
   }, [positions]);
 
   useEffect(() => {
-
     if (mesh.current) {
       // const pth = new PointTextHelper();
       // mesh.current.add(pth);
@@ -50,6 +50,17 @@ function TileMesh({
       // });
     }
   }, [mesh.current]);
+
+  const edges = useMemo(() => {
+    if (geo.current) {
+      const edges = new THREE.EdgesGeometry(geo.current);
+      return new THREE.LineSegments(
+        edges,
+        new THREE.LineBasicMaterial({ color: 'black' })
+      );
+    }
+    return undefined;
+  }, [geo.current]);
 
   return !target ? null : (
     <mesh ref={mesh} onClick={onClick}>
@@ -285,9 +296,6 @@ export function Hexasphere() {
         {/*<PortalPath from={tiles[143].centerPoint} to={tiles[7].centerPoint} />*/}
         <PortalPath from={tiles[from].centerPoint} to={tiles[to].centerPoint} />
       </mesh>
-      {/*/!* TODO when an adjacent hexagon and pentagon are connected via portal, it doesnt work *!/*/}
-      {/*<PortalPath from={tiles[143].centerPoint} to={tiles[7].centerPoint} />*/}
-      {/*<PortalPath from={tiles[105].centerPoint} to={tiles[134].centerPoint} />*/}
       <points>
         <bufferGeometry>
           <bufferAttribute
