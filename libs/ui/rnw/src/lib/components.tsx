@@ -200,7 +200,7 @@ export function PortalPath({
   from: { x: number; y: number; z: number };
   to: { x: number; y: number; z: number };
 }) {
-  const portal = useMemo(() => {
+  const [portal, points, circles, portal1, portal2] = useMemo(() => {
     const fromV = new THREE.Vector3(from.x, from.y, from.z);
     const toV = new THREE.Vector3(to.x, to.y, to.z);
 
@@ -229,25 +229,97 @@ export function PortalPath({
     const portalVs = [];
     var perc = 0;
     var inc = 1 / 64;
+    var liftoff: THREE.Vector3 | null = new THREE.Vector3();
+    var liftoff1: THREE.Vector3 | null = new THREE.Vector3();
+    var landing: THREE.Vector3 | null = new THREE.Vector3();
+    var landing1: THREE.Vector3 | null = new THREE.Vector3();
+    var liftoffV: any[] = [];
+    var landingV: any[] = [];
+    var mid: THREE.Vector3 | null = new THREE.Vector3();
     for (let index = 0; index < 64; index++) {
       perc += inc;
       const p = getPointInBetweenByPerc(fromV, toV, perc);
+
       const distanceToCenter = p.distanceTo(new THREE.Vector3(0, 0, 0));
-      const distanceToSurface = 56 - distanceToCenter;
+      const distanceToSurface = 60 - distanceToCenter;
       var directionVector = new THREE.Vector3(0, 0, 0)
         .sub(p)
         .normalize()
         .multiplyScalar(-distanceToSurface);
 
       p.add(directionVector);
+
+      if (perc > 0.25 && !liftoff.x) {
+        liftoff = p;
+        // liftoffV.push(p);
+      }
+
+      if (perc > 0.1 && !liftoff1.x) {
+        liftoff1 = p;
+        // liftoffV.push(p);
+      }
+
+      if (perc > 0.75 && !landing.x) {
+        landing = p;
+        // landingV.push(p.x, p.y, p.z);
+      }
+
+      if (perc > 0.9 && !landing1.x) {
+        landing1 = p;
+        // landingV.push(p.x, p.y, p.z);
+      }
+
       portalPoints.push(p.x, p.y, p.z);
-      portalVs.push(p);
+      if (perc > 0.25 && perc < 0.75) {
+        portalVs.push(p);
+      }
     }
 
-    const curve = new THREE.CatmullRomCurve3([fromV, ...portalVs, toV]);
+    const middleLiftoff = getPointInBetweenByPerc(fromV, liftoff, 0.5);
 
-    const points1 = curve.getPoints(50);
-    return new THREE.BufferGeometry().setFromPoints(points1);
+    const curve = new THREE.CatmullRomCurve3([liftoff, ...portalVs, landing]);
+
+    const liftoffCurve = new THREE.QuadraticBezierCurve3(
+      fromV,
+      liftoff1,
+      liftoff
+    );
+
+    const landingCurve = new THREE.QuadraticBezierCurve3(
+      toV,
+      landing1,
+      landing
+    );
+
+    const points1 = curve.getPoints(200);
+    const liftoffCurvePoints = liftoffCurve.getPoints(200);
+    const landingCurvePoints = landingCurve.getPoints(200);
+    return [
+      new THREE.BufferGeometry().setFromPoints(points1),
+      new Float32Array(portalPoints),
+      new Float32Array([
+        from.x,
+        from.y,
+        from.z,
+        to.x,
+        to.y,
+        to.z,
+        liftoff.x,
+        liftoff.y,
+        liftoff.z,
+        liftoff1.x,
+        liftoff1.y,
+        liftoff1.z,
+        landing.x,
+        landing.y,
+        landing.z,
+        middleLiftoff.x,
+        middleLiftoff.y,
+        middleLiftoff.z,
+      ]),
+      new THREE.BufferGeometry().setFromPoints(liftoffCurvePoints),
+      new THREE.BufferGeometry().setFromPoints(landingCurvePoints),
+    ];
   }, []);
 
   return (
@@ -256,6 +328,36 @@ export function PortalPath({
       <line geometry={portal}>
         <lineBasicMaterial attach="material" color="#BFBBDA" linewidth={50} />
       </line>
+      {/* @ts-ignore */}
+      <line geometry={portal1}>
+        <lineBasicMaterial attach="material" color="#BFBBDA" linewidth={50} />
+      </line>
+      {/* @ts-ignore */}
+      <line geometry={portal2}>
+        <lineBasicMaterial attach="material" color="#BFBBDA" linewidth={50} />
+      </line>
+      {/*<points>*/}
+      {/*  <bufferGeometry>*/}
+      {/*    <bufferAttribute*/}
+      {/*      attach="attributes-position"*/}
+      {/*      count={points.length / 3}*/}
+      {/*      itemSize={3}*/}
+      {/*      array={points}*/}
+      {/*    />*/}
+      {/*  </bufferGeometry>*/}
+      {/*  <pointsMaterial size={2} color="red" transparent />*/}
+      {/*</points>*/}
+      <points>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            count={circles.length / 3}
+            itemSize={3}
+            array={circles}
+          />
+        </bufferGeometry>
+        <pointsMaterial size={5} color="blue" transparent />
+      </points>
     </>
   );
 }

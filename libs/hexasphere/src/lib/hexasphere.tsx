@@ -223,7 +223,7 @@ export function Hexasphere() {
   const mesh: any = useRef();
   useFrame(() => {
     if (mesh.current && highlighted.length === 0 && !selected) {
-      mesh.current.rotation.z += 0.005;
+      //mesh.current.rotation.z += 0.005;
     }
   });
 
@@ -253,12 +253,15 @@ export function Hexasphere() {
   }, []);
 
   const [from, to] = useMemo(() => {
-    const from = faker.number.int({ min: 0, max: 162 });
-    var to = faker.number.int({ min: 0, max: 162 });
+    const from = faker.number.int({ min: 0, max: 161 });
+    var to = faker.number.int({ min: 0, max: 161 });
 
     while (from === to) {
-      to = faker.number.int({ min: 0, max: 162 });
+      to = faker.number.int({ min: 0, max: 161 });
     }
+
+    console.log(hexasphere.tiles.length);
+    console.log({from, to})
 
     return [from, to];
   }, []);
@@ -282,8 +285,11 @@ export function Hexasphere() {
             target={true}
           />
         ))}
-        <PortalPath from={tiles[from].centerPoint} to={tiles[to].centerPoint} />
+        {/*<PortalPath from={tiles[from].centerPoint} to={tiles[to].centerPoint} />*/}
       </mesh>
+      {/* TODO when an adjacent hexagon and pentagon are connected via portal, it doesnt work */}
+      <PortalPath from={tiles[143].centerPoint} to={tiles[7].centerPoint} />
+
       <points>
         <bufferGeometry>
           <bufferAttribute
