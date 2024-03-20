@@ -2102,7 +2102,6 @@ __metadata:
     "@fastify/mongodb": "npm:^8.0.0"
     "@fastify/sensible": "npm:~5.2.0"
     "@jniac/three-point-text-helper": "npm:^1.0.8"
-    "@lume/three-meshline": "npm:^4.0.5"
     "@morrowdigital/watermelondb-expo-plugin": "npm:^2.3.1"
     "@nestjs/common": "npm:^10.0.2"
     "@nestjs/config": "npm:^3.2.0"
@@ -2226,7 +2225,6 @@ __metadata:
     tamagui: "npm:^1.80.4"
     tamagui-loader: "npm:^1.80.4"
     three: "npm:^0.160.0"
-    three.meshline: "npm:^1.4.0"
     ts-jest: "npm:^29.1.0"
     ts-node: "npm:10.9.1"
     tslib: "npm:^2.3.0"
@@ -3703,15 +3701,6 @@ __metadata:
   version: 1.1.0
   resolution: "@lukeed/csprng@npm:1.1.0"
   checksum: 5d6dcf478af732972083ab2889c294b57f1028fa13c2c240d7a4aaa079c2c75df7ef0dcbdda5419147fc6704b4adf96b2de92f1a9a72ac21c6350c4014fffe6c
-  languageName: node
-  linkType: hard
-
-"@lume/three-meshline@npm:^4.0.5":
-  version: 4.0.5
-  resolution: "@lume/three-meshline@npm:4.0.5"
-  peerDependencies:
-    three: "*"
-  checksum: 282d6d8edca0d7d10ae1da13a901838176e631f8c476ac73d13882e5bcc4536f4ac6de5061563978e0c883ee23d9bd9df69c13690179f7af383555a4dd803028
   languageName: node
   linkType: hard
 
@@ -23786,13 +23775,6 @@ __metadata:
   peerDependencies:
     three: ">=0.128.0"
   checksum: c2a6bd403a4d1834989e8819dc67d3e95cb2a3df8e9c3e21beebe7ca71ee9c41d404fff46247a53637d6e3e0788fbed3d0bc0fb1894539391d4ec1d43afd1d50
-  languageName: node
-  linkType: hard
-
-"three.meshline@npm:^1.4.0":
-  version: 1.4.0
-  resolution: "three.meshline@npm:1.4.0"
-  checksum: 3a83dc0aba20cdd20ae3e923b485ffd24002c201b05bb6452b4e44532afe5b4c90008ebc81dd8e9567dac61299a78edf12e3e165585ba670aaf635990c21434b
   languageName: node
   linkType: hard
 
