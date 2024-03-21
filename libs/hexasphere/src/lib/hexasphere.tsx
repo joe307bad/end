@@ -15,8 +15,6 @@ import * as THREE from 'three';
 
 const depthRatio = 1.04;
 
-const eloiseColor = 'white';
-
 function withDepthRatio(n: number) {
   return n * depthRatio - n;
 }
@@ -32,6 +30,7 @@ function TileMesh({
 }: any) {
   const mesh: any = useRef();
   const geo: any = useRef();
+  const [meshState, setMeshState] = useState<any>();
 
   useLayoutEffect(() => {
     if (geo.current) {
@@ -40,52 +39,64 @@ function TileMesh({
   }, [positions]);
 
   useEffect(() => {
-    if (mesh.current) {
+    console.log({ mesh: geo.current });
+    if (geo.current) {
+      setMeshState([
+        new THREE.EdgesGeometry(geo.current, 50),
+        new THREE.LineBasicMaterial({ color: 'black', linewidth: 10 }),
+      ]);
       // const pth = new PointTextHelper();
       // mesh.current.add(pth);
       // pth.displayVertices(positions, {
       //   color: 'white',
       //   size: 10,
-      //   format: (index) => `${index}`
+      //   format: (index) => `${index}`,
       // });
     }
-  }, [mesh.current]);
-
-  const edges = useMemo(() => {
-    if (geo.current) {
-      const edges = new THREE.EdgesGeometry(geo.current);
-      return new THREE.LineSegments(
-        edges,
-        new THREE.LineBasicMaterial({ color: 'black' })
-      );
-    }
-    return undefined;
   }, [geo.current]);
 
+  const [edges, material] = useMemo(() => {
+    console.log({ mesh: mesh.current });
+    if (geo.current) {
+      return [
+        new THREE.EdgesGeometry(geo.current),
+        new THREE.LineBasicMaterial({ color: 'black', linewidth: 20 }),
+      ];
+    }
+    return [];
+  }, [mesh.current]);
+
+  // console.log(edges, material)
+
   return !target ? null : (
-    <mesh ref={mesh} onClick={onClick}>
-      <bufferGeometry
-        ref={geo}
-        onUpdate={(self) => self.computeVertexNormals()}
-      >
-        <bufferAttribute
-          attach="attributes-position"
-          array={positions}
-          count={positions.length / 3}
-          itemSize={3}
+    <>
+      <mesh ref={mesh} onClick={onClick}>
+        <bufferGeometry
+          ref={geo}
+          onUpdate={(self) => self.computeVertexNormals()}
+        >
+          <bufferAttribute
+            attach="attributes-position"
+            array={positions}
+            count={positions.length / 3}
+            itemSize={3}
+          />
+          <bufferAttribute
+            attach="index"
+            array={indices}
+            count={indices.length}
+            itemSize={1}
+          />
+        </bufferGeometry>
+        <meshStandardMaterial
+          // color={eloiseColo
+          color={selected ? 'yellow' : highlighted ? 'red' : color}
         />
-        <bufferAttribute
-          attach="index"
-          array={indices}
-          count={indices.length}
-          itemSize={1}
-        />
-      </bufferGeometry>
-      <meshStandardMaterial
-        // color={eloiseColor}
-        color={selected ? 'yellow' : highlighted ? 'red' : color}
-      />
-    </mesh>
+      </mesh>
+      {meshState?.[0] ? (
+        <lineSegments geometry={meshState[0]} material={meshState[1]} />
+      ) : null}
+    </>
   );
 }
 
@@ -287,13 +298,15 @@ export function Hexasphere() {
             key={i}
             {...t}
             index={i}
-            onClick={() => onClick(i, t.id)}
+            onClick={() => {
+              console.log(i);
+              onClick(i, t.id);
+            }}
             highlighted={highlighted.some((h) => h === t.id)}
             selected={selected === t.id}
             target={true}
           />
         ))}
-        {/*<PortalPath from={tiles[143].centerPoint} to={tiles[7].centerPoint} />*/}
         <PortalPath from={tiles[from].centerPoint} to={tiles[to].centerPoint} />
       </mesh>
       <points>
