@@ -2102,6 +2102,7 @@ __metadata:
     "@fastify/mongodb": "npm:^8.0.0"
     "@fastify/sensible": "npm:~5.2.0"
     "@jniac/three-point-text-helper": "npm:^1.0.8"
+    "@miblanchard/react-native-slider": "npm:^2.3.1"
     "@morrowdigital/watermelondb-expo-plugin": "npm:^2.3.1"
     "@nestjs/common": "npm:^10.0.2"
     "@nestjs/config": "npm:^3.2.0"
@@ -3720,6 +3721,16 @@ __metadata:
   bin:
     node-pre-gyp: bin/node-pre-gyp
   checksum: 2b24b93c31beca1c91336fa3b3769fda98e202fb7f9771f0f4062588d36dcc30fcf8118c36aa747fa7f7610d8cf601872bdaaf62ce7822bb08b545d1bbe086cc
+  languageName: node
+  linkType: hard
+
+"@miblanchard/react-native-slider@npm:^2.3.1":
+  version: 2.3.1
+  resolution: "@miblanchard/react-native-slider@npm:2.3.1"
+  peerDependencies:
+    react: ">=16.8"
+    react-native: ">=0.59"
+  checksum: 3c50faafa2086d57d9e9ffb745a9afaf7936d83fdfc60b204442a4440b4c58fb98642b1f55ad594f4d942836569950ecb1a0b08285e452403ecef153b7ec427f
   languageName: node
   linkType: hard
 
