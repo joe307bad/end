@@ -12,6 +12,7 @@ import { faker } from '@faker-js/faker';
 import { useFrame } from '@react-three/fiber';
 import { PortalPath } from '@end/components';
 import * as THREE from 'three';
+import { useWindowDimensions } from 'react-native';
 
 const depthRatio = 1.04;
 
@@ -30,7 +31,7 @@ function TileMesh({
 }: any) {
   const mesh: any = useRef();
   const geo: any = useRef();
-  const [meshState, setMeshState] = useState<any>();
+  const [edges, setEdges] = useState<any>();
 
   useLayoutEffect(() => {
     if (geo.current) {
@@ -39,9 +40,8 @@ function TileMesh({
   }, [positions]);
 
   useEffect(() => {
-    console.log({ mesh: geo.current });
     if (geo.current) {
-      setMeshState([
+      setEdges([
         new THREE.EdgesGeometry(geo.current, 50),
         new THREE.LineBasicMaterial({ color: 'black', linewidth: 10 }),
       ]);
@@ -54,19 +54,6 @@ function TileMesh({
       // });
     }
   }, [geo.current]);
-
-  const [edges, material] = useMemo(() => {
-    console.log({ mesh: mesh.current });
-    if (geo.current) {
-      return [
-        new THREE.EdgesGeometry(geo.current),
-        new THREE.LineBasicMaterial({ color: 'black', linewidth: 20 }),
-      ];
-    }
-    return [];
-  }, [mesh.current]);
-
-  // console.log(edges, material)
 
   return !target ? null : (
     <>
@@ -89,12 +76,11 @@ function TileMesh({
           />
         </bufferGeometry>
         <meshStandardMaterial
-          // color={eloiseColo
           color={selected ? 'yellow' : highlighted ? 'red' : color}
         />
       </mesh>
-      {meshState?.[0] ? (
-        <lineSegments geometry={meshState[0]} material={meshState[1]} />
+      {edges?.[0] ? (
+        <lineSegments geometry={edges[0]} material={edges[1]} />
       ) : null}
     </>
   );
