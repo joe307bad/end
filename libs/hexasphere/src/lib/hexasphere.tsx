@@ -6,13 +6,10 @@ import React, {
   useState,
 } from 'react';
 import '@react-three/fiber';
-// @ts-ignore
-import HS from './hexasphere.lib';
 import { faker } from '@faker-js/faker';
 import { useFrame } from '@react-three/fiber';
 import { PortalPath } from '@end/components';
 import * as THREE from 'three';
-
 
 function TileMesh({
   positions,
@@ -86,7 +83,11 @@ export function Hexasphere({
   rotateZ,
   tiles,
   hexasphere,
+  selected,
+  setSelected,
 }: {
+  setSelected(id: { x: number; y: number; z: number }): void;
+  selected?: { x: number; y: number; z: number };
   rotateX: number;
   rotateY: number;
   rotateZ: number;
@@ -95,16 +96,15 @@ export function Hexasphere({
 }) {
   const [highlighted, setHighlighted] = useState<string[]>([]);
   const starColor = useMemo(() => faker.color.rgb({ format: 'hex' }), []);
-  const [selected, setSelected] = useState<string>();
-
 
   // const dirLight = useRef<DirectionalLight>(null);
   // useHelper(dirLight, DirectionalLightHelper, 1, 'red');
 
-  function onClick(i: number, id: string) {
+  function onClick(id: { x: number; y: number; z: number }) {
     setSelected(id);
+    const stringId = [id.x, id.y, id.z].join(',');
     setHighlighted(
-      hexasphere.tileLookup[id].neighborIds.filter((id: string) =>
+      hexasphere.tileLookup[stringId].neighborIds.filter((id: string) =>
         tiles.some(
           (t: { id: string; raised: boolean }) => t.raised && t.id === id
         )
@@ -113,7 +113,7 @@ export function Hexasphere({
   }
 
   const mesh: any = useRef();
-  useFrame(() => {
+  useFrame((state) => {
     if (mesh.current) {
       mesh.current.rotation.x = THREE.MathUtils.degToRad(rotateX * 360);
       mesh.current.rotation.y = THREE.MathUtils.degToRad(rotateY * 360);
@@ -157,6 +157,8 @@ export function Hexasphere({
     return [from, to];
   }, []);
 
+  console.log(selected && [selected.x, selected.y, selected.z].join(','));
+
   return (
     <>
       <ambientLight />
@@ -172,10 +174,14 @@ export function Hexasphere({
             index={i}
             onClick={() => {
               console.log(i);
-              onClick(i, t.id);
+              onClick(t.centerPoint);
             }}
             highlighted={highlighted.some((h) => h === t.id)}
-            selected={selected === t.id}
+            selected={
+              selected
+                ? [selected.x, selected.y, selected.z].join(',') === t.id
+                : false
+            }
             target={true}
           />
         ))}

@@ -47,6 +47,7 @@
     "fastify": "~4.13.0",
     "fastify-cli": "^5.9.0",
     "fastify-plugin": "~4.5.0",
+    "gsap": "^3.12.5",
     "identity-obj-proxy": "^3.0.0",
     "lodash.debounce": "^4.0.8",
     "mongoose": "^8.1.3",

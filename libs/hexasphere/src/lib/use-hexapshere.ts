@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { HS } from '@end/hexasphere';
 import { faker } from '@faker-js/faker';
 
@@ -8,12 +8,13 @@ function withDepthRatio(n: number) {
   return n * depthRatio - n;
 }
 
-export function useHexasphere({ reset }: { reset: number }) {
+export function useHexasphere() {
+  const hexasphere = useMemo(() => new HS(50, 4, 1), []);
+  const [reset, setReset] = useState(Math.random());
   const land = useMemo(() => faker.color.rgb({ format: 'hex' }), [reset]);
   const water = useMemo(() => faker.color.rgb({ format: 'hex' }), [reset]);
   const seed = useMemo(() => faker.number.int({ min: 2, max: 12 }), [reset]);
   const seed1 = useMemo(() => faker.number.int({ min: 2, max: 12 }), [reset]);
-  const hexasphere = useMemo(() => new HS(50, 4, 1), []);
 
   const tiles = useMemo(() => {
     // @ts-ignore
@@ -132,5 +133,5 @@ export function useHexasphere({ reset }: { reset: number }) {
     return tiles;
   }, [hexasphere, reset]);
 
-  return { tiles, hexasphere };
+  return { tiles, hexasphere, setReset, reset };
 }
