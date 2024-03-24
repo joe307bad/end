@@ -186,7 +186,7 @@ export function Elliptic({
   );
 }
 
-function getPointInBetweenByPerc(
+export function getPointInBetweenByPerc(
   pointA: THREE.Vector3,
   pointB: THREE.Vector3,
   percentage: number

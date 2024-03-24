@@ -157,8 +157,6 @@ export function Hexasphere({
     return [from, to];
   }, []);
 
-  console.log(selected && [selected.x, selected.y, selected.z].join(','));
-
   return (
     <>
       <ambientLight />
@@ -173,7 +171,6 @@ export function Hexasphere({
             {...t}
             index={i}
             onClick={() => {
-              console.log(i);
               onClick(t.centerPoint);
             }}
             highlighted={highlighted.some((h) => h === t.id)}

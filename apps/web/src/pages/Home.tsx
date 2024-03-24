@@ -1,17 +1,16 @@
-import { Home as H, Planet } from '@end/components';
+import { getPointInBetweenByPerc, Home as H, Planet } from '@end/components';
 import { database, sync } from '@end/wm/web';
-import React, {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useWindowDimensions } from 'react-native';
-import { OrbitControls } from '@react-three/drei';
+import { TrackballControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { useHexasphere } from '@end/hexasphere';
 import gsap from 'gsap';
+// @ts-ignore
+import { MotionPathPlugin } from 'gsap/MotionPathPlugin.js';
+
+gsap.registerPlugin(MotionPathPlugin);
 
 export default function Home() {
   const { width } = useWindowDimensions();
@@ -36,30 +35,70 @@ export default function Home() {
       const point = new THREE.Vector3(x, y, z);
 
       const center = new THREE.Vector3(0, 0, 0);
-      const radius = 160;
+
+      const { x: camX, y: camY, z: camZ } = cam.position;
+      const currentCameraPosition = new THREE.Vector3(camX, camY, camZ);
+      const cameraToCenter = currentCameraPosition.distanceTo(center);
+
       const distanceToCenter = point.distanceTo(center);
-      const distanceToSurface = radius - distanceToCenter;
-      const movePointBetweenFromOrToToPortalCurve = center
+      const distanceToCamera = cameraToCenter - distanceToCenter;
+
+      const movePointToCamera = center
         .clone()
         .sub(point)
         .normalize()
-        .multiplyScalar(-distanceToSurface);
+        .multiplyScalar(-distanceToCamera);
 
-      point.add(movePointBetweenFromOrToToPortalCurve);
+      point.add(movePointToCamera);
+
+      const pointsOnPortalCurve = 64;
+      const points = [];
+      const radius = 160;
+
+      for (let index = 0; index < pointsOnPortalCurve; index++) {
+        const percent = index * (1 / pointsOnPortalCurve);
+        // every 1/64 %, plot a point between from and to
+        const pointBetweenFromAndTo = getPointInBetweenByPerc(
+          currentCameraPosition,
+          point,
+          percent
+        );
+
+        // distance from point between from and to and center of sphere
+        const distanceToCenter = pointBetweenFromAndTo.distanceTo(center);
+
+        // distance from point between from and to and portal curve
+        const distanceToSurface = radius - distanceToCenter;
+
+        // vector to move point between from and to the surface of the portal curve
+        const movePointBetweenFromOrToToPortalCurve = center
+          .clone()
+          .sub(pointBetweenFromAndTo)
+          .normalize()
+          .multiplyScalar(-distanceToSurface);
+
+        // move point between from and to the portal curve
+        pointBetweenFromAndTo.add(movePointBetweenFromOrToToPortalCurve);
+
+        points.push(pointBetweenFromAndTo);
+      }
+
+      const curve = new THREE.CatmullRomCurve3(points);
 
       gsap.to(cam.position, {
-        duration: 0.5,
-        x: point.x,
-        y: point.y,
-        z: point.z,
-        onComplete: () => {
-          // cam.lookAt(new THREE.Vector3(0, 0, 0));
+        duration: 2,
+        motionPath: {
+          path: curve
+            .getPoints(100)
+            .map((p: any) => ({ x: p.x, y: p.y, z: p.z })),
+        },
+        onUpdate: () => {
           // @ts-ignore
           ref.current.update();
         },
       });
     }
-  }, [selectedTile]);
+  }, [selectedTile, cam]);
 
   return (
     <H database={database} sync={sync} apiUrl={process.env.API_BASE_URL}>
@@ -83,7 +122,7 @@ export default function Home() {
               }}
               camera={cam}
             >
-              <OrbitControls ref={ref} camera={cam} />
+              <TrackballControls rotateSpeed={3} ref={ref} camera={cam} />
               {hexasphere}
             </Canvas>
             {footer}
