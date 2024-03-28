@@ -43,14 +43,18 @@ export function Planet({
   setReset,
   reset,
   tiles,
+  setSelectedTile1,
+  selectedTile1,
   setSelectedTile,
   selectedTile,
   hexasphere,
 }: {
   setReset(r: number): void;
   reset: number;
-  selectedTile?:{ x: number; y: number; z: number }
+  selectedTile?: { x: number; y: number; z: number };
   setSelectedTile(id: { x: number; y: number; z: number }): void;
+  selectedTile1?: { x: number; y: number; z: number } | null;
+  setSelectedTile1(id: { x: number; y: number; z: number } | null): void;
   hexasphere: any;
   tiles: any;
   children: (
@@ -75,6 +79,8 @@ export function Planet({
           hexasphere={hexasphere}
           selected={selectedTile}
           setSelected={setSelectedTile}
+          selected1={selectedTile1}
+          setSelected1={setSelectedTile1}
         />,
         <Section style={tw`absolute right-[20px] top-[20px] z-10 w-[500px]`}>
           <Tabs

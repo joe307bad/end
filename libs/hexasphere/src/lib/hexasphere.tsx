@@ -67,7 +67,8 @@ function TileMesh({
           />
         </bufferGeometry>
         <meshStandardMaterial
-          color={selected ? 'yellow' : highlighted ? 'red' : color}
+          color={selected ? 'yellow' : 'white'}
+          // color={selected ? 'yellow' : highlighted ? 'red' : color}
         />
       </mesh>
       {edges?.[0] ? (
@@ -85,9 +86,13 @@ export function Hexasphere({
   hexasphere,
   selected,
   setSelected,
+  selected1,
+  setSelected1,
 }: {
   setSelected(id: { x: number; y: number; z: number }): void;
   selected?: { x: number; y: number; z: number };
+  setSelected1(id: { x: number; y: number; z: number } | null): void;
+  selected1?: { x: number; y: number; z: number } | null;
   rotateX: number;
   rotateY: number;
   rotateZ: number;
@@ -101,15 +106,20 @@ export function Hexasphere({
   // useHelper(dirLight, DirectionalLightHelper, 1, 'red');
 
   function onClick(id: { x: number; y: number; z: number }) {
-    setSelected(id);
+    if (selected1) {
+      setSelected(id);
+      setSelected1(null);
+    } else {
+      setSelected1(id);
+    }
     const stringId = [id.x, id.y, id.z].join(',');
-    setHighlighted(
-      hexasphere.tileLookup[stringId].neighborIds.filter((id: string) =>
-        tiles.some(
-          (t: { id: string; raised: boolean }) => t.raised && t.id === id
-        )
-      )
-    );
+    // setHighlighted(
+    //   hexasphere.tileLookup[stringId].neighborIds.filter((id: string) =>
+    //     tiles.some(
+    //       (t: { id: string; raised: boolean }) => t.raised && t.id === id
+    //     )
+    //   )
+    // );
   }
 
   const mesh: any = useRef();
@@ -175,26 +185,25 @@ export function Hexasphere({
             }}
             highlighted={highlighted.some((h) => h === t.id)}
             selected={
-              selected
-                ? [selected.x, selected.y, selected.z].join(',') === t.id
-                : false
+              [selected?.x, selected?.y, selected?.z].join(',') === t.id ||
+              [selected1?.x, selected1?.y, selected1?.z].join(',') === t.id
             }
             target={true}
           />
         ))}
-        <PortalPath from={tiles[from].centerPoint} to={tiles[to].centerPoint} />
+        {/*<PortalPath from={tiles[from].centerPoint} to={tiles[to].centerPoint} />*/}
       </mesh>
-      <points>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            count={stars.length / 3}
-            itemSize={3}
-            array={stars}
-          />
-        </bufferGeometry>
-        <pointsMaterial size={2} color={starColor} transparent />
-      </points>
+      {/*<points>*/}
+      {/*  <bufferGeometry>*/}
+      {/*    <bufferAttribute*/}
+      {/*      attach="attributes-position"*/}
+      {/*      count={stars.length / 3}*/}
+      {/*      itemSize={3}*/}
+      {/*      array={stars}*/}
+      {/*    />*/}
+      {/*  </bufferGeometry>*/}
+      {/*  <pointsMaterial size={2} color={starColor} transparent />*/}
+      {/*</points>*/}
     </>
   );
 }
