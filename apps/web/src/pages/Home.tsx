@@ -1,12 +1,6 @@
 import { getPointInBetweenByPerc, Home as H, Planet } from '@end/components';
 import { database, sync } from '@end/wm/web';
-import React, {
-  Ref,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { Ref, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useWindowDimensions } from 'react-native';
 import { OrbitControls } from '@react-three/drei';
@@ -23,7 +17,7 @@ function useCameraPathPoints(
   cam: THREE.PerspectiveCamera,
   selectedTile?: { x: number; y: number; z: number }
 ) {
-  console.log('selectedTile', selectedTile);
+  // console.log('selectedTile', selectedTile);
   return useMemo(() => {
     const { x, y, z } = selectedTile ?? {};
 
@@ -133,7 +127,8 @@ function useDebugPath(
     const newCurve = (() => {
       const point1 = getPointInBetweenByPerc(from, to, 0.1);
       const point2 = getPointInBetweenByPerc(from, to, 0.9);
-      const point3 = getPointInBetweenByPerc(from, to, 0.5);
+
+      // const point3 = getPointInBetweenByPerc(from, to, 0.5);
 
       function pushPoint(point: THREE.Vector3) {
         // distance from point between from and to and center of sphere
@@ -153,20 +148,96 @@ function useDebugPath(
         point.add(movePointBetweenFromOrToToPortalCurve);
       }
 
-      const movePointAwayFromPole = center
+      const northPole = new THREE.Vector3(0, 50, 0);
+      const southPole = new THREE.Vector3(0, -50, 0);
+
+      const pole = (point: THREE.Vector3) => {
+        if (point.x === 0 && point.z === 0) {
+          // at the north pole
+          return new THREE.Vector3(50, 0, 0);
+        }
+
+        if (point.x === 0 && point.y === 0) {
+          // at the south pole
+          return new THREE.Vector3(-50, 0, 0);
+        }
+
+        return point.y < 0 ? southPole : northPole;
+      };
+
+      const toTowardsFurthestPole = to.clone();
+      const movePointTowardsFurthestPole = pole(to)
         .clone()
-        .sub(point3)
+        .sub(toTowardsFurthestPole)
         .normalize()
-        .multiplyScalar(-20)
-        .applyEuler(new THREE.Euler(Math.PI / 2));
+        .multiplyScalar(-20);
 
-      point3.add(movePointAwayFromPole);
+      toTowardsFurthestPole.add(movePointTowardsFurthestPole);
 
-      pushPoint(point1);
-      pushPoint(point2);
-      pushPoint(point3);
+      const fromTowardsFurthestPole = from.clone();
+      const moveFromTowardsFurthestPole = pole(from)
+        .clone()
+        .sub(fromTowardsFurthestPole)
+        .normalize()
+        .multiplyScalar(-20);
 
-      return [to, from, point1, point2, point3];
+      // toTowardsFurthestPole.add(movePointTowardsFurthestPole);
+      fromTowardsFurthestPole.add(moveFromTowardsFurthestPole);
+
+      const toSurface = to.clone();
+      const fromSurface = from.clone();
+
+      pushPoint(to);
+      pushPoint(from);
+      pushPoint(toTowardsFurthestPole);
+      pushPoint(fromTowardsFurthestPole);
+
+      console.log(to);
+
+      function createMeridian(radius: number, y: number) {
+        const points = [];
+        for (let index = 0; index < 64; index++) {
+          const angle = (index / 64) * 2 * Math.PI;
+          const x = radius * Math.cos(angle);
+          const z = radius * Math.sin(angle);
+
+          points.push(new THREE.Vector3(x, y, z));
+        }
+        return points;
+      }
+
+      const pointFromRotationPointToCenter = (() => {
+        // const pl = pole.clone();
+        return new THREE.Vector3(
+          pole(from).x,
+          toTowardsFurthestPole.y,
+          pole(from).z
+        );
+      })();
+
+      console.log(
+        'pointFromRotationPointToCenter',
+        pointFromRotationPointToCenter
+      );
+
+      const radius = pointFromRotationPointToCenter.distanceTo(
+        toTowardsFurthestPole
+      );
+
+      const meridian = createMeridian(radius, toTowardsFurthestPole.y);
+
+      // TODO 1. draw points from from point to to meridian
+      // TODO 2. draw points from from merdian to from point
+      // TODO 3. wire up curves into one path
+
+      return [
+        to,
+        from,
+        toTowardsFurthestPole,
+        fromTowardsFurthestPole,
+        pointFromRotationPointToCenter,
+        ...meridian,
+      ];
     })();
 
     return {
@@ -310,7 +381,7 @@ export default function Home() {
                     array={equator.points32}
                   />
                 </bufferGeometry>
-                <pointsMaterial size={2} color="blue" transparent />
+                <pointsMaterial size={2} color="red" transparent />
               </points>
               {debugPath.newCurve ? (
                 <>
