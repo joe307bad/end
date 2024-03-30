@@ -192,8 +192,6 @@ function useDebugPath(
       pushPoint(toTowardsFurthestPole);
       pushPoint(fromTowardsFurthestPole);
 
-      console.log(to);
-
       function createMeridian(radius: number, y: number) {
         const points = [];
         for (let index = 0; index < 64; index++) {
@@ -215,10 +213,10 @@ function useDebugPath(
         );
       })();
 
-      console.log(
-        'pointFromRotationPointToCenter',
-        pointFromRotationPointToCenter
-      );
+      // console.log(
+      //   'pointFromRotationPointToCenter',
+      //   pointFromRotationPointToCenter
+      // );
 
       const radius = pointFromRotationPointToCenter.distanceTo(
         toTowardsFurthestPole
@@ -226,7 +224,71 @@ function useDebugPath(
 
       const meridian = createMeridian(radius, toTowardsFurthestPole.y);
 
+      function createFromPointToMeridian(
+        m: THREE.Vector3[],
+        f: THREE.Vector3,
+        t: THREE.Vector3
+      ) {
+        console.log({ m });
+
+        // const newCenter = new THREE.Vector3(0, t.y, 0);
+        // const newCenterTowardsFrom = pointFromRotationPointToCenter
+        //   .clone()
+        //   .sub(newCenter)
+        //   .normalize();
+        // console.log({directionV3})
+
+        // const poleForTo = pole(t);
+
+        const distanceToNorthPole =
+          pointFromRotationPointToCenter.distanceTo(northPole);
+        const distanceToSouthPole =
+          pointFromRotationPointToCenter.distanceTo(southPole);
+
+        const dv = f.clone().sub(pointFromRotationPointToCenter).normalize();
+
+        const poleForMeridian = dv.y < 0 ? northPole : southPole;
+
+        const pointsOnPortalCurve = 64;
+        const fromPointToMeridian: THREE.Vector3[] = [];
+        for (let index = 0; index < pointsOnPortalCurve; index++) {
+          const percent = index * (1 / pointsOnPortalCurve);
+          // every 1/64 %, plot a point between from and to
+          const pointBetweenFromAndTo = getPointInBetweenByPerc(
+            f,
+            poleForMeridian,
+            percent
+          );
+
+          // distance from point between from and to and center of sphere
+          const distanceToCenter = pointBetweenFromAndTo.distanceTo(center);
+
+          // distance from point between from and to and portal curve
+          const distanceToSurface = 60 - distanceToCenter;
+
+          // vector to move point between from and to the surface of the portal curve
+          const movePointBetweenFromOrToToMeridian = center
+            .clone()
+            .sub(pointBetweenFromAndTo)
+            .normalize()
+            .multiplyScalar(-distanceToSurface);
+
+          // move point between from and to the portal curve
+          pointBetweenFromAndTo.add(movePointBetweenFromOrToToMeridian);
+
+          fromPointToMeridian.push(pointBetweenFromAndTo);
+        }
+
+        return [poleForMeridian, ...fromPointToMeridian];
+      }
+
       // TODO 1. draw points from from point to to meridian
+      const fromPointToMeridian: THREE.Vector3[] = createFromPointToMeridian(
+        meridian,
+        from,
+        toTowardsFurthestPole
+      );
+
       // TODO 2. draw points from from merdian to from point
       // TODO 3. wire up curves into one path
 
@@ -237,6 +299,7 @@ function useDebugPath(
         fromTowardsFurthestPole,
         pointFromRotationPointToCenter,
         ...meridian,
+        ...fromPointToMeridian,
       ];
     })();
 
@@ -264,7 +327,11 @@ export default function Home() {
     x: number;
     y: number;
     z: number;
-  }>({ x: t.centerPoint.x, y: t.centerPoint.y, z: t.centerPoint.z });
+  }>({
+    x: -13.143297004424154,
+    y: -8.122994175917071,
+    z: 47.552820205236124,
+  });
   const [selectedTile1, setSelectedTile1] = useState<
     | {
         x: number;
@@ -273,7 +340,14 @@ export default function Home() {
       }
     | undefined
     | null
-  >();
+  >({
+    x: -43.20939207811877,
+    y: 11.9427929398779,
+    z: 22.143128347968588,
+  });
+
+  console.log({ selectedTile });
+  console.log({ selectedTile1 });
 
   const { points32, pointsV3, pointToPanTo } = useCameraPathPoints(
     cam,
