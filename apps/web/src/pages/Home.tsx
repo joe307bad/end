@@ -9,7 +9,7 @@ import { useHexasphere } from '@end/hexasphere';
 import gsap from 'gsap';
 // @ts-ignore
 import { MotionPathPlugin } from 'gsap/MotionPathPlugin.js';
-import { BufferGeometry, NormalBufferAttributes } from 'three';
+import { BufferGeometry, MathUtils, NormalBufferAttributes } from 'three';
 
 gsap.registerPlugin(MotionPathPlugin);
 
@@ -229,7 +229,7 @@ function useDebugPath(
         f: THREE.Vector3,
         t: THREE.Vector3
       ) {
-        console.log({ m });
+        // console.log({ m });
 
         // const newCenter = new THREE.Vector3(0, t.y, 0);
         // const newCenterTowardsFrom = pointFromRotationPointToCenter
@@ -251,6 +251,8 @@ function useDebugPath(
 
         const pointsOnPortalCurve = 64;
         const fromPointToMeridian: THREE.Vector3[] = [];
+        let lastDt = 0;
+        let intersectionPoints: THREE.Vector3[] = [];
         for (let index = 0; index < pointsOnPortalCurve; index++) {
           const percent = index * (1 / pointsOnPortalCurve);
           // every 1/64 %, plot a point between from and to
@@ -259,6 +261,61 @@ function useDebugPath(
             poleForMeridian,
             percent
           );
+
+          const dt = pointBetweenFromAndTo.distanceTo(
+            pointFromRotationPointToCenter
+          );
+
+          const b = pointFromRotationPointToCenter
+            .clone()
+            .sub(pointBetweenFromAndTo)
+            .normalize();
+
+          const a = MathUtils.radToDeg(
+            pointBetweenFromAndTo.angleTo(
+              pointFromRotationPointToCenter
+                .clone()
+                .applyEuler(new THREE.Euler(0, Math.PI, 0))
+            )
+          );
+
+          const c = MathUtils.radToDeg(
+            pointFromRotationPointToCenter
+              .clone()
+              .sub(poleForMeridian)
+              .normalize()
+              .angleTo(pointBetweenFromAndTo)
+          );
+
+          const d = MathUtils.radToDeg(
+            pointBetweenFromAndTo
+              .clone()
+              .sub(pointFromRotationPointToCenter)
+              .angleTo(poleForMeridian)
+          );
+
+          // console.log(d)
+
+          if (d > 90 && d < 95) {
+            intersectionPoints.push(pointBetweenFromAndTo);
+          }
+
+          // if(b.y > 0 && !intersectionPoint) {
+          //   intersectionPoint = pointBetweenFromAndTo;
+          // }
+          // if (c > 90 && c < 92) {
+          //   intersectionPoint = pointBetweenFromAndTo;
+          // }
+
+          // if ((dt > lastDt || lastDt === 0) && !intersectionPoint) {
+          //   if (lastDt !== 0) {
+          //     intersectionPoint = pointBetweenFromAndTo;
+          //   } else {
+          //     lastDt = dt;
+          //   }
+          // } else {
+          //   lastDt = dt;
+          // }
 
           // distance from point between from and to and center of sphere
           const distanceToCenter = pointBetweenFromAndTo.distanceTo(center);
@@ -279,11 +336,33 @@ function useDebugPath(
           fromPointToMeridian.push(pointBetweenFromAndTo);
         }
 
-        return [poleForMeridian, ...fromPointToMeridian];
+        let closestPointOnMeridian: THREE.Vector3 = intersectionPoints[0];
+        let leastDis = 0;
+
+        meridian.forEach((pom: THREE.Vector3) => {
+          intersectionPoints.forEach((ips: THREE.Vector3) => {
+            const dis = pom.distanceTo(ips);
+            console.log(dis)
+            if (leastDis === 0 || dis < leastDis) {
+              leastDis = dis;
+              closestPointOnMeridian = pom;
+            }
+          });
+        });
+
+        // const z = intersectionPoints.sort(
+        //   (a: THREE.Vector3, b: THREE.Vector3) =>
+        //     poleForMeridian.distanceTo(a) - poleForMeridian.distanceTo(b)
+        // );
+
+        return {
+          mer: [poleForMeridian, ...fromPointToMeridian],
+          ip: [closestPointOnMeridian],
+        };
       }
 
       // TODO 1. draw points from from point to to meridian
-      const fromPointToMeridian: THREE.Vector3[] = createFromPointToMeridian(
+      const { mer: fromPointToMeridian, ip } = createFromPointToMeridian(
         meridian,
         from,
         toTowardsFurthestPole
@@ -292,22 +371,28 @@ function useDebugPath(
       // TODO 2. draw points from from merdian to from point
       // TODO 3. wire up curves into one path
 
-      return [
-        to,
-        from,
-        toTowardsFurthestPole,
-        fromTowardsFurthestPole,
-        pointFromRotationPointToCenter,
-        ...meridian,
-        ...fromPointToMeridian,
-      ];
+      return {
+        mer: [
+          to,
+          from,
+          toTowardsFurthestPole,
+          fromTowardsFurthestPole,
+          pointFromRotationPointToCenter,
+          ...meridian,
+          ...fromPointToMeridian,
+        ],
+        ip,
+      };
     })();
 
     return {
       equator32,
       points32,
       pointsV3: pointsOnCameraPath,
-      newCurve: new Float32Array(newCurve.flatMap((p) => [p.x, p.y, p.z])),
+      newCurve: new Float32Array(newCurve.mer.flatMap((p) => [p.x, p.y, p.z])),
+      ip: newCurve.ip
+        ? new Float32Array(newCurve.ip.flatMap((p) => [p.x, p.y, p.z]))
+        : new Float32Array(),
     };
   }, [f, t]);
 }
@@ -328,9 +413,9 @@ export default function Home() {
     y: number;
     z: number;
   }>({
-    x: -13.143297004424154,
-    y: -8.122994175917071,
-    z: 47.552820205236124,
+    x: 25.000000060054603,
+    y: 15.450849648434211,
+    z: 40.45084970848882,
   });
   const [selectedTile1, setSelectedTile1] = useState<
     | {
@@ -341,9 +426,9 @@ export default function Home() {
     | undefined
     | null
   >({
-    x: -43.20939207811877,
-    y: 11.9427929398779,
-    z: 22.143128347968588,
+    x: 34.08590251353856,
+    y: 35.8283605948546,
+    z: 7.381045110457995,
   });
 
   console.log({ selectedTile });
@@ -491,6 +576,17 @@ export default function Home() {
                       />
                     </bufferGeometry>
                     <pointsMaterial size={6} color="hotpink" transparent />
+                  </points>
+                  <points>
+                    <bufferGeometry>
+                      <bufferAttribute
+                        attach="attributes-position"
+                        count={debugPath.ip.length / 3}
+                        itemSize={3}
+                        array={debugPath.ip}
+                      />
+                    </bufferGeometry>
+                    <pointsMaterial size={8} color="red" transparent />
                   </points>
                 </>
               ) : null}
