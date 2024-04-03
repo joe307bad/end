@@ -88,6 +88,7 @@ export function Hexasphere({
   tiles,
   selected,
   setSelected,
+  portal
 }: {
   setSelected(id: { x: number; y: number; z: number }): void;
   selected?: { x: number; y: number; z: number };
@@ -96,6 +97,7 @@ export function Hexasphere({
   rotateZ: number;
   tiles: any;
   hexasphere: any;
+  portal?: any
 }) {
   const [highlighted, setHighlighted] = useState<string[]>([]);
   const starColor = useMemo(() => faker.color.rgb({ format: 'hex' }), []);
@@ -156,16 +158,6 @@ export function Hexasphere({
     return new Float32Array(createStars(4000));
   }, []);
 
-  const [from, to] = useMemo(() => {
-    const from = faker.number.int({ min: 0, max: 161 });
-    var to = faker.number.int({ min: 0, max: 161 });
-
-    while (from === to) {
-      to = faker.number.int({ min: 0, max: 161 });
-    }
-
-    return [from, to];
-  }, []);
 
   return (
     <>
@@ -190,7 +182,7 @@ export function Hexasphere({
             target={true}
           />
         ))}
-        <PortalPath from={tiles[from].centerPoint} to={tiles[to].centerPoint} />
+        {portal}
         <points>
           <bufferGeometry>
             <bufferAttribute
