@@ -7,9 +7,11 @@ import React, {
 } from 'react';
 import '@react-three/fiber';
 import { faker } from '@faker-js/faker';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { PortalPath } from '@end/components';
 import * as THREE from 'three';
+import { MathUtils } from 'three';
+import gsap from 'gsap';
 
 function TileMesh({
   positions,
@@ -48,7 +50,13 @@ function TileMesh({
 
   return !target ? null : (
     <>
-      <mesh ref={mesh} onClick={onClick}>
+      <mesh
+        ref={mesh}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick();
+        }}
+      >
         <bufferGeometry
           ref={geo}
           onUpdate={(self) => self.computeVertexNormals()}
@@ -67,8 +75,7 @@ function TileMesh({
           />
         </bufferGeometry>
         <meshStandardMaterial
-          color={selected ? 'yellow' : 'white'}
-          // color={selected ? 'yellow' : highlighted ? 'red' : color}
+          color={selected ? 'yellow' : highlighted ? 'red' : color}
         />
       </mesh>
       {edges?.[0] ? (
@@ -79,15 +86,10 @@ function TileMesh({
 }
 
 export function Hexasphere({
-  rotateX,
-  rotateY,
-  rotateZ,
   tiles,
-  hexasphere,
   selected,
   setSelected,
   selected1,
-  setSelected1,
 }: {
   setSelected(id: { x: number; y: number; z: number }): void;
   selected?: { x: number; y: number; z: number };
@@ -104,32 +106,34 @@ export function Hexasphere({
 
   // const dirLight = useRef<DirectionalLight>(null);
   // useHelper(dirLight, DirectionalLightHelper, 1, 'red');
+  const { camera } = useThree();
 
   function onClick(id: { x: number; y: number; z: number }) {
-    if (selected1) {
-      setSelected(id);
-      setSelected1(null);
-    } else {
-      setSelected1(id);
-    }
-    const stringId = [id.x, id.y, id.z].join(',');
-    // setHighlighted(
-    //   hexasphere.tileLookup[stringId].neighborIds.filter((id: string) =>
-    //     tiles.some(
-    //       (t: { id: string; raised: boolean }) => t.raised && t.id === id
-    //     )
-    //   )
-    // );
+    setSelected(id);
+    console.log(id);
   }
 
   const mesh: any = useRef();
-  useFrame((state) => {
-    if (mesh.current) {
-      mesh.current.rotation.x = THREE.MathUtils.degToRad(rotateX * 360);
-      mesh.current.rotation.y = THREE.MathUtils.degToRad(rotateY * 360);
-      mesh.current.rotation.z = THREE.MathUtils.degToRad(rotateZ * 360);
+
+  useEffect(() => {
+    if (selected && mesh.current) {
+      const startQ = mesh.current?.quaternion.clone().normalize();
+      const endQ = new THREE.Quaternion().setFromUnitVectors(
+        new THREE.Vector3(selected.x, selected.y, selected.z).normalize(),
+        camera.position.clone().normalize()
+      );
+      const t = { q: 0 };
+
+      gsap.to(t, {
+        duration: 1,
+        q: 1,
+        onUpdate(q, b, c) {
+          let inBetween = startQ.slerp(endQ, t.q);
+          mesh.current?.setRotationFromQuaternion(inBetween);
+        },
+      });
     }
-  });
+  }, [selected, camera.position]);
 
   const stars = useMemo(() => {
     const createStar = () => {
@@ -192,18 +196,18 @@ export function Hexasphere({
           />
         ))}
         {/*<PortalPath from={tiles[from].centerPoint} to={tiles[to].centerPoint} />*/}
+        <points>
+          <bufferGeometry>
+            <bufferAttribute
+              attach="attributes-position"
+              count={stars.length / 3}
+              itemSize={3}
+              array={stars}
+            />
+          </bufferGeometry>
+          <pointsMaterial size={2} color={starColor} transparent />
+        </points>
       </mesh>
-      {/*<points>*/}
-      {/*  <bufferGeometry>*/}
-      {/*    <bufferAttribute*/}
-      {/*      attach="attributes-position"*/}
-      {/*      count={stars.length / 3}*/}
-      {/*      itemSize={3}*/}
-      {/*      array={stars}*/}
-      {/*    />*/}
-      {/*  </bufferGeometry>*/}
-      {/*  <pointsMaterial size={2} color={starColor} transparent />*/}
-      {/*</points>*/}
     </>
   );
 }
