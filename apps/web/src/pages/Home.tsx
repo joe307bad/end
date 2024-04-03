@@ -5,13 +5,40 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { useHexasphere } from '@end/hexasphere';
+import { useWindowDimensions } from 'react-native';
 
 export default function Home() {
   const ref = useRef(null);
 
+  const { width } = useWindowDimensions();
+
+  const [cameraResponsiveness, responsiveness] = useMemo(() => {
+    if (width < 835) {
+      return [[0, 300, 25], {}];
+    }
+
+    if (width < 1297) {
+      return [[0, 160, 25], {}];
+    }
+
+    return [
+      [0, 160, 25],
+      {
+        minWidth: 2000,
+        width: '150%',
+        marginLeft: -600,
+      },
+    ];
+  }, [width]);
   const cam = useMemo(() => {
-    const cam = new THREE.PerspectiveCamera();
-    cam.position.set(0, 0, 160);
+    const cam = new THREE.PerspectiveCamera(45);
+
+    if(width < 835) {
+      cam.position.set(0, 0, 300);
+    } else {
+      cam.position.set(0, 0, 160);
+    }
+
     return cam;
   }, []);
   const { tiles, hexasphere, setReset, reset } = useHexasphere();
@@ -37,9 +64,7 @@ export default function Home() {
             <Canvas
               style={{
                 flex: 1,
-                minWidth: 2000,
-                width: '150%',
-                marginLeft: -600,
+                ...responsiveness,
               }}
               camera={cam}
             >

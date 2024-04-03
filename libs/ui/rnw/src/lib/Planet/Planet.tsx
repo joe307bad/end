@@ -8,12 +8,14 @@ import {
   Tabs,
   TabsContentProps,
   Text,
+  View,
 } from 'tamagui';
-import { View } from 'react-native';
 import { Slider } from '@miblanchard/react-native-slider';
 import { PrimaryButton } from '../Display';
 import { tw } from '../components';
 import { Hexasphere } from '@end/hexasphere';
+import { useResponsive } from '../Layout';
+import { MenuSquare, CircleDot } from '@tamagui/lucide-icons';
 
 const TabsContent = (props: TabsContentProps) => {
   return (
@@ -62,6 +64,8 @@ export function Planet({
   const [rotateX, setRotateX] = useState(0);
   const [rotateY, setRotateY] = useState(0);
   const [rotateZ, setRotateZ] = useState(0);
+  const [menuOpen, toggleMenu] = useState<boolean>(false);
+  const { bp } = useResponsive(menuOpen, 1297);
 
   return (
     <Section style={tw`h-full w-full relative overflow-hidden`}>
@@ -76,7 +80,14 @@ export function Planet({
           selected={selectedTile}
           setSelected={setSelectedTile}
         />,
-        <Section style={tw`absolute right-[20px] top-[20px] z-10 w-[500px]`}>
+        <Section
+          style={bp([
+            'absolute z-10 w-[500px] max-w-full',
+            'bottom-[50px] right-[0px]',
+            'bottom-[50px] right-[0px]',
+            'top-[20px] right-[20px] ',
+          ])}
+        >
           <Tabs
             defaultValue="tab3"
             orientation="horizontal"
@@ -85,6 +96,7 @@ export function Planet({
             borderWidth={1}
             overflow="hidden"
             borderColor="$borderColor"
+            style={bp(['', `${menuOpen ? '' : 'hidden'}`, '', 'visible'])}
           >
             <Tabs.List
               separator={<Separator vertical />}
@@ -174,6 +186,13 @@ export function Planet({
               <H5>Notifications</H5>
             </TabsContent>
           </Tabs>
+          <View onPress={() => toggleMenu((prevState) => !prevState)}>
+            <CircleDot
+              color="white"
+              size="$2"
+              style={bp(['block text-white self-end', '', '', 'hidden'])}
+            />
+          </View>
         </Section>,
         <PrimaryButton onPress={() => setReset(Math.random())}>
           New Planet

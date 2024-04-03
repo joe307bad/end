@@ -44,7 +44,7 @@ function NavButton({
   );
 }
 
-function useResponsive(rerender?: any) {
+export function useResponsive(rerender?: any, max?: number) {
   const { width } = useWindowDimensions();
 
   const bp = useCallback(
@@ -52,11 +52,11 @@ function useResponsive(rerender?: any) {
       const [common, sm, md, lg] = bps;
 
       const styles = (() => {
-        if (width > 1000) {
+        if (width > (max ?? 1000)) {
           return [lg, md].join(' ');
         }
 
-        if (width > 800) {
+        if (width > (max ?? 800)) {
           return md;
         }
 
@@ -68,7 +68,7 @@ function useResponsive(rerender?: any) {
       // @ts-ignore
       return tw.style(s);
     },
-    [rerender, width]
+    [rerender, width, max]
   );
 
   return {
