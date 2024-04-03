@@ -10,7 +10,6 @@ import { faker } from '@faker-js/faker';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { PortalPath } from '@end/components';
 
 function TileMesh({
   positions,
