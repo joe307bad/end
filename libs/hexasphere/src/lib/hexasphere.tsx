@@ -7,11 +7,10 @@ import React, {
 } from 'react';
 import '@react-three/fiber';
 import { faker } from '@faker-js/faker';
-import { useFrame, useThree } from '@react-three/fiber';
-import { PortalPath } from '@end/components';
+import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { MathUtils } from 'three';
 import gsap from 'gsap';
+import { PortalPath } from '@end/components';
 
 function TileMesh({
   positions,
@@ -89,12 +88,9 @@ export function Hexasphere({
   tiles,
   selected,
   setSelected,
-  selected1,
 }: {
   setSelected(id: { x: number; y: number; z: number }): void;
   selected?: { x: number; y: number; z: number };
-  setSelected1(id: { x: number; y: number; z: number } | null): void;
-  selected1?: { x: number; y: number; z: number } | null;
   rotateX: number;
   rotateY: number;
   rotateZ: number;
@@ -104,9 +100,9 @@ export function Hexasphere({
   const [highlighted, setHighlighted] = useState<string[]>([]);
   const starColor = useMemo(() => faker.color.rgb({ format: 'hex' }), []);
 
+  const { camera } = useThree();
   // const dirLight = useRef<DirectionalLight>(null);
   // useHelper(dirLight, DirectionalLightHelper, 1, 'red');
-  const { camera } = useThree();
 
   function onClick(id: { x: number; y: number; z: number }) {
     setSelected(id);
@@ -189,13 +185,12 @@ export function Hexasphere({
             }}
             highlighted={highlighted.some((h) => h === t.id)}
             selected={
-              [selected?.x, selected?.y, selected?.z].join(',') === t.id ||
-              [selected1?.x, selected1?.y, selected1?.z].join(',') === t.id
+              [selected?.x, selected?.y, selected?.z].join(',') === t.id
             }
             target={true}
           />
         ))}
-        {/*<PortalPath from={tiles[from].centerPoint} to={tiles[to].centerPoint} />*/}
+        <PortalPath from={tiles[from].centerPoint} to={tiles[to].centerPoint} />
         <points>
           <bufferGeometry>
             <bufferAttribute
