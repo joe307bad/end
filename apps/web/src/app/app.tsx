@@ -126,22 +126,11 @@ export function App() {
   }, [n]);
 
   return (
-    <View style={{ height: '100%', width: '100%' }}>
-      <DatabaseProvider database={database}>
-        <Providers baseUrl={process.env.API_BASE_URL as string}>
-          <AppRoutes />
-          {/*<SystemDetails*/}
-          {/*  discoverSystem={discoverSystem}*/}
-          {/*  name={name}*/}
-          {/*  setName={setName}*/}
-          {/*  tags={['planetary system']}*/}
-          {/*  h1={Styles.h1}*/}
-          {/*>*/}
-          {/*  <System />*/}
-          {/*</SystemDetails>*/}
-        </Providers>
-      </DatabaseProvider>
-    </View>
+    <DatabaseProvider database={database}>
+      <Providers baseUrl={process.env.API_BASE_URL as string}>
+        <AppRoutes />
+      </Providers>
+    </DatabaseProvider>
   );
 }
 
