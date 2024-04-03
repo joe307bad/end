@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useMemo, useState } from 'react';
 import {
   H5,
   Input,
@@ -12,10 +12,11 @@ import {
 } from 'tamagui';
 import { Slider } from '@miblanchard/react-native-slider';
 import { PrimaryButton } from '../Display';
-import { tw } from '../components';
+import { PortalPath, tw } from '../components';
 import { Hexasphere } from '@end/hexasphere';
 import { useResponsive } from '../Layout';
 import { MenuSquare, CircleDot } from '@tamagui/lucide-icons';
+import { faker } from '@faker-js/faker';
 
 const TabsContent = (props: TabsContentProps) => {
   return (
@@ -67,6 +68,17 @@ export function Planet({
   const [menuOpen, toggleMenu] = useState<boolean>(false);
   const { bp } = useResponsive(menuOpen, 1297);
 
+  const [from, to] = useMemo(() => {
+    const from = faker.number.int({ min: 0, max: 161 });
+    var to = faker.number.int({ min: 0, max: 161 });
+
+    while (from === to) {
+      to = faker.number.int({ min: 0, max: 161 });
+    }
+
+    return [from, to];
+  }, []);
+
   return (
     <Section style={tw`h-full w-full relative overflow-hidden`}>
       {children(
@@ -79,6 +91,12 @@ export function Planet({
           hexasphere={hexasphere}
           selected={selectedTile}
           setSelected={setSelectedTile}
+          portal={
+            <PortalPath
+              from={tiles[from].centerPoint}
+              to={tiles[to].centerPoint}
+            />
+          }
         />,
         <Section
           style={bp([
