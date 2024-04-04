@@ -34,7 +34,7 @@ function TileMesh({
     if (geo.current) {
       setEdges([
         new THREE.EdgesGeometry(geo.current, 50),
-        new THREE.LineBasicMaterial({ color: 'black', linewidth: 10 }),
+        new THREE.LineBasicMaterial({ color: 'black' }),
       ]);
       // const pth = new PointTextHelper();
       // mesh.current.add(pth);
@@ -87,7 +87,7 @@ export function Hexasphere({
   tiles,
   selected,
   setSelected,
-  portal
+  portal,
 }: {
   setSelected(id: { x: number; y: number; z: number }): void;
   selected?: { x: number; y: number; z: number };
@@ -96,7 +96,7 @@ export function Hexasphere({
   rotateZ: number;
   tiles: any;
   hexasphere: any;
-  portal?: any
+  portal?: any;
 }) {
   const [highlighted, setHighlighted] = useState<string[]>([]);
   const starColor = useMemo(() => faker.color.rgb({ format: 'hex' }), []);
@@ -156,7 +156,6 @@ export function Hexasphere({
 
     return new Float32Array(createStars(4000));
   }, []);
-
 
   return (
     <>
