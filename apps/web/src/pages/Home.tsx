@@ -60,7 +60,6 @@ export default function Home() {
       >
         {(hexasphere, controls, footer) => (
           <>
-            {controls}
             <Canvas
               style={{
                 flex: 1,
@@ -71,6 +70,7 @@ export default function Home() {
               <OrbitControls maxZoom={0.25} ref={ref} camera={cam} />
               {hexasphere}
             </Canvas>
+            {controls}
             {footer}
           </>
         )}

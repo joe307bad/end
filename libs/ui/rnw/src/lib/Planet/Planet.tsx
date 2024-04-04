@@ -79,6 +79,10 @@ export function Planet({
     return [from, to];
   }, []);
 
+  const controlResponsiveness = useMemo(() => {
+    return '';
+  }, []);
+
   return (
     <Section style={tw`h-full w-full relative overflow-hidden`}>
       {children(
@@ -100,10 +104,10 @@ export function Planet({
         />,
         <Section
           style={bp([
-            'absolute z-10 w-[500px] max-w-full',
-            'bottom-[50px] right-[0px]',
-            'bottom-[50px] right-[0px]',
-            'top-[20px] right-[20px] ',
+            'z-10 max-w-full',
+            'relative w-full',
+            '',
+            'absolute w-[500px] top-[20px] right-[20px] w-[500px] ',
           ])}
         >
           <Tabs
