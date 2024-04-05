@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import '@react-three/fiber';
 import { faker } from '@faker-js/faker';
-import { useThree } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import gsap from 'gsap';
 
@@ -19,6 +19,7 @@ function TileMesh({
   target,
   highlighted,
   selected,
+  raised,
 }: any) {
   const mesh: any = useRef();
   const geo: any = useRef();
@@ -31,7 +32,7 @@ function TileMesh({
   }, [positions]);
 
   useEffect(() => {
-    if (geo.current) {
+    if (geo.current && raised) {
       setEdges([
         new THREE.EdgesGeometry(geo.current, 50),
         new THREE.LineBasicMaterial({ color: 'black' }),
@@ -132,6 +133,13 @@ export function Hexasphere({
     }
   }, [selected, camera.position]);
 
+  useFrame(({clock}) => {
+    // console.log(clock.getElapsedTime())
+    if(!selected && mesh.current) {
+      mesh.current.rotation.y += 0.003;
+    }
+  })
+
   const stars = useMemo(() => {
     const createStar = () => {
       const randomY = faker.number.int({ min: -1000, max: -50 });
@@ -161,10 +169,7 @@ export function Hexasphere({
     <>
       <ambientLight />
       <directionalLight position={[0, 100, 25]} />
-      <mesh
-        ref={mesh}
-        onUpdate={(self) => (self.matrixWorldNeedsUpdate = true)}
-      >
+      <mesh ref={mesh}>
         {tiles.map((t: any, i: any) => (
           <TileMesh
             key={i}
@@ -173,6 +178,7 @@ export function Hexasphere({
             onClick={() => {
               onClick(t.centerPoint);
             }}
+            raised={t.raised}
             highlighted={highlighted.some((h) => h === t.id)}
             selected={
               [selected?.x, selected?.y, selected?.z].join(',') === t.id
