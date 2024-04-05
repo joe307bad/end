@@ -7,9 +7,25 @@ import React, {
 } from 'react';
 import '@react-three/fiber';
 import { faker } from '@faker-js/faker';
-import { useFrame, useThree } from '@react-three/fiber';
+import { useFrame, useThree, extend, Object3DNode } from '@react-three/fiber';
 import * as THREE from 'three';
 import gsap from 'gsap';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
+// @ts-ignore
+import tf from 'three/examples/fonts/helvetiker_regular.typeface.json';
+import { MathUtils, Vector3 } from 'three';
+
+extend({ TextGeometry });
+
+const center = new THREE.Vector3(0, 0, 0);
+
+const font = new FontLoader().parse(tf);
+declare module '@react-three/fiber' {
+  interface ThreeElements {
+    textGeometry: Object3DNode<TextGeometry, typeof TextGeometry>;
+  }
+}
 
 function TileMesh({
   positions,
@@ -20,9 +36,16 @@ function TileMesh({
   highlighted,
   selected,
   raised,
+  centerPoint,
 }: any) {
   const mesh: any = useRef();
   const geo: any = useRef();
+  const countGeo: any = useRef();
+  const text: any = useRef();
+  const textGeo: any = useRef();
+  const cyl: any = useRef();
+  const textMesh: any = useRef();
+  const [countEdges, setCountEdges] = useState<any>();
   const [edges, setEdges] = useState<any>();
 
   useLayoutEffect(() => {
@@ -45,10 +68,63 @@ function TileMesh({
       //   format: (index) => `${index}`,
       // });
     }
-  }, [geo.current]);
+
+    if (countGeo.current && text.current && cyl.current && textGeo.current) {
+      const cp = new THREE.Vector3(centerPoint.x, centerPoint.y, centerPoint.z);
+
+      cyl.current.rotation.x = MathUtils.degToRad(90);
+      text.current?.position.copy(center.clone());
+      text.current?.lookAt(cp.clone());
+      text.current?.position.copy(cp.clone());
+
+      textGeo.current.computeBoundingBox();
+      const b = textGeo.current.boundingBox.getCenter(new Vector3());
+      textMesh.current.position.x -= b.x;
+      textMesh.current.position.y -= b.y;
+      textMesh.current.position.z += 1;
+
+      setCountEdges([
+        new THREE.EdgesGeometry(countGeo.current, 50),
+        new THREE.LineBasicMaterial({ color: 'black' }),
+      ]);
+    }
+  }, []);
+
+  const randomNumber = useMemo(
+    () => faker.number.int({ min: 1, max: 9 }).toString(),
+    []
+  );
 
   return !target ? null : (
     <>
+      {raised ? (
+        <mesh
+          ref={text}
+          position={[centerPoint.x, centerPoint.y, centerPoint.z]}
+        >
+          <mesh ref={cyl}>
+            <cylinderGeometry
+              ref={countGeo}
+              attach="geometry"
+              args={[2, 2, 2, 32]}
+            />
+            {countEdges?.[0] ? (
+              <lineSegments geometry={countEdges[0]} material={countEdges[1]} />
+            ) : null}
+          </mesh>
+          <mesh ref={textMesh}>
+            <textGeometry
+              ref={textGeo}
+              args={[randomNumber, { font, size: 2, height: 0.25 }]}
+            />
+            <meshBasicMaterial
+              side={THREE.DoubleSide}
+              attach="material"
+              color={'black'}
+            />
+          </mesh>
+        </mesh>
+      ) : null}
       <mesh
         ref={mesh}
         onClick={(e) => {
@@ -56,10 +132,7 @@ function TileMesh({
           onClick();
         }}
       >
-        <bufferGeometry
-          ref={geo}
-          onUpdate={(self) => self.computeVertexNormals()}
-        >
+        <bufferGeometry ref={geo}>
           <bufferAttribute
             attach="attributes-position"
             array={positions}
@@ -108,7 +181,6 @@ export function Hexasphere({
 
   function onClick(id: { x: number; y: number; z: number }) {
     setSelected(id);
-    console.log(id);
   }
 
   const mesh: any = useRef();
@@ -133,12 +205,12 @@ export function Hexasphere({
     }
   }, [selected, camera.position]);
 
-  useFrame(({clock}) => {
+  useFrame(({ clock }) => {
     // console.log(clock.getElapsedTime())
-    if(!selected && mesh.current) {
+    if (!selected && mesh.current) {
       mesh.current.rotation.y += 0.003;
     }
-  })
+  });
 
   const stars = useMemo(() => {
     const createStar = () => {
