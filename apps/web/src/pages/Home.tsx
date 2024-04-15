@@ -77,7 +77,6 @@ export default function Home() {
               }}
               camera={cam}
             >
-              <OrbitControls maxZoom={0.25} ref={ref} camera={cam} />
               {hexasphere}
             </Canvas>
             {controls}

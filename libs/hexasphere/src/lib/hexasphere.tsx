@@ -7,14 +7,15 @@ import React, {
 } from 'react';
 import '@react-three/fiber';
 import { faker } from '@faker-js/faker';
-import { useFrame, useThree, extend, Object3DNode } from '@react-three/fiber';
+import { extend, Object3DNode, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
+import { MathUtils, Vector3 } from 'three';
 import gsap from 'gsap';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 // @ts-ignore
 import tf from 'three/examples/fonts/helvetiker_regular.typeface.json';
-import { MathUtils, Vector3 } from 'three';
+import { OrbitControls } from '@react-three/drei';
 
 extend({ TextGeometry });
 
@@ -37,6 +38,8 @@ function TileMesh({
   selected,
   raised,
   centerPoint,
+  sphereQuat,
+  selectedTile,
 }: any) {
   const mesh: any = useRef();
   const geo: any = useRef();
@@ -48,11 +51,15 @@ function TileMesh({
   const [countEdges, setCountEdges] = useState<any>();
   const [edges, setEdges] = useState<any>();
 
+  // console.log(planetEndQ);
+
   useLayoutEffect(() => {
     if (geo.current) {
       geo.current.attributes.position.needsUpdate = true;
     }
   }, [positions]);
+
+  const cube: any = useRef();
 
   useEffect(() => {
     if (geo.current && raised) {
@@ -76,6 +83,7 @@ function TileMesh({
       text.current?.position.copy(center.clone());
       text.current?.lookAt(cp.clone());
       text.current?.position.copy(cp.clone());
+      // console.log('run');
 
       textGeo.current.computeBoundingBox();
       const b = textGeo.current.boundingBox.getCenter(new Vector3());
@@ -90,10 +98,30 @@ function TileMesh({
     }
   }, []);
 
+  const { camera } = useThree();
+
   const randomNumber = useMemo(
     () => faker.number.int({ min: 1, max: 9 }).toString(),
     []
   );
+
+  useFrame(() => {
+    if (cube.current && text.current) {
+      const b = text.current.position.clone();
+      const a = new THREE.Object3D();
+      a.position.set(b.x, b.y, b.z);
+      a.lookAt(camera.position);
+
+      const z = a.rotation.z;
+      // //
+      const cp = new THREE.Vector3(centerPoint.x, centerPoint.y, centerPoint.z);
+
+      const dir1 = cp.clone().sub(center).normalize().multiplyScalar(10);
+      cp.add(dir1);
+
+      text.current.rotation.z = z;
+    }
+  });
 
   return !target ? null : (
     <>
@@ -153,9 +181,26 @@ function TileMesh({
       {edges?.[0] ? (
         <lineSegments geometry={edges[0]} material={edges[1]} />
       ) : null}
+      {/*<points>*/}
+      {/*  <bufferGeometry>*/}
+      {/*    <bufferAttribute*/}
+      {/*      attach="attributes-position"*/}
+      {/*      count={z.length / 3}*/}
+      {/*      itemSize={3}*/}
+      {/*      array={z}*/}
+      {/*    />*/}
+      {/*  </bufferGeometry>*/}
+      {/*  <pointsMaterial size={10} color="red" transparent />*/}
+      {/*</points>*/}
+      <mesh ref={cube}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshBasicMaterial color="red" />
+      </mesh>
     </>
   );
 }
+
+const poleIds = ['0,-50,0', '0,50,0'];
 
 export function Hexasphere({
   tiles,
@@ -184,33 +229,115 @@ export function Hexasphere({
   }
 
   const mesh: any = useRef();
+  const [planetEndQ, setPlanetEndQ] = useState<any>();
+
+  const cont: any = useRef();
+
+  const [curX, setCurX] = useState<any>();
+
+  const [pole1, pole2] = useMemo(() => {
+    const pole1 = tiles
+      .filter((t: any) => t.id === poleIds[0])
+      .flatMap((pole: any) =>
+        pole.neighbors.map(
+          (n: any) => `${n.centerPoint.x},${n.centerPoint.y},${n.centerPoint.z}`
+        )
+      );
+    const pole2 = tiles
+      .filter((t: any) => t.id === poleIds[1])
+      .flatMap((pole: any) =>
+        pole.neighbors.map(
+          (n: any) => `${n.centerPoint.x},${n.centerPoint.y},${n.centerPoint.z}`
+        )
+      );
+
+    return [pole1, pole2];
+  }, []);
 
   useEffect(() => {
     if (selected && mesh.current) {
-      const startQ = mesh.current?.quaternion.clone().normalize();
-      const endQ = new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(selected.x, selected.y, selected.z).normalize(),
-        camera.position.clone().normalize()
-      );
-      const t = { q: 0 };
+      const s = new THREE.Vector3(selected.x, selected.y, selected.z);
+      const dir = s.clone().sub(center).normalize().multiplyScalar(100);
+      s.add(dir);
 
-      gsap.to(t, {
-        duration: 1,
-        q: 1,
+      var tl = gsap.timeline();
+
+      // console.log(selected);
+
+      const selectedId = `${selected.x},${selected.y},${selected.z}`;
+      const enteringPole = poleIds.some((p: string) => p === selectedId);
+      const exitingPole = poleIds.some((p: string) => p === curX);
+      const existingNeighbor = [...pole1, ...pole2].some((p: string) => p === curX);
+
+      const closest1 = pole1.sort((a: string, b: string) => {
+        const [x, y, z] = a.split(',').map((x) => Number(x));
+        const [x1, y1, z1] = b.split(',').map((x) => Number(x));
+        const av = new THREE.Vector3(x, y, z);
+        const bv = new THREE.Vector3(x1, y1, z1);
+        const p = new THREE.Vector3(0, 0, 50);
+
+        return av.distanceTo(p) > bv.distanceTo(p);
+      })[0];
+
+      const closest2 = pole2.sort((a: string, b: string) => {
+        const [x, y, z] = a.split(',').map((x) => Number(x));
+        const [x1, y1, z1] = b.split(',').map((x) => Number(x));
+        const av = new THREE.Vector3(x, y, z);
+        const bv = new THREE.Vector3(x1, y1, z1);
+        const p = new THREE.Vector3(0, 0, 50);
+
+        return av.distanceTo(p) > bv.distanceTo(p);
+      })[5];
+
+      console.log(closest1, closest2)
+
+      const point = (() => {
+        // const [x, y, z] = (selectedId === poleIds[0] ? closest1 : closest2)
+        //   .split(',')
+        //   .map((x: any) => Number(x));
+        // TODO this is hardcoded for pole1, get pole2 "safe tile"
+        const x =  -0;
+        const y = 42.532540386381314
+        const z = 26.2865556564728
+        const s1 = new THREE.Vector3(x, y, z);
+        const dir = s1.clone().sub(center).normalize().multiplyScalar(100);
+        s1.add(dir);
+
+        return s1;
+      })();
+
+      console.log(selected);
+
+      if (enteringPole || exitingPole || existingNeighbor) {
+        // TODO allow for going from pole neighbor to pole neiGhbor without intermediate step
+        tl.to(camera.position, {
+          duration: 0.25,
+          x: point.x,
+          y: point.y,
+          z: point.z,
+          onUpdate(q, b, c) {
+            cont.current.update();
+          },
+          onComplete() {},
+        });
+      }
+
+      setCurX(selectedId);
+
+      // TODO prevent from going through planet, probably with another intermediate step like above
+      tl.to(camera.position, {
+        duration: 0.25,
+        x: s.x,
+        y: s.y,
+        z: s.z,
+        // delay: 1,
         onUpdate(q, b, c) {
-          let inBetween = startQ.slerp(endQ, t.q);
-          mesh.current?.setRotationFromQuaternion(inBetween);
+          cont.current.update();
         },
+        onComplete() {},
       });
     }
-  }, [selected, camera.position]);
-
-  useFrame(({ clock }) => {
-    // console.log(clock.getElapsedTime())
-    if (!selected && mesh.current) {
-      mesh.current.rotation.y += 0.003;
-    }
-  });
+  }, [selected, camera.position, pole1, pole2]);
 
   const stars = useMemo(() => {
     const createStar = () => {
@@ -241,20 +368,24 @@ export function Hexasphere({
     <>
       <ambientLight />
       <directionalLight position={[0, 100, 25]} />
+      <OrbitControls maxZoom={0.25} ref={cont} />
       <mesh ref={mesh}>
         {tiles.map((t: any, i: any) => (
           <TileMesh
+            selectedTile={selected}
             key={i}
+            planetEndQ={planetEndQ}
             {...t}
             index={i}
             onClick={() => {
               onClick(t.centerPoint);
             }}
             raised={t.raised}
-            highlighted={highlighted.some((h) => h === t.id)}
+            highlighted={poleIds.find((p: string) => p === t.id)}
             selected={
               [selected?.x, selected?.y, selected?.z].join(',') === t.id
             }
+            sphereQuat={planetEndQ}
             target={true}
           />
         ))}
