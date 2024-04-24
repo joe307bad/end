@@ -501,15 +501,21 @@ export function Hexasphere({
     return new Float32Array(createStars(4000));
   }, []);
 
-  const [cameraPath, setCameraPath] = useState<any>();
+  const [cameraPath, setCameraPath] = useState<THREE.CatmullRomCurve3>();
+  const [cameraPathPoints, setCameraPathPoints] = useState<Float32Array>();
+
+  const points = useRef<any>();
 
   useEffect(() => {
-    if (selected) {
-      const radius = 200;
-      // const p = new THREE.Vector3(0, 0, radius);
-      const p = camera.position;
+    //0,-26.286555473703764,42.5325404993388
+    //0,26.286555473703764,-42.5325404993388
 
-      const p1 = new THREE.Vector3(selected.x, selected.y, selected.z); // new THREE.Vector3(0, -radius, 0);
+    function buildPath(point1: THREE.Vector3, point2: THREE.Vector3) {
+      const radius = 160;
+      // const p = new THREE.Vector3(0, 0, radius);
+      const p = point1; //camera.position;
+
+      const p1 = point2; //new THREE.Vector3(0, 26.286555473703764, -42.5325404993388); //new THREE.Vector3(selected.x, selected.y, selected.z); // new THREE.Vector3(0, -radius, 0);
       const distanceToPath = radius - p.distanceTo(center);
       const dir = center
         .clone()
@@ -535,51 +541,63 @@ export function Hexasphere({
         path.push(onPath);
       }
 
-      cont.current.enabled = false;
+      // cont.current.enabled = false;
 
-      const curve = new THREE.CatmullRomCurve3(path);
+      const curve = new THREE.CatmullRomCurve3(
+        new THREE.CatmullRomCurve3(path).getSpacedPoints(1000)
+      );
 
-      // gsap.to(camera.position, {
-      //   duration: 2,
-      //   motionPath: {
-      //     path: path.map((p: any) => ({ x: p.x, y: p.y, z: p.z })),
-      //     resolution: 50
-      //   },
-      //
-      //   ease: "power1.inOut",
-      //
-      //   onUpdate: () => {
-      //     // @ts-ignore
-      //     // cont.current.update();
-      //     camera.lookAt(center);
-      //   },
-      // });
       setCameraPath(curve);
+      console.log(new THREE.CatmullRomCurve3(path).getSpacedPoints(1000));
+      setCameraPathPoints(
+        new Float32Array(
+          new THREE.CatmullRomCurve3(path)
+            .getSpacedPoints(1000)
+            .map((point: THREE.Vector3) => [point.x, point.y, point.z])
+            .flatMap((x) => x)
+        )
+      );
     }
+
+    //
+    // if (selected) {
+    //   buildPath();
+    // }
+
+    if (points.current) {
+      // @ts-ignore;
+      points.current.attributes.position.needsUpdate = true;
+    }
+
+    buildPath(
+      new THREE.Vector3(0, -26.286555473703764, 42.5325404993388),
+      new THREE.Vector3(0, 26.286555473703764, -42.5325404993388)
+    );
   }, [selected]);
 
   useFrame(() => {
-    if (cameraPath) {
-      camPosIndex++;
-      if (camPosIndex > 50) {
-        camPosIndex = 0;
-        setCameraPath(null);
-        cont.current.enabled = true;
-      } else {
-        var camPos = cameraPath.getPoint(camPosIndex / 50);
-        var camRot = cameraPath.getTangent(camPosIndex / 50);
-
-        camera.position.x = camPos.x;
-        camera.position.y = camPos.y;
-        camera.position.z = camPos.z;
-
-        camera.rotation.x = camRot.x;
-        camera.rotation.y = camRot.y;
-        camera.rotation.z = camRot.z;
-
-        camera.lookAt(center);
-      }
-    }
+    // if(false) {
+    // // if (cameraPath) {
+    //   camPosIndex++;
+    //   if (camPosIndex > 200) {
+    //     camPosIndex = 0;
+    //     setCameraPath(undefined);
+    //     cont.current.enabled = true;
+    //   } else {
+    //     var camPos = cameraPath.getPoint(camPosIndex / 200);
+    //     var camRot = cameraPath.getTangent(camPosIndex / 200);
+    //
+    //     camera.position.x = camPos.x;
+    //     camera.position.y = camPos.y;
+    //     camera.position.z = camPos.z;
+    //
+    //     camera.rotation.x = camRot.x;
+    //     camera.rotation.y = camRot.y;
+    //     camera.rotation.z = camRot.z;
+    //
+    //     camera.lookAt(center);
+    //   }
+    // }
   });
 
   return (
@@ -608,19 +626,19 @@ export function Hexasphere({
           />
         ))}
         {portal}
-        {/*{cameraPath && (*/}
-        {/*  <points>*/}
-        {/*    <bufferGeometry>*/}
-        {/*      <bufferAttribute*/}
-        {/*        attach="attributes-position"*/}
-        {/*        count={cameraPath.length / 3}*/}
-        {/*        itemSize={3}*/}
-        {/*        array={cameraPath}*/}
-        {/*      />*/}
-        {/*    </bufferGeometry>*/}
-        {/*    <pointsMaterial size={2} color={'red'} />*/}
-        {/*  </points>*/}
-        {/*)}*/}
+        {cameraPathPoints && (
+          <points>
+            <bufferGeometry >
+              <bufferAttribute
+                attach="attributes-position"
+                count={cameraPathPoints.length / 3}
+                itemSize={3}
+                array={cameraPathPoints}
+              />
+            </bufferGeometry>
+            <pointsMaterial size={2} color={'red'} />
+          </points>
+        )}
         <points>
           <bufferGeometry>
             <bufferAttribute
