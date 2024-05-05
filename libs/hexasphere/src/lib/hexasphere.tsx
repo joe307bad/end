@@ -113,7 +113,7 @@ function TileMesh({
   );
 
   useFrame(() => {
-    if (cube.current && text.current) {
+    if (text.current) {
       const b = text.current.position.clone();
       const a = new THREE.Object3D();
       a.position.set(b.x, b.y, b.z);
@@ -511,93 +511,118 @@ export function Hexasphere({
     //0,26.286555473703764,-42.5325404993388
 
     function buildPath(point1: THREE.Vector3, point2: THREE.Vector3) {
-      const radius = 160;
-      // const p = new THREE.Vector3(0, 0, radius);
-      const p = point1; //camera.position;
-
-      const p1 = point2; //new THREE.Vector3(0, 26.286555473703764, -42.5325404993388); //new THREE.Vector3(selected.x, selected.y, selected.z); // new THREE.Vector3(0, -radius, 0);
-      const distanceToPath = radius - p.distanceTo(center);
-      const dir = center
-        .clone()
-        .sub(p1)
-        .normalize()
-        .multiplyScalar(distanceToPath);
-      p1.sub(dir);
-
       const pointsOnPath = 64;
-      const path = [];
-      for (let index = 0; index < pointsOnPath; index++) {
-        const percent = index * (1 / pointsOnPath);
-        const onPath = getPointInBetweenByPerc(p, p1, percent);
+      const radius = 160;
 
-        const distanceToPath = radius - onPath.distanceTo(center);
-        const dir = center
-          .clone()
-          .sub(onPath)
-          .normalize()
-          .multiplyScalar(distanceToPath);
-        onPath.sub(dir);
+      function _getPoints(_point1: THREE.Vector3, _point2: THREE.Vector3) {
+        const path = [];
+        for (let index = 0; index < pointsOnPath; index++) {
+          const percent = index * (1 / pointsOnPath);
+          const onPath = getPointInBetweenByPerc(_point1, _point2, percent);
 
-        path.push(onPath);
+          const distanceToPath = radius - onPath.distanceTo(center);
+          const dir = center
+            .clone()
+            .sub(onPath)
+            .normalize()
+            .multiplyScalar(distanceToPath);
+          onPath.sub(dir);
+
+          path.push(onPath);
+        }
+        return path;
       }
 
-      // cont.current.enabled = false;
+      let points = new THREE.CatmullRomCurve3(
+        _getPoints(point1, point2)
+      ).getSpacedPoints(1000);
+
+      if (point1.distanceTo(point2) > 200) {
+        points = [
+          ...new THREE.CatmullRomCurve3(
+            _getPoints(point1, new THREE.Vector3(radius, 0, 0))
+          ).getSpacedPoints(1000),
+          ...new THREE.CatmullRomCurve3(
+            _getPoints(new THREE.Vector3(radius, 0, 0), point2)
+          ).getSpacedPoints(1000),
+        ];
+      }
+
+      const crossingOverPole = () => {
+        let crossingOverPole = false;
+        points.forEach((point: THREE.Vector3) => {
+          const poles = [
+            new THREE.Vector3(0, -radius, 0),
+            new THREE.Vector3(0, radius, 0),
+          ];
+          if (poles.some((p) => point.distanceTo(p) < 10)) {
+            crossingOverPole = true;
+          }
+        });
+        return crossingOverPole;
+      };
+
+      console.log(crossingOverPole());
+
+      if(crossingOverPole()) {
+        points = [
+          ...new THREE.CatmullRomCurve3(
+            _getPoints(point1, new THREE.Vector3(0, 0, radius))
+          ).getSpacedPoints(1000),
+          ...new THREE.CatmullRomCurve3(
+            _getPoints(new THREE.Vector3(0, 0, radius), point2)
+          ).getSpacedPoints(1000),
+        ];
+      }
+
+      // setCameraPathPoints(
+      //   new Float32Array(
+      //     points
+      //       .map((point: THREE.Vector3) => [point.x, point.y, point.z])
+      //       .flatMap((x) => x)
+      //   )
+      // );
 
       const curve = new THREE.CatmullRomCurve3(
-        new THREE.CatmullRomCurve3(path).getSpacedPoints(1000)
+        new THREE.CatmullRomCurve3(points).getSpacedPoints(1000)
       );
 
       setCameraPath(curve);
-      console.log(new THREE.CatmullRomCurve3(path).getSpacedPoints(1000));
-      setCameraPathPoints(
-        new Float32Array(
-          new THREE.CatmullRomCurve3(path)
-            .getSpacedPoints(1000)
-            .map((point: THREE.Vector3) => [point.x, point.y, point.z])
-            .flatMap((x) => x)
-        )
+    }
+
+    if (selected) {
+      buildPath(
+        camera.position,
+        new THREE.Vector3(selected.x, selected.y, selected.z)
+        // new THREE.Vector3(0, -26.286555473703764, 42.5325404993388),
+        // new THREE.Vector3(0, 26.286555473703764, -42.5325404993388)
       );
     }
-
-    //
-    // if (selected) {
-    //   buildPath();
-    // }
-
-    if (points.current) {
-      // @ts-ignore;
-      points.current.attributes.position.needsUpdate = true;
-    }
-
-    buildPath(
-      new THREE.Vector3(0, -26.286555473703764, 42.5325404993388),
-      new THREE.Vector3(0, 26.286555473703764, -42.5325404993388)
-    );
   }, [selected]);
 
   useFrame(() => {
     // if(false) {
-    // // if (cameraPath) {
-    //   camPosIndex++;
-    //   if (camPosIndex > 200) {
-    //     camPosIndex = 0;
-    //     setCameraPath(undefined);
-    //     cont.current.enabled = true;
-    //   } else {
-    //     var camPos = cameraPath.getPoint(camPosIndex / 200);
-    //     var camRot = cameraPath.getTangent(camPosIndex / 200);
-    //
-    //     camera.position.x = camPos.x;
-    //     camera.position.y = camPos.y;
-    //     camera.position.z = camPos.z;
-    //
-    //     camera.rotation.x = camRot.x;
-    //     camera.rotation.y = camRot.y;
-    //     camera.rotation.z = camRot.z;
-    //
-    //     camera.lookAt(center);
-    //   }
-    // }
+    if (cameraPath) {
+      camPosIndex++;
+      if (camPosIndex > 100) {
+        camPosIndex = 0;
+        setCameraPath(undefined);
+        cont.current.enabled = true;
+      } else {
+        var camPos = cameraPath.getPoint(camPosIndex / 100);
+        var camRot = cameraPath.getTangent(camPosIndex / 100);
+
+        camera.position.x = camPos.x;
+        camera.position.y = camPos.y;
+        camera.position.z = camPos.z;
+
+        camera.rotation.x = camRot.x;
+        camera.rotation.y = camRot.y;
+        camera.rotation.z = camRot.z;
+
+        camera.lookAt(center);
+      }
+    }
   });
 
   return (
@@ -628,7 +653,7 @@ export function Hexasphere({
         {portal}
         {cameraPathPoints && (
           <points>
-            <bufferGeometry >
+            <bufferGeometry>
               <bufferAttribute
                 attach="attributes-position"
                 count={cameraPathPoints.length / 3}
@@ -636,7 +661,7 @@ export function Hexasphere({
                 array={cameraPathPoints}
               />
             </bufferGeometry>
-            <pointsMaterial size={2} color={'red'} />
+            <pointsMaterial size={2} color={'orange'} />
           </points>
         )}
         <points>
