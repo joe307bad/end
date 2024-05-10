@@ -533,6 +533,32 @@ export function Hexasphere({
         return path;
       }
 
+      function _getHalfwayPoint(
+        _point1: THREE.Vector3,
+        _point2: THREE.Vector3
+      ) {
+        const onPath = getPointInBetweenByPerc(_point1, _point2, 0.5);
+        const distanceToPath = radius - onPath.distanceTo(center);
+
+        // move point away from overlapping poles
+        const dir = center
+          .clone()
+          .sub(camera.position)
+          .normalize()
+          .multiplyScalar(10);
+        onPath.sub(dir).applyEuler(new THREE.Euler(0, 0, Math.PI / 2));
+
+        // move point to the path of the camera
+        const dir1 = center
+          .clone()
+          .sub(onPath)
+          .normalize()
+          .multiplyScalar(distanceToPath);
+        onPath.sub(dir1);
+
+        return onPath;
+      }
+
       let points = new THREE.CatmullRomCurve3(
         _getPoints(point1, point2)
       ).getSpacedPoints(1000);
@@ -548,29 +574,40 @@ export function Hexasphere({
         ];
       }
 
-      const crossingOverPole = () => {
+      const crossingOverPole = (): undefined | THREE.Vector3 => {
         let crossingOverPole = false;
+        let closeArray = null;
         points.forEach((point: THREE.Vector3) => {
           const poles = [
             new THREE.Vector3(0, -radius, 0),
             new THREE.Vector3(0, radius, 0),
           ];
-          if (poles.some((p) => point.distanceTo(p) < 10)) {
+          const close = poles.filter((p) => point.distanceTo(p) < 10);
+          if (close.length > 0) {
+            closeArray = close;
             crossingOverPole = true;
           }
         });
-        return crossingOverPole;
+        return closeArray?.[0];
       };
 
-      console.log(crossingOverPole());
+      const pole = crossingOverPole();
 
-      if(crossingOverPole()) {
+      if (pole) {
+        const middle = pole.clone();
+        const dir = pole
+          .clone()
+          .sub(center)
+          .normalize()
+          .multiplyScalar(10);
+        middle.add(dir).applyAxisAngle(new THREE.Vector3(1, 0, 0), MathUtils.degToRad(10));
+
         points = [
           ...new THREE.CatmullRomCurve3(
-            _getPoints(point1, new THREE.Vector3(0, 0, radius))
+            _getPoints(point1, middle)
           ).getSpacedPoints(1000),
           ...new THREE.CatmullRomCurve3(
-            _getPoints(new THREE.Vector3(0, 0, radius), point2)
+            _getPoints(middle, point2)
           ).getSpacedPoints(1000),
         ];
       }
@@ -625,6 +662,8 @@ export function Hexasphere({
     }
   });
 
+  const b = useMemo(() => new Float32Array([0, 0, 0]), []);
+
   return (
     <>
       <ambientLight />
@@ -661,20 +700,33 @@ export function Hexasphere({
                 array={cameraPathPoints}
               />
             </bufferGeometry>
-            <pointsMaterial size={2} color={'orange'} />
+            <pointsMaterial size={5} color={'white'} />
           </points>
         )}
-        <points>
-          <bufferGeometry>
-            <bufferAttribute
-              attach="attributes-position"
-              count={stars.length / 3}
-              itemSize={3}
-              array={stars}
-            />
-          </bufferGeometry>
-          <pointsMaterial size={2} color={starColor} transparent />
-        </points>
+        {
+          <points>
+            <bufferGeometry>
+              <bufferAttribute
+                attach="attributes-position"
+                count={b.length / 3}
+                itemSize={3}
+                array={b}
+              />
+            </bufferGeometry>
+            <pointsMaterial size={5} color={'red'} />
+          </points>
+        }
+        {/*<points>*/}
+        {/*  <bufferGeometry>*/}
+        {/*    <bufferAttribute*/}
+        {/*      attach="attributes-position"*/}
+        {/*      count={stars.length / 3}*/}
+        {/*      itemSize={3}*/}
+        {/*      array={stars}*/}
+        {/*    />*/}
+        {/*  </bufferGeometry>*/}
+        {/*  <pointsMaterial size={2} color={starColor} transparent />*/}
+        {/*</points>*/}
       </mesh>
     </>
   );
