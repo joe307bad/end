@@ -1,5 +1,4 @@
 import React, {
-  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -17,8 +16,6 @@ import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 // @ts-ignore
 import tf from 'three/examples/fonts/helvetiker_regular.typeface.json';
 import { OrbitControls } from '@react-three/drei';
-import { cameraPosition } from 'three/examples/jsm/nodes/accessors/CameraNode';
-import { getPointInBetweenByPerc } from '@end/components';
 // @ts-ignore
 import { MotionPathPlugin } from 'gsap/MotionPathPlugin.js';
 
@@ -216,6 +213,7 @@ export function Hexasphere({
   selected,
   setSelected,
   portal,
+  getPointInBetweenByPerc,
 }: {
   setSelected(id: { x: number; y: number; z: number }): void;
   selected?: { x: number; y: number; z: number };
@@ -225,13 +223,9 @@ export function Hexasphere({
   tiles: any;
   hexasphere: any;
   portal?: any;
+  getPointInBetweenByPerc: any;
 }) {
-  const [highlighted, setHighlighted] = useState<string[]>([]);
-  const starColor = useMemo(() => faker.color.rgb({ format: 'hex' }), []);
-
   const { camera } = useThree();
-  // const dirLight = useRef<DirectionalLight>(null);
-  // useHelper(dirLight, DirectionalLightHelper, 1, 'red');
 
   function onClick(id: { x: number; y: number; z: number }) {
     setSelected(id);
@@ -241,8 +235,6 @@ export function Hexasphere({
   const [planetEndQ, setPlanetEndQ] = useState<any>();
 
   const cont: any = useRef();
-
-  const [curX, setCurX] = useState<any>();
 
   const [pole1, pole2] = useMemo(() => {
     const pole1 = tiles
@@ -265,104 +257,6 @@ export function Hexasphere({
 
   useEffect(() => {
     if (selected && mesh.current) {
-      // const s = new THREE.Vector3(selected.x, selected.y, selected.z);
-      // const dir = s.clone().sub(center).normalize().multiplyScalar(100);
-      // s.add(dir);
-      //
-      // var tl = gsap.timeline();
-      // const [x, y, z] = curX?.split(',') ?? [];
-      //
-      // const selectedId = `${selected.x},${selected.y},${selected.z}`;
-      // const enteringPole = poleIds.some((p: string) => p === selectedId);
-      // const exitingPole = poleIds.some((p: string) => p === curX);
-      // const exitingNeighbor = [...pole1, ...pole2].some(
-      //   (p: string) => p === curX
-      // );
-      // const neighborToNeighbor_pole1 = [curX, selectedId].every((t) =>
-      //   pole1.some((n: string) => n === t)
-      // );
-      // const neighborToNeighbor_pole2 = [curX, selectedId].every((t) =>
-      //   pole2.some((n: string) => n === t)
-      // );
-      //
-      // const point = (() => {
-      //   // const [x, y, z] = (selectedId === poleIds[0] ? closest1 : closest2)
-      //   //   .split(',')
-      //   //   .map((x: any) => Number(x));
-      //   // TODO this is hardcoded for pole1, get pole2 "safe tile"
-      //   const x = -0;
-      //   const y = 42.532540386381314;
-      //   const z = 26.2865556564728;
-      //   const s1 = new THREE.Vector3(x, y, z);
-      //   const dir = s1.clone().sub(center).normalize().multiplyScalar(100);
-      //   s1.add(dir);
-      //
-      //   return s1;
-      // })();
-
-      // console.log(selected);
-
-      // TODO first we detect if the curved path will come close to crossing over a polar max
-      // TODO then if it will cross a polar max, shift the curved path to avoid the polar max
-
-      // 1. detect if path will cross polar max
-      //    if true:
-      //      if from and to are both outside both poles and pole neighbors: go to Y pole first, then navigate to tile
-      //      if to is on a polar max, go to safe tile then from
-      //      if from is a polar max, and to is over the polar max, go to Y pole first
-
-      // const yPole = new THREE.Vector3(0, 0, 50);
-      // const dir1 = center.clone().sub(yPole).normalize().multiplyScalar(160);
-      // const firstPoint = center.clone().add(dir1);
-
-      // if (
-      //   (enteringPole || exitingPole || exitingNeighbor) &&
-      //   !neighborToNeighbor_pole1 &&
-      //   !neighborToNeighbor_pole2
-      // ) {
-      // TODO allow for going from pole neighbor to pole neiGhbor without intermediate step
-      // tl.to(camera.position, {
-      //   duration: 0.75,
-      //   x: firstPoint.x,
-      //   y: firstPoint.y,
-      //   z: firstPoint.z,
-      //   onUpdate(q, b, c) {
-      //     cont.current.update();
-      //   },
-      //   onComplete() {},
-      // });
-      // }
-
-      // const yPlane = new THREE.Vector3(50, 0, 0);
-      // const directionToYPlane_to = s
-      //   .clone()
-      //   .sub(yPlane)
-      //   .normalize();
-      // console.log('directionToYPlane_to', directionToYPlane_to.x);
-      //
-      // const c = new THREE.Vector3(x, y, z);
-      // const directionToYPlane_from = c
-      //   .clone()
-      //   .sub(yPlane)
-      //   .normalize();
-      //
-      // console.log('directionToYPlane_from', directionToYPlane_from.x);
-      //
-      // setCurX(selectedId);
-      //
-      // // TODO prevent from going through planet, probably with another intermediate step like above
-      // tl.to(camera.position, {
-      //   duration: 0.75,
-      //   x: s.x,
-      //   y: s.y,
-      //   z: s.z,
-      //   // delay: 1,
-      //   onUpdate(q, b, c) {
-      //     cont.current.update();
-      //   },
-      //   onComplete() {},
-      // });
-
       var { x, y, z } = selected;
       const point = new THREE.Vector3(x, y, z);
 
@@ -405,75 +299,7 @@ export function Hexasphere({
 
         points.push(point);
       }
-
-      // gsap.to(camera.position, {
-      //   duration: 2,
-      //   motionPath: {
-      //     path: points.map((p: any) => ({ x: p.x, y: p.y, z: p.z })),
-      //   },
-      //   onUpdate: () => {
-      //     // // @ts-ignore
-      //     // cont.current.update();
-      //   },
-      // });
-
-      // const cameraToCenter = currentCameraPosition.distanceTo(center);
-      //
-      // const distanceToCenter = point.distanceTo(center);
-      // const distanceToCamera = cameraToCenter - distanceToCenter;
-      //
-      // const movePointToCamera = center
-      //   .clone()
-      //   .sub(point)
-      //   .normalize()
-      //   .multiplyScalar(distanceToCamera);
-      //
-      // point.add(movePointToCamera);
-      //
-      // const pointsOnPortalCurve = 64;
-      // const points = [];
-      // const radius = 160;
-      //
-      // for (let index = 0; index < pointsOnPortalCurve; index++) {
-      //   const percent = index * (1 / pointsOnPortalCurve);
-      //   // every 1/64 %, plot a point between from and to
-      //   const pointBetweenFromAndTo = getPointInBetweenByPerc(
-      //     currentCameraPosition,
-      //     point,
-      //     percent
-      //   );
-      //
-      //   // distance from point between from and to and center of sphere
-      //   const distanceToCenter = pointBetweenFromAndTo.distanceTo(center);
-      //
-      //   // distance from point between from and to and portal curve
-      //   const distanceToSurface = radius - distanceToCenter;
-      //
-      //   // vector to move point between from and to the surface of the portal curve
-      //   const movePointBetweenFromOrToToPortalCurve = center
-      //     .clone()
-      //     .sub(pointBetweenFromAndTo)
-      //     .normalize()
-      //     .multiplyScalar(distanceToSurface);
-      //
-      //   // move point between from and to the portal curve
-      //   pointBetweenFromAndTo.add(movePointBetweenFromOrToToPortalCurve);
-      //
-      //   points.push(pointBetweenFromAndTo);
     }
-
-    // const curve = new THREE.CatmullRomCurve3(points);
-
-    // gsap.to(camera.position, {
-    //   duration: 2,
-    //   motionPath: {
-    //     path: points.map((p: any) => ({ x: p.x, y: p.y, z: p.z })),
-    //   },
-    //   onUpdate: () => {
-    //     // @ts-ignore
-    //     cont.current.update();
-    //   },
-    // });
   }, [selected, camera.position, pole1, pole2]);
 
   const stars = useMemo(() => {
@@ -595,12 +421,10 @@ export function Hexasphere({
 
       if (pole) {
         const middle = pole.clone();
-        const dir = pole
-          .clone()
-          .sub(center)
-          .normalize()
-          .multiplyScalar(10);
-        middle.add(dir).applyAxisAngle(new THREE.Vector3(1, 0, 0), MathUtils.degToRad(10));
+        const dir = pole.clone().sub(center).normalize().multiplyScalar(10);
+        middle
+          .add(dir)
+          .applyAxisAngle(new THREE.Vector3(1, 0, 0), MathUtils.degToRad(10));
 
         points = [
           ...new THREE.CatmullRomCurve3(
