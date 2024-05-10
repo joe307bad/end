@@ -127,6 +127,7 @@ export function useHexasphere() {
         raised: raise(i),
         centerPoint: t.centerPoint,
         id,
+        neighbors: t.neighbors,
       });
     });
 

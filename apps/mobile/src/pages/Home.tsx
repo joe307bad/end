@@ -29,7 +29,17 @@ export default function Home({ logOut }: { logOut: () => void }) {
           tiles={tiles}
           hexasphere={hexasphere}
           selectedTile={selectedTile}
-          setSelectedTile={setSelectedTile}
+          setSelectedTile={(id) =>
+            setSelectedTile(
+              (prevId: { x: number; y: number; z: number } | undefined) => {
+                const { x, y, z } = prevId ?? {};
+                const { x: x1, y: y1, z: z1 } = id ?? {};
+                return JSON.stringify({ x, y, z }) === JSON.stringify({ x: x1, y: y1, z: z1 })
+                  ? undefined
+                  : id;
+              }
+            )
+          }
         >
           {(hexasphere, controls, footer) => (
             <>

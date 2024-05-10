@@ -33,7 +33,7 @@ export default function Home() {
   const cam = useMemo(() => {
     const cam = new THREE.PerspectiveCamera(45);
 
-    if(width < 835) {
+    if (width < 835) {
       cam.position.set(0, 0, 300);
     } else {
       cam.position.set(0, 0, 160);
@@ -56,7 +56,17 @@ export default function Home() {
         tiles={tiles}
         hexasphere={hexasphere}
         selectedTile={selectedTile}
-        setSelectedTile={setSelectedTile}
+        setSelectedTile={(id) =>
+          setSelectedTile(
+            (prevId: { x: number; y: number; z: number } | undefined) => {
+              const { x, y, z } = prevId ?? {};
+              const { x: x1, y: y1, z: z1 } = id ?? {};
+              return JSON.stringify({ x, y, z }) === JSON.stringify({ x: x1, y: y1, z: z1 })
+                ? undefined
+                : id;
+            }
+          )
+        }
       >
         {(hexasphere, controls, footer) => (
           <>
@@ -67,7 +77,6 @@ export default function Home() {
               }}
               camera={cam}
             >
-              <OrbitControls maxZoom={0.25} ref={ref} camera={cam} />
               {hexasphere}
             </Canvas>
             {controls}
