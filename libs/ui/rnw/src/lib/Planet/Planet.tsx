@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo, useState } from 'react';
+import React, { ReactNode, useCallback, useMemo, useState } from 'react';
 import {
   H5,
   Input,
@@ -12,7 +12,7 @@ import {
 } from 'tamagui';
 import { Slider } from '@miblanchard/react-native-slider';
 import { PrimaryButton } from '../Display';
-import { PortalPath, tw } from '../components';
+import { getPointInBetweenByPerc, PortalPath, tw } from '../components';
 import { Hexasphere } from '@end/hexasphere';
 import { useResponsive } from '../Layout';
 import { MenuSquare, CircleDot } from '@tamagui/lucide-icons';
@@ -95,6 +95,7 @@ export function Planet({
           hexasphere={hexasphere}
           selected={selectedTile}
           setSelected={setSelectedTile}
+          getPointInBetweenByPerc={useCallback(getPointInBetweenByPerc, [])}
           portal={
             <PortalPath
               from={tiles[from].centerPoint}
