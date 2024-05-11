@@ -7,19 +7,23 @@ import React, {
 } from 'react';
 import '@react-three/fiber';
 import { faker } from '@faker-js/faker';
-import { extend, Object3DNode, useFrame, useThree } from '@react-three/fiber';
+import {
+  extend,
+  Object3DNode,
+  ThreeEvent,
+  useFrame,
+  useThree,
+} from '@react-three/fiber';
 import * as THREE from 'three';
 import { MathUtils, Vector3 } from 'three';
-import gsap from 'gsap';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 // @ts-ignore
 import tf from 'three/examples/fonts/helvetiker_regular.typeface.json';
-import { OrbitControls } from '@react-three/drei';
-// @ts-ignore
-import { MotionPathPlugin } from 'gsap/MotionPathPlugin.js';
-
-gsap.registerPlugin(MotionPathPlugin);
+import { OrbitControls, OrbitControlsProps } from '@react-three/drei';
+import type { OrbitControls as TOrbitControls } from '@react-three/drei';
+import { RenderedTile, THexasphere } from './use-hexapshere';
+import { OrbitControls as OrbitControlsImpl } from 'three-stdlib/controls/OrbitControls';
 
 extend({ TextGeometry });
 
@@ -37,33 +41,38 @@ function TileMesh({
   indices,
   color,
   onClick,
-  target,
   highlighted,
   selected,
   raised,
   centerPoint,
-  sphereQuat,
-  selectedTile,
-}: any) {
-  const mesh: any = useRef();
-  const geo: any = useRef();
-  const countGeo: any = useRef();
-  const text: any = useRef();
-  const textGeo: any = useRef();
-  const cyl: any = useRef();
-  const textMesh: any = useRef();
-  const [countEdges, setCountEdges] = useState<any>();
-  const [edges, setEdges] = useState<any>();
+}: RenderedTile & {
+  onClick: () => void;
+  highlighted: boolean;
+  selected: boolean;
+}) {
+  const mesh: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
+  const text: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
+  const textMesh: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
+  const cyl: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
 
-  // console.log(planetEndQ);
+  const geo: React.MutableRefObject<THREE.BufferGeometry | null> = useRef(null);
+  const countGeo: React.MutableRefObject<THREE.CylinderGeometry | null> =
+    useRef(null);
+  const textGeo: React.MutableRefObject<TextGeometry | null> = useRef(null);
+  const [countEdges, setCountEdges] = useState<
+    [THREE.EdgesGeometry, THREE.LineBasicMaterial] | undefined
+  >();
+  const [edges, setEdges] = useState<
+    [THREE.EdgesGeometry, THREE.LineBasicMaterial] | undefined
+  >();
 
   useLayoutEffect(() => {
     if (geo.current) {
-      geo.current.attributes.position.needsUpdate = true;
+      geo.current.attributes['position'].needsUpdate = true;
     }
   }, [positions]);
 
-  const cube: any = useRef();
+  const cube = useRef();
 
   useEffect(() => {
     if (geo.current && raised) {
@@ -80,7 +89,13 @@ function TileMesh({
       // });
     }
 
-    if (countGeo.current && text.current && cyl.current && textGeo.current) {
+    if (
+      countGeo.current &&
+      text.current &&
+      cyl.current &&
+      textGeo.current &&
+      textMesh.current
+    ) {
       const cp = new THREE.Vector3(centerPoint.x, centerPoint.y, centerPoint.z);
 
       cyl.current.rotation.x = MathUtils.degToRad(90);
@@ -90,10 +105,13 @@ function TileMesh({
       // console.log('run');
 
       textGeo.current.computeBoundingBox();
-      const b = textGeo.current.boundingBox.getCenter(new Vector3());
-      textMesh.current.position.x -= b.x;
-      textMesh.current.position.y -= b.y;
-      textMesh.current.position.z += 1;
+      const b = textGeo.current.boundingBox?.getCenter(new Vector3());
+
+      if (b) {
+        textMesh.current.position.x -= b.x;
+        textMesh.current.position.y -= b.y;
+        textMesh.current.position.z += 1;
+      }
 
       setCountEdges([
         new THREE.EdgesGeometry(countGeo.current, 50),
@@ -127,7 +145,7 @@ function TileMesh({
     }
   });
 
-  return !target ? null : (
+  return (
     <>
       {raised ? (
         <mesh
@@ -220,10 +238,14 @@ export function Hexasphere({
   rotateX: number;
   rotateY: number;
   rotateZ: number;
-  tiles: any;
-  hexasphere: any;
-  portal?: any;
-  getPointInBetweenByPerc: any;
+  tiles: RenderedTile[];
+  hexasphere: THexasphere;
+  portal?: React.JSX.Element;
+  getPointInBetweenByPerc(
+    pointA: THREE.Vector3,
+    pointB: THREE.Vector3,
+    percentage: number
+  ): THREE.Vector3;
 }) {
   const { camera } = useThree();
 
@@ -231,24 +253,23 @@ export function Hexasphere({
     setSelected(id);
   }
 
-  const mesh: any = useRef();
-  const [planetEndQ, setPlanetEndQ] = useState<any>();
+  const mesh: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
 
-  const cont: any = useRef();
+  const cont: React.MutableRefObject<OrbitControlsImpl | null> = useRef(null);
 
   const [pole1, pole2] = useMemo(() => {
     const pole1 = tiles
-      .filter((t: any) => t.id === poleIds[0])
-      .flatMap((pole: any) =>
+      .filter((t) => t.id === poleIds[0])
+      .flatMap((pole) =>
         pole.neighbors.map(
-          (n: any) => `${n.centerPoint.x},${n.centerPoint.y},${n.centerPoint.z}`
+          (n) => `${n.centerPoint.x},${n.centerPoint.y},${n.centerPoint.z}`
         )
       );
     const pole2 = tiles
-      .filter((t: any) => t.id === poleIds[1])
-      .flatMap((pole: any) =>
+      .filter((t) => t.id === poleIds[1])
+      .flatMap((pole) =>
         pole.neighbors.map(
-          (n: any) => `${n.centerPoint.x},${n.centerPoint.y},${n.centerPoint.z}`
+          (n) => `${n.centerPoint.x},${n.centerPoint.y},${n.centerPoint.z}`
         )
       );
 
@@ -330,7 +351,7 @@ export function Hexasphere({
   const [cameraPath, setCameraPath] = useState<THREE.CatmullRomCurve3>();
   const [cameraPathPoints, setCameraPathPoints] = useState<Float32Array>();
 
-  const points = useRef<any>();
+  const points = useRef();
 
   useEffect(() => {
     //0,-26.286555473703764,42.5325404993388
@@ -463,7 +484,7 @@ export function Hexasphere({
 
   useFrame(() => {
     // if(false) {
-    if (cameraPath) {
+    if (cameraPath && cont.current) {
       camPosIndex++;
       if (camPosIndex > 100) {
         camPosIndex = 0;
@@ -494,23 +515,18 @@ export function Hexasphere({
       <directionalLight position={[0, 100, 25]} />
       <OrbitControls maxZoom={0.25} ref={cont} />
       <mesh ref={mesh}>
-        {tiles.map((t: any, i: any) => (
+        {tiles.map((t, i) => (
           <TileMesh
-            selectedTile={selected}
             key={i}
-            planetEndQ={planetEndQ}
             {...t}
-            index={i}
             onClick={() => {
               onClick(t.centerPoint);
             }}
             raised={t.raised}
-            highlighted={poleIds.find((p: string) => p === t.id)}
+            highlighted={!!poleIds.find((p: string) => p === t.id)}
             selected={
               [selected?.x, selected?.y, selected?.z].join(',') === t.id
             }
-            sphereQuat={planetEndQ}
-            target={true}
           />
         ))}
         {portal}

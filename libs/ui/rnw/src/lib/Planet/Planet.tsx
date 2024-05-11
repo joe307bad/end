@@ -13,33 +13,11 @@ import {
 import { Slider } from '@miblanchard/react-native-slider';
 import { PrimaryButton } from '../Display';
 import { getPointInBetweenByPerc, PortalPath, tw } from '../components';
-import { Hexasphere } from '@end/hexasphere';
+import { Hexasphere, RenderedTile, THexasphere, Tile } from '@end/hexasphere';
 import { useResponsive } from '../Layout';
 import { MenuSquare, CircleDot } from '@tamagui/lucide-icons';
 import { faker } from '@faker-js/faker';
-
-const TabsContent = (props: TabsContentProps) => {
-  return (
-    <Tabs.Content
-      backgroundColor="$background"
-      key="tab3"
-      padding="$2"
-      alignItems="center"
-      justifyContent="center"
-      flex={1}
-      borderColor="$background"
-      borderTopLeftRadius={0}
-      borderTopRightRadius={0}
-      borderRadius={5}
-      borderWidth={1}
-      borderLeftWidth={0}
-      borderRightWidth={0}
-      {...props}
-    >
-      {props.children}
-    </Tabs.Content>
-  );
-};
+import { TabsContent } from '../Tabs';
 
 export function Planet({
   children,
@@ -54,8 +32,8 @@ export function Planet({
   reset: number;
   selectedTile?: { x: number; y: number; z: number };
   setSelectedTile(id: { x: number; y: number; z: number }): void;
-  hexasphere: any;
-  tiles: any;
+  hexasphere: THexasphere;
+  tiles: RenderedTile[];
   children: (
     hexasphere: JSX.Element,
     controls: JSX.Element,

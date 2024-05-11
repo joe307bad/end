@@ -8,8 +8,45 @@ function withDepthRatio(n: number) {
   return n * depthRatio - n;
 }
 
+type Coords = {
+  x: number;
+  y: number;
+  z: number;
+};
+
+type Face = {
+  id: number;
+  centroid: Coords;
+  points: ({ faces: Face[] } & Coords)[];
+};
+
+export type Tile = {
+  boundary: Coords[];
+  centerPoint: { faces: Face[] } & Coords;
+  faces: Face[];
+  neighborIds: string[];
+  neighbors: Tile[];
+};
+
+export type RenderedTile = {
+  positions: Float32Array;
+  indices: Uint16Array;
+  color: string;
+  raised: boolean;
+  centerPoint: { faces: Face[] } & Coords;
+  neighbors: Tile[];
+  id: string;
+};
+
+export type THexasphere = {
+  radius: number;
+  tiles: Tile[];
+  tileLookup: Record<string, Tile>;
+};
+
 export function useHexasphere() {
-  const hexasphere = useMemo(() => new HS(50, 4, 1), []);
+  const hexasphere: THexasphere = useMemo(() => new HS(50, 4, 1), []);
+  console.log(hexasphere);
   const [reset, setReset] = useState(Math.random());
   const land = useMemo(() => faker.color.rgb({ format: 'hex' }), [reset]);
   const water = useMemo(() => faker.color.rgb({ format: 'hex' }), [reset]);
@@ -17,22 +54,25 @@ export function useHexasphere() {
   const seed1 = useMemo(() => faker.number.int({ min: 2, max: 12 }), [reset]);
 
   const tiles = useMemo(() => {
-    // @ts-ignore
-    const tiles: any = [];
+    const tiles: RenderedTile[] = [];
 
     const raise = (i: number) => i % seed === 0 || i % seed1 === 0;
 
-    hexasphere.tiles.forEach((t: any, i: number) => {
-      const v: any = [];
-      t.boundary.forEach((bp: any) => {
+    hexasphere.tiles.forEach((t, i: number) => {
+      const v: number[] = [];
+      t.boundary.forEach((bp) => {
         if (raise(i)) {
           v.push(
-            parseFloat(bp.x) * depthRatio,
-            parseFloat(bp.y) * depthRatio,
-            parseFloat(bp.z) * depthRatio
+            parseFloat(bp.x.toString()) * depthRatio,
+            parseFloat(bp.y.toString()) * depthRatio,
+            parseFloat(bp.z.toString()) * depthRatio
           );
         } else {
-          v.push(parseFloat(bp.x), parseFloat(bp.y), parseFloat(bp.z));
+          v.push(
+            parseFloat(bp.x.toString()),
+            parseFloat(bp.y.toString()),
+            parseFloat(bp.z.toString())
+          );
         }
       });
 
