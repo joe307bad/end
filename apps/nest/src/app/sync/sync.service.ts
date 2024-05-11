@@ -79,7 +79,7 @@ export class SyncService {
     });
   }
 
-  async update(entity: Record<string, string>): Promise<{ id: Types.ObjectId }> {
+  async update(entity): Promise<{ id: Types.ObjectId }> {
     return this.entityModel
       .updateOne({ _id: entity._id }, entity)
       .then((r) => ({ id: r.upsertedId }));

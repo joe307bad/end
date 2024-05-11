@@ -6,12 +6,11 @@ import {
   Container,
   Landing as LandingView,
   Lights,
-  Planet,
   Providers,
   SolarSystem,
   Sun,
   SystemDetails,
-  tamaguiTokens
+  tamaguiTokens,
 } from '@end/components';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { DarkTheme, NavigationContainer } from '@react-navigation/native';
@@ -22,6 +21,7 @@ import { DatabaseProvider } from '@nozbe/watermelondb/react';
 import { database } from '@end/wm/rn';
 import { useAuth } from '@end/auth';
 
+// eslint-disable-next-line
 function System() {
   const [OrbitControls, events] = useControls();
   return (
@@ -42,8 +42,8 @@ function System() {
 const Drawer = createDrawerNavigator();
 
 function Landing({
-                   setLoggedIn
-                 }: {
+  setLoggedIn,
+}: {
   setLoggedIn: (loggedIn: boolean) => void;
 }) {
   return (
@@ -58,19 +58,19 @@ const MyTheme = {
   colors: {
     ...DarkTheme.colors,
     background: tamaguiTokens.color.black.val,
-    primary: 'rgb(255, 45, 85)'
-  }
+    primary: 'rgb(255, 45, 85)',
+  },
 };
 
-export default class App {
+export default class App extends React.Component {
   state = {
-    fontLoaded: false
+    fontLoaded: false,
   };
 
   async componentDidMount() {
     LogBox.ignoreAllLogs();
     await Font.loadAsync({
-      ShineTypewriterRegular: require('../../assets/ShineTypewriterRegular.ttf')
+      ShineTypewriterRegular: require('../../assets/ShineTypewriterRegular.ttf'),
     });
     this.setState({ fontLoaded: true });
   }
@@ -117,6 +117,6 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     height: '100%',
-    backgroundColor: 'white'
-  }
+    backgroundColor: 'white',
+  },
 });

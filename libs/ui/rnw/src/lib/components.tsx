@@ -101,85 +101,11 @@ export function Sun() {
   );
 }
 
-const random = (a: number, b: number) => a + Math.random() * b;
-const randomInt = (a: number, b: number) => Math.floor(random(a, b));
-const randomColor = () => `cyan`;
-
-export function PlanetWithMoon() {
-  const planetRef = React.useRef();
-  const planet = {
-    id: 1,
-    color: randomColor(),
-    xRadius: (1 + 1.5) * 4,
-    zRadius: (1 + 1.5) * 2,
-    size: random(0.5, 1),
-  };
-
-  useFrame(({ clock }) => {
-    const t = clock.getElapsedTime();
-    const x = planet.xRadius * Math.sin(t);
-    const z = planet.zRadius * Math.cos(t);
-    // @ts-ignore
-    if (planetRef?.current?.position) {
-      // @ts-ignore
-      planetRef.current.position.x = x;
-      // @ts-ignore
-      planetRef.current.position.z = z;
-    }
-  });
-
-  return (
-    <>
-      {/* @ts-ignore */}
-      <mesh ref={planetRef}>
-        <sphereGeometry args={[planet.size, 32, 32]} />
-        <meshStandardMaterial color={planet.color} />
-      </mesh>
-      {/*<Elliptic xRadius={planet.xRadius} zRadius={planet.zRadius} />*/}
-    </>
-  );
-}
-
 export function Lights() {
   return (
     <>
       <ambientLight />
       <pointLight position={[0, 0, 0]} />
-    </>
-  );
-}
-
-export function Elliptic({
-  xRadius = 1,
-  zRadius = 1,
-  from,
-  to,
-}: {
-  xRadius: number;
-  zRadius: number;
-  from: { x: number; y: number; z: number };
-  to: { x: number; y: number; z: number };
-}) {
-  const points = [];
-  for (let index = 0; index < 64; index++) {
-    const angle = (index / 64) * 2 * Math.PI;
-    const x = xRadius * Math.cos(angle);
-    const z = zRadius * Math.sin(angle);
-    points.push(new THREE.Vector3(x, 0, z));
-  }
-  points.push(points[0]);
-  const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-
-  return (
-    <>
-      {/* @ts-ignore */}
-      <line geometry={lineGeometry}>
-        <lineBasicMaterial attach="material" color="#BFBBDA" linewidth={10} />
-      </line>
-      {/* @ts-ignore */}
-      <line geometry={lineGeometry}>
-        <lineBasicMaterial attach="material" color="#BFBBDA" linewidth={10} />
-      </line>
     </>
   );
 }

@@ -1,4 +1,4 @@
-name: tsc
+name: build
 on: [pull_request]
 
 jobs:
@@ -19,6 +19,11 @@ jobs:
           cmd: install
 
       - name: Compile all apps
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: tsc
+
+      - name: Build all apps
         uses: borales/actions-yarn@v4
         with:
           cmd: tsc
