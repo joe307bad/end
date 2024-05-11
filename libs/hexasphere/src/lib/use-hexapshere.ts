@@ -46,7 +46,7 @@ export type THexasphere = {
 
 export function useHexasphere() {
   const hexasphere: THexasphere = useMemo(() => new HS(50, 4, 1), []);
-  console.log(hexasphere);
+
   const [reset, setReset] = useState(Math.random());
   const land = useMemo(() => faker.color.rgb({ format: 'hex' }), [reset]);
   const water = useMemo(() => faker.color.rgb({ format: 'hex' }), [reset]);

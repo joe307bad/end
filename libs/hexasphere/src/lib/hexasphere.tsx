@@ -20,10 +20,7 @@ import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 // @ts-ignore
 import tf from 'three/examples/fonts/helvetiker_regular.typeface.json';
-import { OrbitControls, OrbitControlsProps } from '@react-three/drei';
-import type { OrbitControls as TOrbitControls } from '@react-three/drei';
 import { RenderedTile, THexasphere } from './use-hexapshere';
-import { OrbitControls as OrbitControlsImpl } from 'three-stdlib/controls/OrbitControls';
 
 extend({ TextGeometry });
 
@@ -255,8 +252,6 @@ export function Hexasphere({
 
   const mesh: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
 
-  const cont: React.MutableRefObject<OrbitControlsImpl | null> = useRef(null);
-
   const [pole1, pole2] = useMemo(() => {
     const pole1 = tiles
       .filter((t) => t.id === poleIds[0])
@@ -484,15 +479,14 @@ export function Hexasphere({
 
   useFrame(() => {
     // if(false) {
-    if (cameraPath && cont.current) {
+    if (cameraPath) {
       camPosIndex++;
-      if (camPosIndex > 100) {
+      if (camPosIndex > 10) {
         camPosIndex = 0;
         setCameraPath(undefined);
-        cont.current.enabled = true;
       } else {
-        var camPos = cameraPath.getPoint(camPosIndex / 100);
-        var camRot = cameraPath.getTangent(camPosIndex / 100);
+        var camPos = cameraPath.getPoint(camPosIndex / 10);
+        var camRot = cameraPath.getTangent(camPosIndex / 10);
 
         camera.position.x = camPos.x;
         camera.position.y = camPos.y;
@@ -513,7 +507,6 @@ export function Hexasphere({
     <>
       <ambientLight />
       <directionalLight position={[0, 100, 25]} />
-      <OrbitControls maxZoom={0.25} ref={cont} />
       <mesh ref={mesh}>
         {tiles.map((t, i) => (
           <TileMesh

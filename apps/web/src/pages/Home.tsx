@@ -2,10 +2,10 @@ import { Home as H, Planet } from '@end/components';
 import { database, sync } from '@end/wm/web';
 import React, { useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { useHexasphere } from '@end/hexasphere';
 import { useWindowDimensions } from 'react-native';
+import { OrbitControls } from '@react-three/drei';
 
 export default function Home() {
   const ref = useRef(null);
@@ -77,6 +77,7 @@ export default function Home() {
               }}
               camera={cam}
             >
+              <OrbitControls />
               {hexasphere}
             </Canvas>
             {controls}
