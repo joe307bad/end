@@ -46,12 +46,12 @@ export function Landing({ goToHome }: Props) {
   const login = useCallback(() => {
     setLoading(true);
     EndApi.login(userName, password)
-      .then(async (res: Response) => {
+      .then(async (res) => {
         setLoading(false);
-        const json: { access_token: string } = await res.json();
+        const json: { access_token: string } = await res.json?.();
         if (json?.access_token) {
           await setToken(json.access_token);
-          goToHome?.();
+          goToHome?.();w
         } else {
           toast.show('An error occurred. Try again.', {
             message: (res as any)?.message,

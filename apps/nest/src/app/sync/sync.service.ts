@@ -30,7 +30,7 @@ export class SyncService {
       })
       .exec()
       .then((response) =>
-        response.map((d: any) => {
+        response.map((d) => {
           return {
             id: d._id,
             ...d,
@@ -40,14 +40,19 @@ export class SyncService {
   }
 
   getDeletedByTypeAfterTimestamp(table: string, timestamp: number) {
-    return this.entityModel.find({ table, deleted: true,
-      deleted_on_server: { $gt: timestamp } }).exec();
+    return this.entityModel
+      .find({
+        table,
+        deleted: true,
+        deleted_on_server: { $gt: timestamp },
+      })
+      .exec();
   }
 
   async getUpdatedAfterTimestamp(
     table: string,
     timestamp: number,
-    created: any[]
+    created: { id: string }[]
   ) {
     const createdIds = created.map((c) => c.id);
     return this.entityModel
@@ -59,7 +64,7 @@ export class SyncService {
       })
       .exec()
       .then((response) =>
-        response.map((d: any) => {
+        response.map((d) => {
           return {
             id: d._id,
             ...d,
@@ -68,13 +73,13 @@ export class SyncService {
       );
   }
 
-  create(entity: any): Promise<{ id: Types.ObjectId | string }> {
-    return this.entityModel.create(entity).then((r: any) => {
+  create(entity: Record<string, string>): Promise<{ id: Types.ObjectId | string }> {
+    return this.entityModel.create(entity).then((r) => {
       return { id: r._id };
     });
   }
 
-  async update(entity: any): Promise<{ id: Types.ObjectId }> {
+  async update(entity: Record<string, string>): Promise<{ id: Types.ObjectId }> {
     return this.entityModel
       .updateOne({ _id: entity._id }, entity)
       .then((r) => ({ id: r.upsertedId }));

@@ -6,19 +6,17 @@ import {
   H1,
   H2,
   Input,
-  TabsContentProps,
   TamaguiProvider,
   XStack,
   YStack,
 } from 'tamagui';
 import { config, tokens } from './tamagui.config';
 import { View } from 'react-native';
-import { Badge, PrimaryButton } from './Display';
+import { Badge } from './Display';
 import t, { useDeviceContext } from 'twrnc';
 import { EndApiProvider } from '@end/data';
 import { AuthProvider } from '@end/auth';
 import { ToastProvider, ToastViewport } from '@tamagui/toast';
-import { Tabs } from 'tamagui';
 
 export const tw = t as any;
 
@@ -109,7 +107,7 @@ const randomColor = () => `cyan`;
 
 export function PlanetWithMoon() {
   const planetRef = React.useRef();
-  const planet: any = {
+  const planet = {
     id: 1,
     color: randomColor(),
     xRadius: (1 + 1.5) * 4,

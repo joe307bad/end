@@ -5,7 +5,7 @@ import {
   withDatabase,
   withObservables,
 } from '@nozbe/watermelondb/react';
-import { Database } from '@nozbe/watermelondb';
+import { Database, Model } from '@nozbe/watermelondb';
 import { useAuth } from '@end/auth';
 import { faker } from '@faker-js/faker';
 import { Observable } from 'rxjs';
@@ -28,7 +28,7 @@ function H({
   const { getToken } = useAuth();
   const addPlanet = useCallback(async () => {
     await database.write(async () => {
-      await database.get('planets').create((planet: any) => {
+      await database.get<Planet>('planets').create((planet: Planet) => {
         planet.name = Math.random().toString();
       });
     });
@@ -37,7 +37,7 @@ function H({
   const editPlanet = useCallback(async () => {
     await database.write(async () => {
       const randomPlanet = faker.helpers.arrayElement(allPlanets);
-      const planet: any = await database.get('planets').find(randomPlanet.id);
+      const planet = await database.get<Planet>('planets').find(randomPlanet.id);
       await planet.update(() => {
         planet.name = `changed-${Math.random().toString()}`;
       });

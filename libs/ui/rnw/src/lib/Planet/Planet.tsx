@@ -136,7 +136,7 @@ export function Planet({
                 <Text>Rotate X</Text>
                 <Slider
                   value={rotateX}
-                  onValueChange={(value: any) => setRotateX(value[0])}
+                  onValueChange={(value) => setRotateX(value[0])}
                 />
               </View>
               <View
@@ -152,7 +152,7 @@ export function Planet({
                 <Text>Rotate Y</Text>
                 <Slider
                   value={rotateY}
-                  onValueChange={(value: any) => setRotateY(value[0])}
+                  onValueChange={(value) => setRotateY(value[0])}
                 />
               </View>
               <View
@@ -168,14 +168,14 @@ export function Planet({
                 <Text>Rotate Z</Text>
                 <Slider
                   value={rotateZ}
-                  onValueChange={(value: any) => setRotateZ(value[0])}
+                  onValueChange={(value) => setRotateZ(value[0])}
                 />
               </View>
             </TabsContent>
 
             <TabsContent value="tab3" style={tw`h-full`}>
               <Section style={tw`max-h-80 overflow-scroll w-full`}>
-                {tiles.map((t: any) => (
+                {tiles.map((t) => (
                   <PrimaryButton onPress={() => setSelectedTile(t.centerPoint)}>
                     {t.id}
                   </PrimaryButton>

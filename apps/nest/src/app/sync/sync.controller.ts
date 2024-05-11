@@ -21,11 +21,11 @@ export class SyncController {
     try {
       const changes = await tables
         .split(',')
-        .reduce<any[]>((acc, i) => {
+        .reduce<string[]>((acc, i) => {
           acc.push(i.replace(/[^A-Za-z0-9_]/g, ''));
           return acc;
         }, [])
-        .reduce<Promise<any>>(async (acc, table) => {
+        .reduce(async (acc, table) => {
           const a = await acc;
           const created = await this.syncService.getCreatedAfterTimestamp(
             table,
@@ -45,7 +45,7 @@ export class SyncController {
               lastPulledAt,
               created
             ),
-            deleted: deletedFromThisTable.map((d: any) => d.id),
+            deleted: deletedFromThisTable.map((d) => d.id),
           };
 
           return a;
@@ -68,7 +68,7 @@ export class SyncController {
   @Post()
   pushChanges(
     @Body() changes: SyncDatabaseChangeSet,
-    @Query() query: Record<string, any>
+    @Query() query: Record<string, string | number>
   ) {
     // TODO does this need to be used? lol
     let { last_pulled_at } = query;

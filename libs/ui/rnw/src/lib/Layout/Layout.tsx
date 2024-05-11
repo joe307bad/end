@@ -44,7 +44,7 @@ function NavButton({
   );
 }
 
-export function useResponsive(rerender?: any, max?: number) {
+export function useResponsive(rerender?: boolean, max?: number) {
   const { width } = useWindowDimensions();
 
   const bp = useCallback(
