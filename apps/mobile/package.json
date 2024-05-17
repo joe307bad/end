@@ -51,7 +51,8 @@
     "expo-gl": "*",
     "@miblanchard/react-native-slider": "*",
     "gsap": "*",
-    "three-stdlib": "*"
+    "three-stdlib": "*",
+    "valtio": "*"
   },
   "scripts": {
     "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/mobile && cp package-lock.json apps/mobile",

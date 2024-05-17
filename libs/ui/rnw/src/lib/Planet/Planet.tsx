@@ -13,7 +13,13 @@ import {
 import { Slider } from '@miblanchard/react-native-slider';
 import { PrimaryButton } from '../Display';
 import { getPointInBetweenByPerc, PortalPath, tw } from '../components';
-import { Hexasphere, RenderedTile, THexasphere, Tile } from '@end/hexasphere';
+import {
+  Coords,
+  Hexasphere,
+  RenderedTile,
+  THexasphere,
+  Tile,
+} from '@end/hexasphere';
 import { useResponsive } from '../Layout';
 import { MenuSquare, CircleDot } from '@tamagui/lucide-icons';
 import { faker } from '@faker-js/faker';
@@ -24,14 +30,10 @@ export function Planet({
   setReset,
   reset,
   tiles,
-  setSelectedTile,
-  selectedTile,
   hexasphere,
 }: {
   setReset(r: number): void;
   reset: number;
-  selectedTile?: { x: number; y: number; z: number };
-  setSelectedTile(id: { x: number; y: number; z: number }): void;
   hexasphere: THexasphere;
   tiles: RenderedTile[];
   children: (
@@ -57,30 +59,29 @@ export function Planet({
     return [from, to];
   }, []);
 
-  const controlResponsiveness = useMemo(() => {
-    return '';
-  }, []);
+  const [selectedTile, setSelectedTileState] = useState<{
+    x: number;
+    y: number;
+    z: number;
+  }>();
+
+  const setSelectedTile = useCallback((id: Coords) => {
+    setSelectedTileState(
+      (prevId: { x: number; y: number; z: number } | undefined) => {
+        const { x, y, z } = prevId ?? {};
+        const { x: x1, y: y1, z: z1 } = id ?? {};
+        return JSON.stringify({ x, y, z }) ===
+          JSON.stringify({ x: x1, y: y1, z: z1 })
+          ? undefined
+          : id;
+      }
+    );
+  }, [setSelectedTileState]);
 
   return (
     <Section style={tw`h-full w-full relative overflow-hidden`}>
       {children(
-        <Hexasphere
-          key={reset}
-          rotateX={rotateX}
-          rotateY={rotateY}
-          rotateZ={rotateZ}
-          tiles={tiles}
-          hexasphere={hexasphere}
-          selected={selectedTile}
-          setSelected={setSelectedTile}
-          getPointInBetweenByPerc={useCallback(getPointInBetweenByPerc, [])}
-          portal={
-            <PortalPath
-              from={tiles[from].centerPoint}
-              to={tiles[to].centerPoint}
-            />
-          }
-        />,
+        <></>,
         <Section
           style={bp([
             'z-10 max-w-full',

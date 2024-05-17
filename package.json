@@ -72,7 +72,8 @@
     "tamagui": "^1.80.4",
     "three": "^0.160.0",
     "tslib": "^2.3.0",
-    "twrnc": "^3.6.8"
+    "twrnc": "^3.6.8",
+    "valtio": "^1.13.2"
   },
   "devDependencies": {
     "@babel/core": "^7.14.5",
