@@ -16,7 +16,7 @@ const center = new THREE.Vector3(0, 0, 0);
 
 export function buildPath(point1: THREE.Vector3, point2: THREE.Vector3) {
   const pointsOnPath = 64;
-  const radius = 160;
+  const radius = 250;
 
   function _getPoints(_point1: THREE.Vector3, _point2: THREE.Vector3) {
     const path = [];
@@ -41,7 +41,7 @@ export function buildPath(point1: THREE.Vector3, point2: THREE.Vector3) {
     _getPoints(point1, point2)
   ).getSpacedPoints(1000);
 
-  if (point1.distanceTo(point2) > 200) {
+  if (point1.distanceTo(point2) > radius) {
     points = [
       ...new THREE.CatmullRomCurve3(
         _getPoints(point1, new THREE.Vector3(radius, 0, 0))
