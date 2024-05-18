@@ -14,9 +14,9 @@ function getPointInBetweenByPerc(
 
 const center = new THREE.Vector3(0, 0, 0);
 
-export function buildPath(point1: THREE.Vector3, point2: THREE.Vector3) {
+export function buildCameraPath(point1: THREE.Vector3, point2: THREE.Vector3) {
   const pointsOnPath = 64;
-  const radius = 250;
+  const radius = center.distanceTo(point1);
 
   function _getPoints(_point1: THREE.Vector3, _point2: THREE.Vector3) {
     const path = [];

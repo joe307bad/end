@@ -3,6 +3,7 @@ import '@react-three/fiber';
 import { faker } from '@faker-js/faker';
 import { extend, Object3DNode, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
+import { MathUtils } from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 // @ts-ignore
@@ -12,8 +13,7 @@ import { proxy, useSnapshot } from 'valtio';
 import { derive, subscribeKey } from 'valtio/utils';
 // @ts-ignore
 import HS from './hexasphere.lib';
-import { buildPath } from './build-path';
-import { MathUtils } from 'three';
+import { buildCameraPath } from './build-camera-path';
 
 extend({ TextGeometry });
 
@@ -50,6 +50,9 @@ export type Tile = {
   faces: Face[];
   neighborIds: string[];
   neighbors: Tile[];
+  raised?: boolean;
+  positions?: Float32Array;
+  indices?: Uint16Array;
 };
 
 export type RenderedTile = {
@@ -173,6 +176,16 @@ function getBoundaries(t: Tile, raised: boolean) {
   return { indices: new Uint16Array(indices), positions };
 }
 
+Object.keys(hexasphere.tileLookup).forEach((id) => {
+  const tile = hexasphere.tileLookup[id];
+  const raised = faker.datatype.boolean(0.5);
+  hexasphere.tileLookup[id] = {
+    ...tile,
+    ...getBoundaries(tile, raised),
+    raised,
+  };
+});
+
 export const hexasphereProxy = proxy<{
   selection: {
     selectedId: string | null;
@@ -214,7 +227,7 @@ const derived = derive({
     const cameraPosition = get(hexasphereProxy.selection).cameraPosition;
     if (selectedId && cameraPosition) {
       const { x, y, z } = hexasphere.tileLookup[selectedId].centerPoint;
-      return buildPath(cameraPosition, new THREE.Vector3(x, y, z));
+      return buildCameraPath(cameraPosition, new THREE.Vector3(x, y, z));
     }
 
     return undefined;
@@ -233,15 +246,10 @@ const TileMesh = React.memo(
     water: string;
     land: string;
   }) => {
-    const { centerPoint, raised, positions, indices } = useMemo(() => {
-      const tile = hexasphere.tileLookup[id];
-      const raised = faker.datatype.boolean(0.5);
-      return {
-        ...hexasphere.tileLookup[id],
-        ...getBoundaries(tile, raised),
-        raised,
-      };
-    }, []);
+    const { centerPoint, raised, positions, indices } = useMemo(
+      () => hexasphere.tileLookup[id],
+      []
+    );
 
     const mesh: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
     const text: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
@@ -337,6 +345,10 @@ const TileMesh = React.memo(
         text.current.rotation.z = z;
       }
     });
+
+    if (!indices || !positions) {
+      return <></>;
+    }
 
     return (
       <>

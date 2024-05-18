@@ -45,6 +45,7 @@ export default function Home() {
   }, []);
 
   const [selectedTile, selectTile] = useState<string>();
+  const [reset, setReset] = useState(Math.random());
 
   return (
     <H database={database} sync={sync} apiUrl={process.env.API_BASE_URL}>
