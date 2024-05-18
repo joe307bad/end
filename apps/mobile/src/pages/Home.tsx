@@ -1,11 +1,10 @@
 import {
-  getPointInBetweenByPerc,
   Home as H,
   PrimaryButton,
 } from '@end/components';
 import { database, sync } from '@end/wm/rn';
 import { Canvas } from '@react-three/fiber/native';
-import React, { useCallback } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import { Hexasphere } from '@end/hexasphere';
 import useControls from 'r3f-native-orbitcontrols';
