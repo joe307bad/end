@@ -7,6 +7,7 @@ import {
   Text,
   View,
   Tabs,
+  Spacer,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
 import { Slider } from '@miblanchard/react-native-slider';
@@ -17,11 +18,14 @@ import React, { useState } from 'react';
 import { useResponsive } from '../Layout';
 import { hexasphereProxy } from '@end/hexasphere';
 import { useSnapshot } from 'valtio';
+import Select from '../Select/Select';
 
 export function TabsContainer({
   menuOpen,
   selectTile,
+  newPlanet,
 }: {
+  newPlanet: () => void;
   menuOpen: boolean;
   selectTile: (id: string) => void;
 }) {
@@ -36,15 +40,17 @@ export function TabsContainer({
         'z-10 max-w-full',
         'relative w-full',
         '',
-        'absolute w-[500px] top-[20px] right-[20px] w-[500px] ',
+        'absolute w-[500px] pb-5 right-[20px] w-[500px] h-full',
       ])}
     >
       <Tabs
-        defaultValue="tab3"
+        defaultValue="tab1"
         orientation="horizontal"
         flexDirection="column"
         borderRadius={5}
         borderWidth={1}
+        maxHeight={'100%'}
+        height={'100%'}
         overflow="hidden"
         borderColor="$borderColor"
         style={bp(['', `${menuOpen ? '' : 'hidden'}`, '', 'visible'])}
@@ -69,7 +75,14 @@ export function TabsContainer({
         </Tabs.List>
         <Separator />
         <TabsContent value="tab1">
-          <Input padding="$0.5" width="100%" placeholder="Planet Name" />
+          <View>
+            <Input padding="$0.5" width="100%" placeholder="Planet Name" />
+            <PrimaryButton onPress={newPlanet}>New Planet</PrimaryButton>
+            <Spacer />
+            <Select label="Number of players" items={[2, 3, 4, 5, 6, 7, 8, 9, 10]}/>
+            <Spacer />
+            <PrimaryButton onPress={newPlanet}>Start game</PrimaryButton>
+          </View>
         </TabsContent>
 
         <TabsContent value="tab2">
@@ -124,13 +137,13 @@ export function TabsContainer({
         </TabsContent>
 
         <TabsContent value="tab3" style={tw`h-full`}>
-          <Section style={tw`max-h-80 overflow-scroll w-full`}>
+          <View style={tw`h-full overflow-scroll w-full`}>
             {hs.tiles.map((t) => (
               <PrimaryButton onPress={() => selectTile(t.id)}>
                 {t.id}
               </PrimaryButton>
             ))}
-          </Section>
+          </View>
         </TabsContent>
 
         <TabsContent value="tab4">

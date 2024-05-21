@@ -4,7 +4,7 @@ import {
   PrimaryButton,
 } from '@end/components';
 import { database, sync } from '@end/wm/web';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useWindowDimensions } from 'react-native';
@@ -50,6 +50,18 @@ export default function Home() {
   const [selectedTile, selectTile] = useState<string>();
   const [reset, setReset] = useState(Math.random());
 
+  const newPlanet = useCallback(() => {
+    hexasphereProxy.tiles.forEach((tile) => {
+      const raisedness = faker.number.float({ min: 0.1, max: 0.9 });
+      tile.raised = faker.datatype.boolean(raisedness);
+      tile.selected = false;
+      tile.defending = false;
+    });
+    hexasphereProxy.selection.selectedId = null;
+    hexasphereProxy.selection.cameraPosition = null;
+    setReset(Math.random());
+  }, []);
+
   return (
     <H database={database} sync={sync} apiUrl={process.env.API_BASE_URL}>
       <Canvas
@@ -62,22 +74,7 @@ export default function Home() {
         <Hexasphere key={reset} selectedTile={selectedTile} />
         <OrbitControls />
       </Canvas>
-      <TabsContainer menuOpen={true} selectTile={selectTile} />
-      <PrimaryButton
-        onPress={() => {
-          hexasphereProxy.tiles.forEach((tile) => {
-            const raisedness = faker.number.float({ min: 0.1, max: 0.9 });
-            tile.raised = faker.datatype.boolean(raisedness);
-            tile.selected = false;
-            tile.defending = false;
-          });
-          hexasphereProxy.selection.selectedId = null;
-          hexasphereProxy.selection.cameraPosition = null;
-          setReset(Math.random());
-        }}
-      >
-        New Planet
-      </PrimaryButton>
+      <TabsContainer menuOpen={true} selectTile={selectTile} newPlanet={newPlanet} />
     </H>
   );
 }

@@ -17,6 +17,7 @@ export const TabsContent = (props: TabsContentProps) => {
       borderWidth={1}
       borderLeftWidth={0}
       borderRightWidth={0}
+      maxHeight={"100%"}
       {...props}
     >
       {props.children}
