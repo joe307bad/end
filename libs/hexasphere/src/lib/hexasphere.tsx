@@ -177,37 +177,40 @@ function getBoundaries(t: Tile, raised: boolean) {
 }
 
 // TODO remove this in favor of populating the proxy
-Object.keys(hexasphere.tileLookup).forEach((id) => {
-  const tile = hexasphere.tileLookup[id];
-  const raised = faker.datatype.boolean(0.5);
-  hexasphere.tileLookup[id] = {
-    ...tile,
-    ...getBoundaries(tile, raised),
-    raised,
-  };
-});
+// Object.keys(hexasphere.tileLookup).forEach((id) => {
+//   const tile = hexasphere.tileLookup[id];
+//   const raised = faker.datatype.boolean(0.5);
+//   hexasphere.tileLookup[id] = {
+//     ...tile,
+//     ...getBoundaries(tile, raised),
+//     raised,
+//   };
+// });
 
 export const hexasphereProxy = proxy<{
   selection: {
     selectedId: string | null;
     cameraPosition: THREE.Vector3 | null;
   };
-  tiles: { id: string; selected: boolean; defending: boolean }[];
+  tiles: {
+    id: string;
+    selected: boolean;
+    defending: boolean;
+    raised: boolean;
+  }[];
 }>({
   selection: {
     selectedId: null,
     cameraPosition: null,
   },
   tiles: Object.keys(hexasphere.tileLookup).map((tileId: string) => {
-    const tile = hexasphere.tileLookup[tileId];
     const perctRaised = faker.number.float({ min: 0.1, max: 0.9 });
     const raised = faker.datatype.boolean(perctRaised);
     return {
       id: tileId,
       selected: false,
       defending: false,
-      raised: raised,
-      ...getBoundaries(tile, raised),
+      raised,
     };
   }),
 });
@@ -238,14 +241,15 @@ export function selectTile(id: string, cameraPosition: THREE.Vector3) {
 
     const neighbors = hexasphere.tileLookup[newSelected.id].neighborIds;
 
-    neighbors.forEach((neighborTileId) => {
-      const neighbor = hexasphereProxy.tiles.find(
-        (tile) => tile.id === neighborTileId
-      );
-      if (neighbor) {
-        neighbor.defending = true;
-      }
-    });
+    newSelected.raised &&
+      neighbors.forEach((neighborTileId) => {
+        const neighbor = hexasphereProxy.tiles.find(
+          (tile) => tile.id === neighborTileId
+        );
+        if (neighbor) {
+          neighbor.defending = true;
+        }
+      });
   }
 
   return currentlySelected;
@@ -271,27 +275,31 @@ const TileMesh = React.memo(
     defending,
     water,
     land,
-    // raised
+    raised,
   }: {
     id: string;
     selected: boolean;
     defending: boolean;
     water: string;
     land: string;
-    // raised: string;
+    raised: boolean;
   }) => {
-    // TODO move positions and indices into a derived proxy that changes whenever "raised" property changes on a tile
-    // this enables for "raised" to move to the hexasphereProxy which needs to happen so we can determine if a
-    // newly selected tile is raised to mark the neighbors as "defending" or not
-    const { centerPoint, raised, positions, indices } = useMemo(
-      () => hexasphere.tileLookup[id],
-      []
-    );
+    const { positions, indices, centerPoint } = useMemo(() => {
+      const tile = hexasphere.tileLookup[id];
+      return {
+        ...tile,
+        ...getBoundaries(tile, raised),
+      };
+    }, [raised]);
 
     const mesh: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
     const text: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
     const textMesh: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
     const cyl: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
+    const selectedRing: React.MutableRefObject<THREE.Mesh | null> =
+      useRef(null);
+    const defendingRing: React.MutableRefObject<THREE.Mesh | null> =
+      useRef(null);
 
     const geo: React.MutableRefObject<THREE.BufferGeometry | null> =
       useRef(null);
@@ -304,6 +312,20 @@ const TileMesh = React.memo(
     const [edges, setEdges] = useState<
       [THREE.EdgesGeometry, THREE.LineBasicMaterial] | undefined
     >();
+
+    const randomNumber = useMemo(
+      () => faker.number.int({ min: 1, max: 9999 }).toString(),
+      []
+    );
+
+    useEffect(() => {
+      if(selectedRing.current) {
+        selectedRing.current.rotation.x = MathUtils.degToRad(-90);
+      }
+      if(defendingRing.current) {
+        defendingRing.current.rotation.x = MathUtils.degToRad(-90);
+      }
+    }, [selected, defending]);
 
     useEffect(() => {
       if (geo.current && raised) {
@@ -327,6 +349,13 @@ const TileMesh = React.memo(
         textGeo.current &&
         textMesh.current
       ) {
+        if (parseInt(randomNumber) > 99) {
+          cyl.current.scale.x = 1.5;
+        }
+        if (parseInt(randomNumber) > 999) {
+          cyl.current.scale.x = 2;
+        }
+
         const cp = new THREE.Vector3(
           centerPoint.x,
           centerPoint.y,
@@ -355,11 +384,6 @@ const TileMesh = React.memo(
     }, []);
 
     const { camera } = useThree();
-
-    const randomNumber = useMemo(
-      () => faker.number.int({ min: 1, max: 9 }).toString(),
-      []
-    );
 
     useFrame(() => {
       if (text.current) {
@@ -397,13 +421,33 @@ const TileMesh = React.memo(
               <cylinderGeometry
                 ref={countGeo}
                 attach="geometry"
-                args={[2, 2, 2, 32]}
+                args={[2, 2, 2, 35]}
               />
               {countEdges?.[0] ? (
                 <lineSegments
                   geometry={countEdges[0]}
                   material={countEdges[1]}
                 />
+              ) : null}
+              {selected ? (
+                <mesh ref={selectedRing} position={[0, 1, 0]}>
+                  <ringGeometry args={[2, 2.5, 25]} />
+                  <meshBasicMaterial
+                    side={THREE.DoubleSide}
+                    attach="material"
+                    color={'red'}
+                  />
+                </mesh>
+              ) : null}
+              {defending ? (
+                <mesh ref={defendingRing} position={[0, 1, 0]}>
+                  <ringGeometry args={[2, 2.5, 25]} />
+                  <meshBasicMaterial
+                    side={THREE.DoubleSide}
+                    attach="material"
+                    color={'blue'}
+                  />
+                </mesh>
               ) : null}
             </mesh>
             <mesh ref={textMesh}>
@@ -417,26 +461,6 @@ const TileMesh = React.memo(
                 color={'black'}
               />
             </mesh>
-            {selected ? (
-              <mesh position={[0, 0, 1]}>
-                <ringGeometry args={[2, 3, 100]} />
-                <meshBasicMaterial
-                  side={THREE.DoubleSide}
-                  attach="material"
-                  color={'red'}
-                />
-              </mesh>
-            ) : null}
-            {defending ? (
-              <mesh position={[0, 0, 1]}>
-                <ringGeometry args={[2, 3, 100]} />
-                <meshBasicMaterial
-                  side={THREE.DoubleSide}
-                  attach="material"
-                  color={'blue'}
-                />
-              </mesh>
-            ) : null}
           </mesh>
         ) : null}
         <mesh
@@ -533,10 +557,6 @@ export const Hexasphere = React.memo(
       subscribeKey(derived, 'cameraPath', (s) => {
         setCameraPath(s);
       });
-
-      hexasphereProxy.tiles.forEach((tile) => {
-
-      })
     }, []);
 
     useEffect(() => {
@@ -561,6 +581,7 @@ export const Hexasphere = React.memo(
               water={water}
               land={land}
               defending={t.defending}
+              raised={t.raised}
             />
           ))}
           <points>
