@@ -1,25 +1,19 @@
-import React, {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import '@react-three/fiber';
 import { faker } from '@faker-js/faker';
 import { extend, Object3DNode, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { MathUtils, Vector3 } from 'three';
-import gsap from 'gsap';
+import { MathUtils } from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 // @ts-ignore
 import tf from 'three/examples/fonts/helvetiker_regular.typeface.json';
-import { OrbitControls } from '@react-three/drei';
-// @ts-ignore
-import { MotionPathPlugin } from 'gsap/MotionPathPlugin.js';
 
-gsap.registerPlugin(MotionPathPlugin);
+import { proxy, useSnapshot } from 'valtio';
+import { derive, subscribeKey } from 'valtio/utils';
+// @ts-ignore
+import HS from './hexasphere.lib';
+import { buildCameraPath } from './build-camera-path';
 
 extend({ TextGeometry });
 
@@ -32,526 +26,577 @@ declare module '@react-three/fiber' {
   }
 }
 
-function TileMesh({
-  positions,
-  indices,
-  color,
-  onClick,
-  target,
-  highlighted,
-  selected,
-  raised,
-  centerPoint,
-  sphereQuat,
-  selectedTile,
-}: any) {
-  const mesh: any = useRef();
-  const geo: any = useRef();
-  const countGeo: any = useRef();
-  const text: any = useRef();
-  const textGeo: any = useRef();
-  const cyl: any = useRef();
-  const textMesh: any = useRef();
-  const [countEdges, setCountEdges] = useState<any>();
-  const [edges, setEdges] = useState<any>();
+const depthRatio = 1.04;
 
-  // console.log(planetEndQ);
+function withDepthRatio(n: number) {
+  return n * depthRatio - n;
+}
 
-  useLayoutEffect(() => {
-    if (geo.current) {
-      geo.current.attributes.position.needsUpdate = true;
-    }
-  }, [positions]);
+export type Coords = {
+  x: number;
+  y: number;
+  z: number;
+};
 
-  const cube: any = useRef();
+type Face = {
+  id: number;
+  centroid: Coords;
+  points: ({ faces: Face[] } & Coords)[];
+};
 
-  useEffect(() => {
-    if (geo.current && raised) {
-      setEdges([
-        new THREE.EdgesGeometry(geo.current, 50),
-        new THREE.LineBasicMaterial({ color: 'black' }),
-      ]);
-      // const pth = new PointTextHelper();
-      // mesh.current.add(pth);
-      // pth.displayVertices(positions, {
-      //   color: 'white',
-      //   size: 10,
-      //   format: (index) => `${index}`,
-      // });
-    }
+export type Tile = {
+  boundary: Coords[];
+  centerPoint: { faces: Face[] } & Coords;
+  faces: Face[];
+  neighborIds: string[];
+  neighbors: Tile[];
+  raised?: boolean;
+  positions?: Float32Array;
+  indices?: Uint16Array;
+};
 
-    if (countGeo.current && text.current && cyl.current && textGeo.current) {
-      const cp = new THREE.Vector3(centerPoint.x, centerPoint.y, centerPoint.z);
+export type RenderedTile = {
+  positions: Float32Array;
+  indices: Uint16Array;
+  color: string;
+  raised: boolean;
+  centerPoint: { faces: Face[] } & Coords;
+  neighbors: Tile[];
+  id: string;
+};
 
-      cyl.current.rotation.x = MathUtils.degToRad(90);
-      text.current?.position.copy(center.clone());
-      text.current?.lookAt(cp.clone());
-      text.current?.position.copy(cp.clone());
-      // console.log('run');
+export type THexasphere = {
+  radius: number;
+  tiles: Tile[];
+  tileLookup: Record<string, Tile>;
+};
 
-      textGeo.current.computeBoundingBox();
-      const b = textGeo.current.boundingBox.getCenter(new Vector3());
-      textMesh.current.position.x -= b.x;
-      textMesh.current.position.y -= b.y;
-      textMesh.current.position.z += 1;
+export const hexasphere: THexasphere = new HS(50, 4, 1);
 
-      setCountEdges([
-        new THREE.EdgesGeometry(countGeo.current, 50),
-        new THREE.LineBasicMaterial({ color: 'black' }),
-      ]);
-    }
-  }, []);
+function getBoundaries(t: Tile, raised: boolean) {
+  const v: number[] = [];
 
-  const { camera } = useThree();
-
-  const randomNumber = useMemo(
-    () => faker.number.int({ min: 1, max: 9 }).toString(),
-    []
-  );
-
-  useFrame(() => {
-    if (text.current) {
-      const b = text.current.position.clone();
-      const a = new THREE.Object3D();
-      a.position.set(b.x, b.y, b.z);
-      a.lookAt(camera.position);
-
-      const z = a.rotation.z;
-      // //
-      const cp = new THREE.Vector3(centerPoint.x, centerPoint.y, centerPoint.z);
-
-      const dir1 = cp.clone().sub(center).normalize().multiplyScalar(10);
-      cp.add(dir1);
-
-      text.current.rotation.z = z;
+  t.boundary.forEach((bp) => {
+    if (raised) {
+      v.push(
+        parseFloat(bp.x.toString()) * depthRatio,
+        parseFloat(bp.y.toString()) * depthRatio,
+        parseFloat(bp.z.toString()) * depthRatio
+      );
+    } else {
+      v.push(
+        parseFloat(bp.x.toString()),
+        parseFloat(bp.y.toString()),
+        parseFloat(bp.z.toString())
+      );
     }
   });
 
-  return !target ? null : (
-    <>
-      {raised ? (
-        <mesh
-          ref={text}
-          position={[centerPoint.x, centerPoint.y, centerPoint.z]}
-        >
-          <mesh ref={cyl}>
-            <cylinderGeometry
-              ref={countGeo}
-              attach="geometry"
-              args={[2, 2, 2, 32]}
-            />
-            {countEdges?.[0] ? (
-              <lineSegments geometry={countEdges[0]} material={countEdges[1]} />
-            ) : null}
-          </mesh>
-          <mesh ref={textMesh}>
-            <textGeometry
-              ref={textGeo}
-              args={[randomNumber, { font, size: 2, height: 0.25 }]}
-            />
-            <meshBasicMaterial
-              side={THREE.DoubleSide}
-              attach="material"
-              color={'black'}
-            />
-          </mesh>
-        </mesh>
-      ) : null}
-      <mesh
-        ref={mesh}
-        onClick={(e) => {
-          e.stopPropagation();
-          onClick();
-        }}
-      >
-        <bufferGeometry ref={geo}>
-          <bufferAttribute
-            attach="attributes-position"
-            array={positions}
-            count={positions.length / 3}
-            itemSize={3}
-          />
-          <bufferAttribute
-            attach="index"
-            array={indices}
-            count={indices.length}
-            itemSize={1}
-          />
-        </bufferGeometry>
-        <meshStandardMaterial
-          color={selected ? 'yellow' : highlighted ? 'red' : color}
-        />
-      </mesh>
-      {edges?.[0] ? (
-        <lineSegments geometry={edges[0]} material={edges[1]} />
-      ) : null}
-      {/*<points>*/}
-      {/*  <bufferGeometry>*/}
-      {/*    <bufferAttribute*/}
-      {/*      attach="attributes-position"*/}
-      {/*      count={z.length / 3}*/}
-      {/*      itemSize={3}*/}
-      {/*      array={z}*/}
-      {/*    />*/}
-      {/*  </bufferGeometry>*/}
-      {/*  <pointsMaterial size={10} color="red" transparent />*/}
-      {/*</points>*/}
-      {/*<mesh ref={cube}>*/}
-      {/*  <boxGeometry args={[1, 1, 1]} />*/}
-      {/*  <meshBasicMaterial color="red" />*/}
-      {/*</mesh>*/}
-    </>
+  // v6
+  v.push(
+    v[0] - withDepthRatio(v[0]),
+    v[1] - withDepthRatio(v[1]),
+    v[2] - withDepthRatio(v[2])
   );
+
+  // v7
+  v.push(
+    v[3] - withDepthRatio(v[3]),
+    v[4] - withDepthRatio(v[4]),
+    v[5] - withDepthRatio(v[5])
+  );
+
+  // v8
+  v.push(
+    v[6] - withDepthRatio(v[6]),
+    v[7] - withDepthRatio(v[7]),
+    v[8] - withDepthRatio(v[8])
+  );
+
+  // v9
+  v.push(
+    v[9] - withDepthRatio(v[9]),
+    v[10] - withDepthRatio(v[10]),
+    v[11] - withDepthRatio(v[11])
+  );
+
+  // v10
+  v.push(
+    v[12] - withDepthRatio(v[12]),
+    v[13] - withDepthRatio(v[13]),
+    v[14] - withDepthRatio(v[14])
+  );
+
+  // v11
+  v.push(
+    v[15] - withDepthRatio(v[15]),
+    v[16] - withDepthRatio(v[16]),
+    v[17] - withDepthRatio(v[17])
+  );
+
+  const positions = new Float32Array(v);
+
+  const indices = [];
+
+  indices.push(0, 1, 2, 0, 2, 3, 0, 3, 4);
+
+  // face 1
+  indices.push(0, 5, 6);
+  indices.push(0, 6, 1);
+
+  // face 2
+  indices.push(2, 7, 8);
+  indices.push(8, 3, 2);
+
+  // face 3
+  indices.push(1, 6, 7);
+  indices.push(7, 2, 1);
+
+  // face 4
+  indices.push(3, 8, 9);
+  indices.push(9, 4, 3);
+
+  // face 5
+  indices.push(4, 5, 0);
+
+  if (positions.length > 33) {
+    // face 6
+    indices.push(4, 9, 10);
+
+    // face 7
+    indices.push(4, 10, 11);
+    indices.push(4, 11, 5);
+
+    // face 8
+    indices.push(5, 11, 6);
+  } else {
+    indices.push(4, 9, 5);
+  }
+
+  return { indices: new Uint16Array(indices), positions };
 }
 
-const poleIds = ['0,-50,0', '0,50,0'];
+// TODO remove this in favor of populating the proxy
+// Object.keys(hexasphere.tileLookup).forEach((id) => {
+//   const tile = hexasphere.tileLookup[id];
+//   const raised = faker.datatype.boolean(0.5);
+//   hexasphere.tileLookup[id] = {
+//     ...tile,
+//     ...getBoundaries(tile, raised),
+//     raised,
+//   };
+// });
+
+export const hexasphereProxy = proxy<{
+  selection: {
+    selectedId: string | null;
+    cameraPosition: THREE.Vector3 | null;
+  };
+  tiles: {
+    id: string;
+    selected: boolean;
+    defending: boolean;
+    raised: boolean;
+  }[];
+}>({
+  selection: {
+    selectedId: null,
+    cameraPosition: null,
+  },
+  tiles: Object.keys(hexasphere.tileLookup).map((tileId: string) => {
+    const perctRaised = faker.number.float({ min: 0.1, max: 0.9 });
+    const raised = faker.datatype.boolean(perctRaised);
+    return {
+      id: tileId,
+      selected: false,
+      defending: false,
+      raised,
+    };
+  }),
+});
+
+export function selectTile(id: string, cameraPosition: THREE.Vector3) {
+  const currentlySelected = hexasphereProxy.tiles.find((tile) => tile.selected);
+
+  if (currentlySelected) {
+    currentlySelected.selected = false;
+  }
+
+  const newSelected = hexasphereProxy.tiles.find((tile) => tile.id === id);
+
+  if (newSelected) {
+    newSelected.selected = true;
+    hexasphereProxy.selection.selectedId = newSelected.id;
+    hexasphereProxy.selection.cameraPosition = cameraPosition;
+
+    const currentlyDefending = hexasphereProxy.tiles.filter(
+      (tile) => tile.defending
+    );
+
+    if (currentlyDefending.length > 0) {
+      currentlyDefending.forEach((tile) => {
+        tile.defending = false;
+      });
+    }
+
+    const neighbors = hexasphere.tileLookup[newSelected.id].neighborIds;
+
+    newSelected.raised &&
+      neighbors.forEach((neighborTileId) => {
+        const neighbor = hexasphereProxy.tiles.find(
+          (tile) => tile.id === neighborTileId
+        );
+        if (neighbor) {
+          neighbor.defending = true;
+        }
+      });
+  }
+
+  return currentlySelected;
+}
+
+const derived = derive({
+  cameraPath: (get) => {
+    const selectedId = get(hexasphereProxy.selection).selectedId;
+    const cameraPosition = get(hexasphereProxy.selection).cameraPosition;
+    if (selectedId && cameraPosition) {
+      const { x, y, z } = hexasphere.tileLookup[selectedId].centerPoint;
+      return buildCameraPath(cameraPosition, new THREE.Vector3(x, y, z));
+    }
+
+    return undefined;
+  },
+});
+
+const TileMesh = React.memo(
+  ({
+    id,
+    selected,
+    defending,
+    water,
+    land,
+    raised,
+  }: {
+    id: string;
+    selected: boolean;
+    defending: boolean;
+    water: string;
+    land: string;
+    raised: boolean;
+  }) => {
+    const { positions, indices, centerPoint } = useMemo(() => {
+      const tile = hexasphere.tileLookup[id];
+      return {
+        ...tile,
+        ...getBoundaries(tile, raised),
+      };
+    }, [raised]);
+
+    const mesh: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
+    const text: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
+    const textMesh: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
+    const cyl: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
+    const selectedRing: React.MutableRefObject<THREE.Mesh | null> =
+      useRef(null);
+    const defendingRing: React.MutableRefObject<THREE.Mesh | null> =
+      useRef(null);
+
+    const geo: React.MutableRefObject<THREE.BufferGeometry | null> =
+      useRef(null);
+    const countGeo: React.MutableRefObject<THREE.CylinderGeometry | null> =
+      useRef(null);
+    const textGeo: React.MutableRefObject<TextGeometry | null> = useRef(null);
+    const [countEdges, setCountEdges] = useState<
+      [THREE.EdgesGeometry, THREE.LineBasicMaterial] | undefined
+    >();
+    const [edges, setEdges] = useState<
+      [THREE.EdgesGeometry, THREE.LineBasicMaterial] | undefined
+    >();
+
+    const randomNumber = useMemo(
+      () => faker.number.int({ min: 1, max: 9999 }).toString(),
+      []
+    );
+
+    useEffect(() => {
+      if(selectedRing.current) {
+        selectedRing.current.rotation.x = MathUtils.degToRad(-90);
+      }
+      if(defendingRing.current) {
+        defendingRing.current.rotation.x = MathUtils.degToRad(-90);
+      }
+    }, [selected, defending]);
+
+    useEffect(() => {
+      if (geo.current && raised) {
+        setEdges([
+          new THREE.EdgesGeometry(geo.current, 50),
+          new THREE.LineBasicMaterial({ color: 'black' }),
+        ]);
+        // const pth = new PointTextHelper();
+        // mesh.current.add(pth);
+        // pth.displayVertices(positions, {
+        //   color: 'white',
+        //   size: 10,
+        //   format: (index) => `${index}`,
+        // });
+      }
+
+      if (
+        countGeo.current &&
+        text.current &&
+        cyl.current &&
+        textGeo.current &&
+        textMesh.current
+      ) {
+        if (parseInt(randomNumber) > 99) {
+          cyl.current.scale.x = 1.5;
+        }
+        if (parseInt(randomNumber) > 999) {
+          cyl.current.scale.x = 2;
+        }
+
+        const cp = new THREE.Vector3(
+          centerPoint.x,
+          centerPoint.y,
+          centerPoint.z
+        );
+
+        cyl.current.rotation.x = MathUtils.degToRad(90);
+        text.current?.position.copy(center.clone());
+        text.current?.lookAt(cp.clone());
+        text.current?.position.copy(cp.clone());
+
+        textGeo.current.computeBoundingBox();
+        const b = textGeo.current.boundingBox?.getCenter(new THREE.Vector3());
+
+        if (b) {
+          textMesh.current.position.x -= b.x;
+          textMesh.current.position.y -= b.y;
+          textMesh.current.position.z += 1;
+        }
+
+        setCountEdges([
+          new THREE.EdgesGeometry(countGeo.current, 50),
+          new THREE.LineBasicMaterial({ color: 'black' }),
+        ]);
+      }
+    }, []);
+
+    const { camera } = useThree();
+
+    useFrame(() => {
+      if (text.current) {
+        const b = text.current.position.clone();
+        const a = new THREE.Object3D();
+        a.position.set(b.x, b.y, b.z);
+        a.lookAt(camera.position);
+
+        const z = a.rotation.z;
+        const cp = new THREE.Vector3(
+          centerPoint.x,
+          centerPoint.y,
+          centerPoint.z
+        );
+
+        const dir1 = cp.clone().sub(center).normalize().multiplyScalar(10);
+        cp.add(dir1);
+
+        text.current.rotation.z = z;
+      }
+    });
+
+    if (!indices || !positions) {
+      return <></>;
+    }
+
+    return (
+      <>
+        {raised ? (
+          <mesh
+            ref={text}
+            position={[centerPoint.x, centerPoint.y, centerPoint.z]}
+          >
+            <mesh ref={cyl}>
+              <cylinderGeometry
+                ref={countGeo}
+                attach="geometry"
+                args={[2, 2, 2, 35]}
+              />
+              {countEdges?.[0] ? (
+                <lineSegments
+                  geometry={countEdges[0]}
+                  material={countEdges[1]}
+                />
+              ) : null}
+              {selected ? (
+                <mesh ref={selectedRing} position={[0, 1, 0]}>
+                  <ringGeometry args={[2, 2.5, 25]} />
+                  <meshBasicMaterial
+                    side={THREE.DoubleSide}
+                    attach="material"
+                    color={'red'}
+                  />
+                </mesh>
+              ) : null}
+              {defending ? (
+                <mesh ref={defendingRing} position={[0, 1, 0]}>
+                  <ringGeometry args={[2, 2.5, 25]} />
+                  <meshBasicMaterial
+                    side={THREE.DoubleSide}
+                    attach="material"
+                    color={'blue'}
+                  />
+                </mesh>
+              ) : null}
+            </mesh>
+            <mesh ref={textMesh}>
+              <textGeometry
+                ref={textGeo}
+                args={[randomNumber, { font, size: 2, height: 0.25 }]}
+              />
+              <meshBasicMaterial
+                side={THREE.DoubleSide}
+                attach="material"
+                color={'black'}
+              />
+            </mesh>
+          </mesh>
+        ) : null}
+        <mesh
+          ref={mesh}
+          onClick={(e) => {
+            e.stopPropagation();
+            selectTile(id, camera.position);
+          }}
+        >
+          <bufferGeometry ref={geo}>
+            <bufferAttribute
+              attach="attributes-position"
+              array={positions}
+              count={positions.length / 3}
+              itemSize={3}
+            />
+            <bufferAttribute
+              attach="index"
+              array={indices}
+              count={indices.length}
+              itemSize={1}
+            />
+          </bufferGeometry>
+          <meshStandardMaterial color={raised ? land : water} />
+        </mesh>
+        {edges?.[0] ? (
+          <lineSegments geometry={edges[0]} material={edges[1]} />
+        ) : null}
+      </>
+    );
+  }
+);
 
 var camPosIndex = 0;
 
-export function Hexasphere({
-  tiles,
-  selected,
-  setSelected,
-  portal,
-  getPointInBetweenByPerc,
-}: {
-  setSelected(id: { x: number; y: number; z: number }): void;
-  selected?: { x: number; y: number; z: number };
-  rotateX: number;
-  rotateY: number;
-  rotateZ: number;
-  tiles: any;
-  hexasphere: any;
-  portal?: any;
-  getPointInBetweenByPerc: any;
-}) {
-  const { camera } = useThree();
+export const Hexasphere = React.memo(
+  ({ selectedTile }: { selectedTile?: string }) => {
+    const mesh: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
 
-  function onClick(id: { x: number; y: number; z: number }) {
-    setSelected(id);
-  }
+    const stars = useMemo(() => {
+      const createStar = () => {
+        const randomY = faker.number.int({ min: -1000, max: -50 });
+        const randomY1 = faker.number.int({ min: 50, max: 1000 });
 
-  const mesh: any = useRef();
-  const [planetEndQ, setPlanetEndQ] = useState<any>();
+        const randomX = faker.number.int({ min: -1000, max: -50 });
+        const randomX1 = faker.number.int({ min: 50, max: 1000 });
 
-  const cont: any = useRef();
+        const randomZ = faker.number.int({ min: -1000, max: -50 });
+        const randomZ1 = faker.number.int({ min: 50, max: 1000 });
 
-  const [pole1, pole2] = useMemo(() => {
-    const pole1 = tiles
-      .filter((t: any) => t.id === poleIds[0])
-      .flatMap((pole: any) =>
-        pole.neighbors.map(
-          (n: any) => `${n.centerPoint.x},${n.centerPoint.y},${n.centerPoint.z}`
-        )
-      );
-    const pole2 = tiles
-      .filter((t: any) => t.id === poleIds[1])
-      .flatMap((pole: any) =>
-        pole.neighbors.map(
-          (n: any) => `${n.centerPoint.x},${n.centerPoint.y},${n.centerPoint.z}`
-        )
-      );
-
-    return [pole1, pole2];
-  }, []);
-
-  useEffect(() => {
-    if (selected && mesh.current) {
-      var { x, y, z } = selected;
-      const point = new THREE.Vector3(x, y, z);
-
-      const center = new THREE.Vector3(0, 0, 0);
-
-      const { x: camX, y: camY, z: camZ } = camera.position;
-
-      const currentCameraPosition = new THREE.Vector3(camX, camY, camZ);
-      const cameraPointOnSphere_dir = center
-        .clone()
-        .sub(currentCameraPosition)
-        .normalize()
-        .multiplyScalar(50);
-      const cameraPointOnSphere = center.clone();
-      cameraPointOnSphere.add(cameraPointOnSphere_dir);
-
-      const dir = center.clone().sub(point).normalize().multiplyScalar(110);
-      point.add(dir);
-
-      const pointsOnPortalCurve = 64;
-      const points = [];
-      const radius = 160;
-      for (let index = 0; index < pointsOnPortalCurve; index++) {
-        const percent = index * (1 / pointsOnPortalCurve);
-        const pointBetweenFromAndTo = getPointInBetweenByPerc(
-          currentCameraPosition,
-          point,
-          percent
-        );
-        const distanceToCenter = pointBetweenFromAndTo.distanceTo(center);
-        const distanceToSurface = radius - distanceToCenter;
-
-        const movePointBetweenFromOrToToCurve = center
-          .clone()
-          .sub(pointBetweenFromAndTo)
-          .normalize()
-          .multiplyScalar(distanceToSurface);
-
-        pointBetweenFromAndTo.add(movePointBetweenFromOrToToCurve);
-
-        points.push(point);
-      }
-    }
-  }, [selected, camera.position, pole1, pole2]);
-
-  const stars = useMemo(() => {
-    const createStar = () => {
-      const randomY = faker.number.int({ min: -1000, max: -50 });
-      const randomY1 = faker.number.int({ min: 50, max: 1000 });
-
-      const randomX = faker.number.int({ min: -1000, max: -50 });
-      const randomX1 = faker.number.int({ min: 50, max: 1000 });
-
-      const randomZ = faker.number.int({ min: -1000, max: -50 });
-      const randomZ1 = faker.number.int({ min: 50, max: 1000 });
-
-      return [
-        faker.helpers.arrayElement([randomX, randomX1]),
-        faker.helpers.arrayElement([randomY, randomY1]),
-        faker.helpers.arrayElement([randomZ, randomZ1]),
-      ];
-    };
-
-    const createStars = (stars = 5) => {
-      return new Array(stars).fill(undefined).flatMap(createStar);
-    };
-
-    return new Float32Array(createStars(4000));
-  }, []);
-
-  const [cameraPath, setCameraPath] = useState<THREE.CatmullRomCurve3>();
-  const [cameraPathPoints, setCameraPathPoints] = useState<Float32Array>();
-
-  const points = useRef<any>();
-
-  useEffect(() => {
-    //0,-26.286555473703764,42.5325404993388
-    //0,26.286555473703764,-42.5325404993388
-
-    function buildPath(point1: THREE.Vector3, point2: THREE.Vector3) {
-      const pointsOnPath = 64;
-      const radius = 160;
-
-      function _getPoints(_point1: THREE.Vector3, _point2: THREE.Vector3) {
-        const path = [];
-        for (let index = 0; index < pointsOnPath; index++) {
-          const percent = index * (1 / pointsOnPath);
-          const onPath = getPointInBetweenByPerc(_point1, _point2, percent);
-
-          const distanceToPath = radius - onPath.distanceTo(center);
-          const dir = center
-            .clone()
-            .sub(onPath)
-            .normalize()
-            .multiplyScalar(distanceToPath);
-          onPath.sub(dir);
-
-          path.push(onPath);
-        }
-        return path;
-      }
-
-      function _getHalfwayPoint(
-        _point1: THREE.Vector3,
-        _point2: THREE.Vector3
-      ) {
-        const onPath = getPointInBetweenByPerc(_point1, _point2, 0.5);
-        const distanceToPath = radius - onPath.distanceTo(center);
-
-        // move point away from overlapping poles
-        const dir = center
-          .clone()
-          .sub(camera.position)
-          .normalize()
-          .multiplyScalar(10);
-        onPath.sub(dir).applyEuler(new THREE.Euler(0, 0, Math.PI / 2));
-
-        // move point to the path of the camera
-        const dir1 = center
-          .clone()
-          .sub(onPath)
-          .normalize()
-          .multiplyScalar(distanceToPath);
-        onPath.sub(dir1);
-
-        return onPath;
-      }
-
-      let points = new THREE.CatmullRomCurve3(
-        _getPoints(point1, point2)
-      ).getSpacedPoints(1000);
-
-      if (point1.distanceTo(point2) > 200) {
-        points = [
-          ...new THREE.CatmullRomCurve3(
-            _getPoints(point1, new THREE.Vector3(radius, 0, 0))
-          ).getSpacedPoints(1000),
-          ...new THREE.CatmullRomCurve3(
-            _getPoints(new THREE.Vector3(radius, 0, 0), point2)
-          ).getSpacedPoints(1000),
+        return [
+          faker.helpers.arrayElement([randomX, randomX1]),
+          faker.helpers.arrayElement([randomY, randomY1]),
+          faker.helpers.arrayElement([randomZ, randomZ1]),
         ];
-      }
-
-      const crossingOverPole = (): undefined | THREE.Vector3 => {
-        let crossingOverPole = false;
-        let closeArray = null;
-        points.forEach((point: THREE.Vector3) => {
-          const poles = [
-            new THREE.Vector3(0, -radius, 0),
-            new THREE.Vector3(0, radius, 0),
-          ];
-          const close = poles.filter((p) => point.distanceTo(p) < 10);
-          if (close.length > 0) {
-            closeArray = close;
-            crossingOverPole = true;
-          }
-        });
-        return closeArray?.[0];
       };
 
-      const pole = crossingOverPole();
+      const createStars = (stars = 5) => {
+        return new Array(stars).fill(undefined).flatMap(createStar);
+      };
 
-      if (pole) {
-        const middle = pole.clone();
-        const dir = pole.clone().sub(center).normalize().multiplyScalar(10);
-        middle
-          .add(dir)
-          .applyAxisAngle(new THREE.Vector3(1, 0, 0), MathUtils.degToRad(10));
+      return new Float32Array(createStars(4000));
+    }, []);
 
-        points = [
-          ...new THREE.CatmullRomCurve3(
-            _getPoints(point1, middle)
-          ).getSpacedPoints(1000),
-          ...new THREE.CatmullRomCurve3(
-            _getPoints(middle, point2)
-          ).getSpacedPoints(1000),
-        ];
-      }
+    const { camera } = useThree();
+    const [cameraPath, setCameraPath] = useState<THREE.CatmullRomCurve3>();
 
-      // setCameraPathPoints(
-      //   new Float32Array(
-      //     points
-      //       .map((point: THREE.Vector3) => [point.x, point.y, point.z])
-      //       .flatMap((x) => x)
-      //   )
-      // );
+    useFrame(() => {
+      if (cameraPath) {
+        camPosIndex++;
+        if (camPosIndex > 15) {
+          camPosIndex = 0;
+          setCameraPath(undefined);
+        } else {
+          var camPos = cameraPath.getPoint(camPosIndex / 15);
+          var camRot = cameraPath.getTangent(camPosIndex / 15);
 
-      const curve = new THREE.CatmullRomCurve3(
-        new THREE.CatmullRomCurve3(points).getSpacedPoints(1000)
-      );
+          camera.position.x = camPos.x;
+          camera.position.y = camPos.y;
+          camera.position.z = camPos.z;
 
-      setCameraPath(curve);
-    }
+          camera.rotation.x = camRot.x;
+          camera.rotation.y = camRot.y;
+          camera.rotation.z = camRot.z;
 
-    if (selected) {
-      buildPath(
-        camera.position,
-        new THREE.Vector3(selected.x, selected.y, selected.z)
-        // new THREE.Vector3(0, -26.286555473703764, 42.5325404993388),
-        // new THREE.Vector3(0, 26.286555473703764, -42.5325404993388)
-      );
-    }
-  }, [selected]);
-
-  useFrame(() => {
-    // if(false) {
-    if (cameraPath) {
-      camPosIndex++;
-      if (camPosIndex > 100) {
-        camPosIndex = 0;
-        setCameraPath(undefined);
-        cont.current.enabled = true;
-      } else {
-        var camPos = cameraPath.getPoint(camPosIndex / 100);
-        var camRot = cameraPath.getTangent(camPosIndex / 100);
-
-        camera.position.x = camPos.x;
-        camera.position.y = camPos.y;
-        camera.position.z = camPos.z;
-
-        camera.rotation.x = camRot.x;
-        camera.rotation.y = camRot.y;
-        camera.rotation.z = camRot.z;
-
-        camera.lookAt(center);
-      }
-    }
-  });
-
-  const b = useMemo(() => new Float32Array([0, 0, 0]), []);
-
-  return (
-    <>
-      <ambientLight />
-      <directionalLight position={[0, 100, 25]} />
-      <OrbitControls maxZoom={0.25} ref={cont} />
-      <mesh ref={mesh}>
-        {tiles.map((t: any, i: any) => (
-          <TileMesh
-            selectedTile={selected}
-            key={i}
-            planetEndQ={planetEndQ}
-            {...t}
-            index={i}
-            onClick={() => {
-              onClick(t.centerPoint);
-            }}
-            raised={t.raised}
-            highlighted={poleIds.find((p: string) => p === t.id)}
-            selected={
-              [selected?.x, selected?.y, selected?.z].join(',') === t.id
-            }
-            sphereQuat={planetEndQ}
-            target={true}
-          />
-        ))}
-        {portal}
-        {cameraPathPoints && (
-          <points>
-            <bufferGeometry>
-              <bufferAttribute
-                attach="attributes-position"
-                count={cameraPathPoints.length / 3}
-                itemSize={3}
-                array={cameraPathPoints}
-              />
-            </bufferGeometry>
-            <pointsMaterial size={5} color={'white'} />
-          </points>
-        )}
-        {
-          <points>
-            <bufferGeometry>
-              <bufferAttribute
-                attach="attributes-position"
-                count={b.length / 3}
-                itemSize={3}
-                array={b}
-              />
-            </bufferGeometry>
-            <pointsMaterial size={5} color={'red'} />
-          </points>
+          camera.lookAt(center);
         }
-        {/*<points>*/}
-        {/*  <bufferGeometry>*/}
-        {/*    <bufferAttribute*/}
-        {/*      attach="attributes-position"*/}
-        {/*      count={stars.length / 3}*/}
-        {/*      itemSize={3}*/}
-        {/*      array={stars}*/}
-        {/*    />*/}
-        {/*  </bufferGeometry>*/}
-        {/*  <pointsMaterial size={2} color={starColor} transparent />*/}
-        {/*</points>*/}
-      </mesh>
-    </>
-  );
-}
+      }
+    });
+
+    const hs = useSnapshot(hexasphereProxy);
+
+    useEffect(() => {
+      subscribeKey(derived, 'cameraPath', (s) => {
+        setCameraPath(s);
+      });
+    }, []);
+
+    useEffect(() => {
+      if (selectedTile) {
+        selectTile(selectedTile, camera.position);
+      }
+    }, [selectedTile]);
+
+    const land = useMemo(() => faker.color.rgb({ format: 'hex' }), []);
+    const water = useMemo(() => faker.color.rgb({ format: 'hex' }), []);
+
+    return (
+      <>
+        <ambientLight />
+        <directionalLight position={[0, 100, 25]} />
+        <mesh ref={mesh}>
+          {hs.tiles.map((t, i) => (
+            <TileMesh
+              key={t.id}
+              id={t.id}
+              selected={t.selected}
+              water={water}
+              land={land}
+              defending={t.defending}
+              raised={t.raised}
+            />
+          ))}
+          <points>
+            <bufferGeometry>
+              <bufferAttribute
+                attach="attributes-position"
+                count={stars.length / 3}
+                itemSize={3}
+                array={stars}
+              />
+            </bufferGeometry>
+            <pointsMaterial size={2} color={'white'} transparent />
+          </points>
+        </mesh>
+      </>
+    );
+  }
+);

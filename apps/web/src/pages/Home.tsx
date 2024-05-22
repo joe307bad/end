@@ -1,11 +1,16 @@
-import { Home as H, Planet } from '@end/components';
+import {
+  TabsContainer,
+  Home as H,
+  PrimaryButton,
+} from '@end/components';
 import { database, sync } from '@end/wm/web';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
-import { useHexasphere } from '@end/hexasphere';
 import { useWindowDimensions } from 'react-native';
+import { OrbitControls } from '@react-three/drei';
+import { Hexasphere, hexasphereProxy } from '@end/hexasphere';
+import { faker } from '@faker-js/faker';
 
 export default function Home() {
   const ref = useRef(null);
@@ -41,49 +46,35 @@ export default function Home() {
 
     return cam;
   }, []);
-  const { tiles, hexasphere, setReset, reset } = useHexasphere();
-  const [selectedTile, setSelectedTile] = useState<{
-    x: number;
-    y: number;
-    z: number;
-  }>();
+
+  const [selectedTile, selectTile] = useState<string>();
+  const [reset, setReset] = useState(Math.random());
+
+  const newPlanet = useCallback(() => {
+    hexasphereProxy.tiles.forEach((tile) => {
+      const raisedness = faker.number.float({ min: 0.1, max: 0.9 });
+      tile.raised = faker.datatype.boolean(raisedness);
+      tile.selected = false;
+      tile.defending = false;
+    });
+    hexasphereProxy.selection.selectedId = null;
+    hexasphereProxy.selection.cameraPosition = null;
+    setReset(Math.random());
+  }, []);
 
   return (
     <H database={database} sync={sync} apiUrl={process.env.API_BASE_URL}>
-      <Planet
-        setReset={setReset}
-        reset={reset}
-        tiles={tiles}
-        hexasphere={hexasphere}
-        selectedTile={selectedTile}
-        setSelectedTile={(id) =>
-          setSelectedTile(
-            (prevId: { x: number; y: number; z: number } | undefined) => {
-              const { x, y, z } = prevId ?? {};
-              const { x: x1, y: y1, z: z1 } = id ?? {};
-              return JSON.stringify({ x, y, z }) === JSON.stringify({ x: x1, y: y1, z: z1 })
-                ? undefined
-                : id;
-            }
-          )
-        }
+      <Canvas
+        style={{
+          flex: 1,
+          ...responsiveness,
+        }}
+        camera={cam}
       >
-        {(hexasphere, controls, footer) => (
-          <>
-            <Canvas
-              style={{
-                flex: 1,
-                ...responsiveness,
-              }}
-              camera={cam}
-            >
-              {hexasphere}
-            </Canvas>
-            {controls}
-            {footer}
-          </>
-        )}
-      </Planet>
+        <Hexasphere key={reset} selectedTile={selectedTile} />
+        <OrbitControls />
+      </Canvas>
+      <TabsContainer menuOpen={true} selectTile={selectTile} newPlanet={newPlanet} />
     </H>
   );
 }
