@@ -39,34 +39,32 @@ export function buildCameraPath(point1: THREE.Vector3, point2: THREE.Vector3) {
 
   let points = new THREE.CatmullRomCurve3(
     _getPoints(point1, point2)
-  ).getSpacedPoints(1000);
+  ).getSpacedPoints(15);
 
   if (point1.distanceTo(point2) > radius) {
     points = [
       ...new THREE.CatmullRomCurve3(
         _getPoints(point1, new THREE.Vector3(radius, 0, 0))
-      ).getSpacedPoints(1000),
+      ).getSpacedPoints(15),
       ...new THREE.CatmullRomCurve3(
         _getPoints(new THREE.Vector3(radius, 0, 0), point2)
-      ).getSpacedPoints(1000),
+      ).getSpacedPoints(15),
     ];
   }
 
   const crossingOverPole = (): undefined | THREE.Vector3 => {
-    let crossingOverPole = false;
-    let closeArray = null;
+    let closeArray = undefined;
     points.forEach((point: THREE.Vector3) => {
       const poles = [
         new THREE.Vector3(0, -radius, 0),
         new THREE.Vector3(0, radius, 0),
       ];
-      const close = poles.filter((p) => point.distanceTo(p) < 10);
-      if (close.length > 0) {
+      const close = poles.find((p) => point.distanceTo(p) < 10);
+      if (close) {
         closeArray = close;
-        crossingOverPole = true;
       }
     });
-    return closeArray?.[0];
+    return closeArray;
   };
 
   const pole = crossingOverPole();
@@ -80,15 +78,20 @@ export function buildCameraPath(point1: THREE.Vector3, point2: THREE.Vector3) {
 
     points = [
       ...new THREE.CatmullRomCurve3(_getPoints(point1, middle)).getSpacedPoints(
-        1000
+        15
       ),
       ...new THREE.CatmullRomCurve3(_getPoints(middle, point2)).getSpacedPoints(
-        1000
+        15
       ),
     ];
   }
 
-  return new THREE.CatmullRomCurve3(
-    new THREE.CatmullRomCurve3(points).getSpacedPoints(1000)
+  const tangents = [...Array(20).keys()].map((_, i) =>
+    new THREE.CatmullRomCurve3(points).getTangent(i / 20)
   );
+
+  return {
+    points: new THREE.CatmullRomCurve3(points).getSpacedPoints(20),
+    tangents,
+  };
 }

@@ -1,8 +1,4 @@
-import {
-  TabsContainer,
-  Home as H,
-  PrimaryButton,
-} from '@end/components';
+import { TabsContainer, Home as H, PrimaryButton } from '@end/components';
 import { database, sync } from '@end/wm/web';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
@@ -11,6 +7,7 @@ import { useWindowDimensions } from 'react-native';
 import { OrbitControls } from '@react-three/drei';
 import { Hexasphere, hexasphereProxy } from '@end/hexasphere';
 import { faker } from '@faker-js/faker';
+import { Header } from 'tamagui';
 
 export default function Home() {
   const ref = useRef(null);
@@ -50,9 +47,23 @@ export default function Home() {
   const [selectedTile, selectTile] = useState<string>();
   const [reset, setReset] = useState(Math.random());
 
+  const controls = useRef(null);
+
+  const toggleControls = useCallback((enable: boolean) => {
+    if (!controls.current) {
+      return;
+    }
+
+    // @ts-ignore
+    controls.current.enabled = enable;
+  }, []);
+
   const newPlanet = useCallback(() => {
     hexasphereProxy.tiles.forEach((tile) => {
+      // TODO is there a way to completed destroy and recreate the proxy + the hexasphere? This may resolve perf issues
       const raisedness = faker.number.float({ min: 0.1, max: 0.9 });
+      const name = faker.lorem.word();
+      tile.name = name;
       tile.raised = faker.datatype.boolean(raisedness);
       tile.selected = false;
       tile.defending = false;
@@ -64,6 +75,7 @@ export default function Home() {
 
   return (
     <H database={database} sync={sync} apiUrl={process.env.API_BASE_URL}>
+      <Header>Galator IV</Header>
       <Canvas
         style={{
           flex: 1,
@@ -71,10 +83,18 @@ export default function Home() {
         }}
         camera={cam}
       >
-        <Hexasphere key={reset} selectedTile={selectedTile} />
-        <OrbitControls />
+        <Hexasphere
+          key={reset}
+          selectedTile={selectedTile}
+          toggleControls={toggleControls}
+        />
+        <OrbitControls ref={controls} />
       </Canvas>
-      <TabsContainer menuOpen={true} selectTile={selectTile} newPlanet={newPlanet} />
+      <TabsContainer
+        menuOpen={true}
+        selectTile={selectTile}
+        newPlanet={newPlanet}
+      />
     </H>
   );
 }
