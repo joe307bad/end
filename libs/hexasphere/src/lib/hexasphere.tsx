@@ -1,4 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  startTransition,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import '@react-three/fiber';
 import { faker } from '@faker-js/faker';
 import {
@@ -9,7 +16,7 @@ import {
   useThree,
 } from '@react-three/fiber';
 import * as THREE from 'three';
-import { MathUtils } from 'three';
+import { BufferAttribute, MathUtils, NormalBufferAttributes } from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 // @ts-ignore
@@ -220,6 +227,15 @@ Object.keys(hexasphere.tileLookup).forEach((tileId) => {
   const water = getBoundaries(tile, false);
   hexasphere.tileLookup[tileId].land = land;
   hexasphere.tileLookup[tileId].water = water;
+
+  const geometry = new THREE.BufferGeometry();
+
+  const vertices = land.positions;
+
+  geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+  geometry.setAttribute('index', new THREE.BufferAttribute(land.indices, 1));
+
+  hexasphere.tileLookup[tileId].landGeometry = geometry;
 });
 
 export function selectTile(id: string, cameraPosition: THREE.Vector3) {
@@ -419,6 +435,7 @@ const TroopCount = React.memo(
 type LandAndWater = {
   land: { positions: Float32Array; indices: Uint16Array };
   water: { positions: Float32Array; indices: Uint16Array };
+  landGeometry: THREE.BufferGeometry<NormalBufferAttributes>;
 };
 
 const TileMesh = React.memo(
@@ -446,7 +463,9 @@ const TileMesh = React.memo(
 
     const click = useCallback((e: ThreeEvent<MouseEvent>) => {
       e.stopPropagation();
-      selectTile(id, camera.position);
+      startTransition(() => {
+        selectTile(id, camera.position);
+      });
     }, []);
 
     return (
@@ -507,10 +526,8 @@ var camPosIndex = 0;
 export const Hexasphere = React.memo(
   ({
     selectedTile,
-    toggleControls,
   }: {
     selectedTile?: string;
-    toggleControls: (enable: boolean) => void;
   }) => {
     const mesh: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
 

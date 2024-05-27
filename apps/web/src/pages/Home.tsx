@@ -47,17 +47,6 @@ export default function Home() {
   const [selectedTile, selectTile] = useState<string>();
   const [reset, setReset] = useState(Math.random());
 
-  const controls = useRef(null);
-
-  const toggleControls = useCallback((enable: boolean) => {
-    if (!controls.current) {
-      return;
-    }
-
-    // @ts-ignore
-    controls.current.enabled = enable;
-  }, []);
-
   const newPlanet = useCallback(() => {
     hexasphereProxy.tiles.forEach((tile) => {
       // TODO is there a way to completed destroy and recreate the proxy + the hexasphere? This may resolve perf issues
@@ -83,12 +72,8 @@ export default function Home() {
         }}
         camera={cam}
       >
-        <Hexasphere
-          key={reset}
-          selectedTile={selectedTile}
-          toggleControls={toggleControls}
-        />
-        <OrbitControls ref={controls} />
+        <Hexasphere key={reset} selectedTile={selectedTile} />
+        <OrbitControls />
       </Canvas>
       <TabsContainer
         menuOpen={true}
