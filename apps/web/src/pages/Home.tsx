@@ -5,7 +5,7 @@ import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useWindowDimensions } from 'react-native';
 import { OrbitControls } from '@react-three/drei';
-import { Hexasphere, hexasphereProxy } from '@end/hexasphere';
+import { getRandomName, Hexasphere, hexasphereProxy } from '@end/hexasphere';
 import { faker } from '@faker-js/faker';
 import { H2 } from 'tamagui';
 // @ts-ignore
@@ -35,7 +35,10 @@ export default function Home() {
     ];
   }, [width]);
   const cam = useMemo(() => {
-    return new THREE.PerspectiveCamera(45);
+    const cam = new THREE.PerspectiveCamera(45);
+    cam.position.set(0, 0, 160);
+
+    return cam;
   }, []);
 
   const [selectedTile, selectTile] = useState<string>();
@@ -45,8 +48,8 @@ export default function Home() {
     hexasphereProxy.tiles.forEach((tile) => {
       // TODO is there a way to completed destroy and recreate the proxy + the hexasphere? This may resolve perf issues
       const raisedness = faker.number.float({ min: 0.1, max: 0.9 });
-      const name = faker.lorem.word();
-      tile.name = name;
+
+      tile.name = getRandomName();
       tile.raised = faker.datatype.boolean(raisedness);
       tile.selected = false;
       tile.defending = false;
@@ -57,55 +60,7 @@ export default function Home() {
   }, []);
 
   const name = useMemo(() => {
-    function convertToRoman(num: number) {
-      var roman = {
-        M: 1000,
-        CM: 900,
-        D: 500,
-        CD: 400,
-        C: 100,
-        XC: 90,
-        L: 50,
-        XL: 40,
-        X: 10,
-        IX: 9,
-        V: 5,
-        IV: 4,
-        I: 1,
-      };
-      var str = '';
-
-      for (var i of Object.keys(roman)) {
-        // @ts-ignore
-        var q = Math.floor(num / roman[i]);
-        // @ts-ignore
-        num -= q * roman[i];
-        str += i.repeat(q);
-      }
-
-      return str;
-    }
-
-    const words = [
-      faker.lorem.word(),
-      faker.word.noun(),
-      faker.person.lastName(),
-      faker.science.chemicalElement().name,
-      convertToRoman(faker.number.int({ min: 1, max: 1000 })),
-    ];
-
-    const word1 = words[faker.number.int({ min: 0, max: words.length - 1 })];
-
-    function findWord2() {
-      const word2 = words[faker.number.int({ min: 0, max: words.length - 1 })];
-      if (word2 === word1) {
-        return findWord2();
-      }
-
-      return word2;
-    }
-
-    return v.titleCase(`${word1} ${findWord2()}`);
+      return getRandomName();
   }, [reset]);
 
   return (

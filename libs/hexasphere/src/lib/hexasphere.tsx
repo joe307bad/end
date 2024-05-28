@@ -28,6 +28,8 @@ import { derive, subscribeKey } from 'valtio/utils';
 import HS from './hexasphere.lib';
 import { buildCameraPath } from './build-camera-path';
 import { Edges } from '@react-three/drei';
+// @ts-ignore
+import v from 'voca';
 
 extend({ TextGeometry });
 
@@ -39,6 +41,66 @@ declare module '@react-three/fiber' {
     textGeometry: Object3DNode<TextGeometry, typeof TextGeometry>;
   }
 }
+
+function convertToRoman(num: number) {
+  var roman = {
+    M: 1000,
+    CM: 900,
+    D: 500,
+    CD: 400,
+    C: 100,
+    XC: 90,
+    L: 50,
+    XL: 40,
+    X: 10,
+    IX: 9,
+    V: 5,
+    IV: 4,
+    I: 1,
+  };
+  var str = '';
+
+  for (var i of Object.keys(roman)) {
+    // @ts-ignore
+    var q = Math.floor(num / roman[i]);
+    // @ts-ignore
+    num -= q * roman[i];
+    str += i.repeat(q);
+  }
+
+  return str;
+}
+
+export const getRandomName = () => {
+  const words = [
+    faker.lorem.word(),
+    faker.word.noun(),
+    faker.person.lastName(),
+    faker.science.chemicalElement().name,
+  ];
+  const word1 = words[faker.number.int({ min: 0, max: words.length - 1 })];
+
+  function findWord2() {
+    const word2 = words[faker.number.int({ min: 0, max: words.length - 1 })];
+    if (word2 === word1) {
+      return findWord2();
+    }
+
+    return word2;
+  }
+
+  function addRomanNumeral() {
+    const show = faker.datatype.boolean();
+
+    if (!show) {
+      return '';
+    }
+
+    return ` ${convertToRoman(faker.number.int({ min: 1, max: 10 }))}`;
+  }
+
+  return v.titleCase(`${word1} ${findWord2()}`) + addRomanNumeral();
+};
 
 const depthRatio = 1.04;
 
@@ -207,16 +269,12 @@ export const hexasphereProxy = proxy<{
   },
   tiles: Object.keys(hexasphere.tileLookup).map((tileId: string) => {
     const perctRaised = faker.number.float({ min: 0.1, max: 0.9 });
-    const raised = faker.datatype.boolean(perctRaised);
-    const name = faker.lorem.word();
-    const tile = hexasphere.tileLookup[tileId];
-    // const
     return {
       id: tileId,
       selected: false,
       defending: false,
-      raised,
-      name,
+      raised: faker.datatype.boolean(perctRaised),
+      name: getRandomName(),
     };
   }),
 });
@@ -227,15 +285,6 @@ Object.keys(hexasphere.tileLookup).forEach((tileId) => {
   const water = getBoundaries(tile, false);
   hexasphere.tileLookup[tileId].land = land;
   hexasphere.tileLookup[tileId].water = water;
-
-  const geometry = new THREE.BufferGeometry();
-
-  const vertices = land.positions;
-
-  geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-  geometry.setAttribute('index', new THREE.BufferAttribute(land.indices, 1));
-
-  hexasphere.tileLookup[tileId].landGeometry = geometry;
 });
 
 export function selectTile(id: string, cameraPosition: THREE.Vector3) {
@@ -469,17 +518,7 @@ const TileMesh = React.memo(
     }, []);
 
     return (
-      <>
         <mesh onClick={click}>
-          {raised ? (
-            <TroopCount
-              x={centerPoint.x}
-              y={centerPoint.y}
-              z={centerPoint.z}
-              selected={selected}
-              defending={defending}
-            />
-          ) : null}
           <mesh visible={raised}>
             <bufferGeometry>
               <bufferAttribute
@@ -516,7 +555,6 @@ const TileMesh = React.memo(
             <meshStandardMaterial color={waterColor} />
           </mesh>
         </mesh>
-      </>
     );
   }
 );
@@ -524,11 +562,7 @@ const TileMesh = React.memo(
 var camPosIndex = 0;
 
 export const Hexasphere = React.memo(
-  ({
-    selectedTile,
-  }: {
-    selectedTile?: string;
-  }) => {
+  ({ selectedTile }: { selectedTile?: string }) => {
     const mesh: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
 
     const stars = useMemo(() => {

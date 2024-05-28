@@ -34,9 +34,6 @@ export function TabsContainer({
 }) {
   const hs = useSnapshot(hexasphereProxy);
   const { bp } = useResponsive(menuOpen, 1297);
-  const [rotateX, setRotateX] = useState(0);
-  const [rotateY, setRotateY] = useState(0);
-  const [rotateZ, setRotateZ] = useState(0);
   const sv = useRef<ScrollView | any>(null);
 
   useEffect(() => {
@@ -63,7 +60,7 @@ export function TabsContainer({
       <View style={tw`flex h-full`}>
         <View style={tw`flex-1`}>
           <Tabs
-            defaultValue="tab3"
+            defaultValue="tab1"
             orientation="horizontal"
             flexDirection="column"
             borderRadius={5}
@@ -77,26 +74,17 @@ export function TabsContainer({
             <Tabs.List
               separator={<Separator vertical />}
               disablePassBorderRadius="bottom"
-              aria-label="Manage your account"
             >
               <Tabs.Tab borderWidth={0} flex={1} value="tab1">
-                <SizableText fontFamily="$body">Details</SizableText>
+                <SizableText fontFamily="$body">Start</SizableText>
               </Tabs.Tab>
               <Tabs.Tab borderWidth={0} flex={1} value="tab2">
-                <SizableText fontFamily="$body">View</SizableText>
-              </Tabs.Tab>
-              <Tabs.Tab borderWidth={0} flex={1} value="tab3">
-                <SizableText fontFamily="$body">Tiles</SizableText>
-              </Tabs.Tab>
-              <Tabs.Tab borderWidth={0} flex={1} value="tab4">
-                <SizableText fontFamily="$body">Debug</SizableText>
+                <SizableText fontFamily="$body">Territories</SizableText>
               </Tabs.Tab>
             </Tabs.List>
             <Separator />
             <TabsContent value="tab1">
               <View>
-                <Input padding="$0.5" width="100%" placeholder="Planet Name" />
-                <Spacer />
                 <Select
                   label="Number of players"
                   items={[2, 3, 4, 5, 6, 7, 8, 9, 10]}
@@ -105,64 +93,10 @@ export function TabsContainer({
                 <PrimaryButton onPress={newPlanet}>Start game</PrimaryButton>
               </View>
             </TabsContent>
-
-            <TabsContent value="tab2">
-              <View
-                style={{
-                  flex: 1,
-                  marginLeft: 10,
-                  marginRight: 10,
-                  alignItems: 'stretch',
-                  justifyContent: 'center',
-                  width: '100%',
-                }}
-              >
-                <Text>Rotate X</Text>
-                <Slider
-                  value={rotateX}
-                  onValueChange={(value) => setRotateX(value[0])}
-                />
-              </View>
-              <View
-                style={{
-                  flex: 1,
-                  marginLeft: 10,
-                  marginRight: 10,
-                  alignItems: 'stretch',
-                  justifyContent: 'center',
-                  width: '100%',
-                }}
-              >
-                <Text>Rotate Y</Text>
-                <Slider
-                  value={rotateY}
-                  onValueChange={(value) => setRotateY(value[0])}
-                />
-              </View>
-              <View
-                style={{
-                  flex: 1,
-                  marginLeft: 10,
-                  marginRight: 10,
-                  alignItems: 'stretch',
-                  justifyContent: 'center',
-                  width: '100%',
-                }}
-              >
-                <Text>Rotate Z</Text>
-                <Slider
-                  value={rotateZ}
-                  onValueChange={(value) => setRotateZ(value[0])}
-                />
-              </View>
-            </TabsContent>
-
-            <TabsContent value="tab3" style={tw`h-full`}>
+            <TabsContent value="tab2" style={tw`h-full`}>
               <View style={tw`h-full overflow-scroll w-full`}>
                 <ScrollView ref={sv}>
-                  {hs.tiles
-                    //.filter((t) => t.raised)
-                    .map((t) => (
+                  {hs.tiles.map((t) => (
                       <TileListItem
                         id={t.id}
                         name={t.name}
@@ -173,10 +107,6 @@ export function TabsContainer({
                     ))}
                 </ScrollView>
               </View>
-            </TabsContent>
-
-            <TabsContent value="tab4">
-              <H5>Notifications</H5>
             </TabsContent>
           </Tabs>
         </View>
