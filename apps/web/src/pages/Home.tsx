@@ -1,4 +1,4 @@
-import { TabsContainer, Home as H, PrimaryButton } from '@end/components';
+import { Home as H, TabsContainer } from '@end/components';
 import { database, sync } from '@end/wm/web';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
@@ -7,7 +7,9 @@ import { useWindowDimensions } from 'react-native';
 import { OrbitControls } from '@react-three/drei';
 import { Hexasphere, hexasphereProxy } from '@end/hexasphere';
 import { faker } from '@faker-js/faker';
-import { Header } from 'tamagui';
+import { H2 } from 'tamagui';
+// @ts-ignore
+import v from 'voca';
 
 export default function Home() {
   const ref = useRef(null);
@@ -33,15 +35,7 @@ export default function Home() {
     ];
   }, [width]);
   const cam = useMemo(() => {
-    const cam = new THREE.PerspectiveCamera(45);
-
-    if (width < 835) {
-      cam.position.set(0, 0, 300);
-    } else {
-      cam.position.set(0, 0, 160);
-    }
-
-    return cam;
+    return new THREE.PerspectiveCamera(45);
   }, []);
 
   const [selectedTile, selectTile] = useState<string>();
@@ -62,9 +56,61 @@ export default function Home() {
     setReset(Math.random());
   }, []);
 
+  const name = useMemo(() => {
+    function convertToRoman(num: number) {
+      var roman = {
+        M: 1000,
+        CM: 900,
+        D: 500,
+        CD: 400,
+        C: 100,
+        XC: 90,
+        L: 50,
+        XL: 40,
+        X: 10,
+        IX: 9,
+        V: 5,
+        IV: 4,
+        I: 1,
+      };
+      var str = '';
+
+      for (var i of Object.keys(roman)) {
+        // @ts-ignore
+        var q = Math.floor(num / roman[i]);
+        // @ts-ignore
+        num -= q * roman[i];
+        str += i.repeat(q);
+      }
+
+      return str;
+    }
+
+    const words = [
+      faker.lorem.word(),
+      faker.word.noun(),
+      faker.person.lastName(),
+      faker.science.chemicalElement().name,
+      convertToRoman(faker.number.int({ min: 1, max: 1000 })),
+    ];
+
+    const word1 = words[faker.number.int({ min: 0, max: words.length - 1 })];
+
+    function findWord2() {
+      const word2 = words[faker.number.int({ min: 0, max: words.length - 1 })];
+      if (word2 === word1) {
+        return findWord2();
+      }
+
+      return word2;
+    }
+
+    return v.titleCase(`${word1} ${findWord2()}`);
+  }, [reset]);
+
   return (
     <H database={database} sync={sync} apiUrl={process.env.API_BASE_URL}>
-      <Header>Galator IV</Header>
+      <H2 paddingLeft="$1">{name}</H2>
       <Canvas
         style={{
           flex: 1,
