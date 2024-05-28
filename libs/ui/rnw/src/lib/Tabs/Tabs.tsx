@@ -55,7 +55,7 @@ export function TabsContainer({
     <Section
       style={bp([
         'z-10 max-w-full',
-        'relative w-full',
+        'relative w-full h-[50%]',
         '',
         'absolute w-[500px] pb-5 right-[20px] w-[500px] h-full',
       ])}
@@ -161,18 +161,14 @@ export function TabsContainer({
               <View style={tw`h-full overflow-scroll w-full`}>
                 <ScrollView ref={sv}>
                   {hs.tiles
-                    .filter((t) => t.raised)
+                    //.filter((t) => t.raised)
                     .map((t) => (
-                      <ListItem
-                        padding="$1"
-                        hoverTheme
-                        icon={Hexagon}
-                        title={
-                          <View style={{ cursor: 'pointer' }}>{t.name}</View>
-                        }
-                        pressTheme
-                        onPress={() => selectTile(t.id, sv.current)}
-                        iconAfter={t.selected ? Crosshair : null}
+                      <TileListItem
+                        id={t.id}
+                        name={t.name}
+                        selectTile={selectTile}
+                        selected={t.selected}
+                        raised={t.raised}
                       />
                     ))}
                 </ScrollView>
@@ -196,3 +192,31 @@ export function TabsContainer({
     </Section>
   );
 }
+
+const TileListItem = React.memo(function ({
+  name,
+  raised,
+  selected,
+  id,
+  selectTile,
+}: {
+  id: string;
+  selectTile: (id: string) => void;
+  name: string;
+  raised: boolean;
+  selected: boolean;
+}) {
+
+  return (
+    <ListItem
+      display={raised ? 'flex' : 'none'}
+      padding="$1"
+      hoverTheme
+      icon={Hexagon}
+      title={<View style={{ cursor: 'pointer' }}>{name}</View>}
+      pressTheme
+      onPress={() => selectTile(id)}
+      iconAfter={selected ? Crosshair : null}
+    />
+  );
+});

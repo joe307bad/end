@@ -2236,6 +2236,7 @@ __metadata:
     typescript: "npm:~5.2.2"
     url-loader: "npm:^4.1.1"
     valtio: "npm:^1.13.2"
+    voca: "npm:^1.4.1"
     webpack-merge: "npm:^5.10.0"
   languageName: unknown
   linkType: soft
@@ -25053,6 +25054,13 @@ __metadata:
   version: 1.0.1
   resolution: "vlq@npm:1.0.1"
   checksum: a8ec5c95d747c840198f20b4973327fa317b98397f341e7a2f352bfcf385aeb73c0eea01cc6d406c20169298375397e259efc317aec53c8ffc001ec998204aed
+  languageName: node
+  linkType: hard
+
+"voca@npm:^1.4.1":
+  version: 1.4.1
+  resolution: "voca@npm:1.4.1"
+  checksum: 71aa388ad8473f44082d1f0aec40d49b158ddfc16973e7f4df72343e19088364c0b9016f9e680b31019cd0c227f2ab06ef0a1959d187dd267dbab5d61efda56e
   languageName: node
   linkType: hard
 
