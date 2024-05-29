@@ -604,10 +604,12 @@ export const Hexasphere = React.memo(
           camPosIndex = 0;
           cameraPath.current = undefined;
         } else {
+          const perc = camPosIndex / 20;
+          const index = Math.round(1000 * perc);
           // @ts-ignore
-          var camPos = cameraPath.current.points[camPosIndex];
+          var camPos = cameraPath.current.points[index];
           // @ts-ignore
-          var camRot = cameraPath.current.tangents[camPosIndex];
+          var camRot = cameraPath.current.tangents[index];
 
           if (camRot && camPos) {
             camera.position.x = camPos.x;

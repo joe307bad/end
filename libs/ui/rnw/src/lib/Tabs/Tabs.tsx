@@ -27,10 +27,12 @@ export function TabsContainer({
   menuOpen,
   selectTile,
   newPlanet,
+  startGame
 }: {
   newPlanet: () => void;
   menuOpen: boolean;
   selectTile: (id: string, tileList?: { scrollTo(): void }) => void;
+  startGame: () => void;
 }) {
   const hs = useSnapshot(hexasphereProxy);
   const { bp } = useResponsive(menuOpen, 1297);
@@ -41,7 +43,9 @@ export function TabsContainer({
       derived,
       'selectedTileIndex',
       (selectedTileIndex) => {
-        sv.current.scrollTo(selectedTileIndex * 67);
+        if(sv.current) {
+          sv.current.scrollTo(selectedTileIndex * 67);
+        }
       }
     );
 
@@ -90,7 +94,7 @@ export function TabsContainer({
                   items={[2, 3, 4, 5, 6, 7, 8, 9, 10]}
                 />
                 <Spacer />
-                <PrimaryButton onPress={newPlanet}>Start game</PrimaryButton>
+                <PrimaryButton onPress={startGame}>Start game</PrimaryButton>
               </View>
             </TabsContent>
             <TabsContent value="tab2" style={tw`h-full`}>

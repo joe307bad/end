@@ -25,6 +25,7 @@ import Home from '../pages/Home';
 import { useAuth } from '@end/auth';
 import { database } from '@end/wm/web';
 import { DatabaseProvider } from '@nozbe/watermelondb/react';
+import Conquest from '../pages/Conquest';
 
 function WithNavigate({
   children,
@@ -81,10 +82,12 @@ const PrivateRoutes = () => {
 
 function AppRoutes() {
   return (
+
     <Router>
       <Routes>
         <Route element={<PrivateRoutes />}>
           <Route path="/home" element={<Home />} />
+          <Route path="/conquest" element={<Conquest />} />
         </Route>
         <Route
           path="/"

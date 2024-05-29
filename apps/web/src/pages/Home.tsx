@@ -10,6 +10,7 @@ import { faker } from '@faker-js/faker';
 import { H2 } from 'tamagui';
 // @ts-ignore
 import v from 'voca';
+import { useEndApi } from '@end/data';
 
 export default function Home() {
   const ref = useRef(null);
@@ -46,7 +47,6 @@ export default function Home() {
 
   const newPlanet = useCallback(() => {
     hexasphereProxy.tiles.forEach((tile) => {
-      // TODO is there a way to completed destroy and recreate the proxy + the hexasphere? This may resolve perf issues
       const raisedness = faker.number.float({ min: 0.1, max: 0.9 });
 
       tile.name = getRandomName();
@@ -60,8 +60,23 @@ export default function Home() {
   }, []);
 
   const name = useMemo(() => {
-      return getRandomName();
+    return getRandomName();
   }, [reset]);
+
+  const { EndApi } = useEndApi();
+
+  const startGame = useCallback(() => {
+    debugger;
+    EndApi.startWar(
+      {
+        landColor: '',
+        raised: '',
+        waterColor: '',
+        name: Math.random().toString(),
+      },
+      5
+    );
+  }, []);
 
   return (
     <H database={database} sync={sync} apiUrl={process.env.API_BASE_URL}>
@@ -80,6 +95,7 @@ export default function Home() {
         menuOpen={true}
         selectTile={selectTile}
         newPlanet={newPlanet}
+        startGame={startGame}
       />
     </H>
   );

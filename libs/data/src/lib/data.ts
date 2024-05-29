@@ -1,8 +1,20 @@
+import { Planet, War } from '@end/wm/core';
+import { Database } from '@nozbe/watermelondb';
+import ConquestService from './conquest-service';
+
 export class EndApi {
   private readonly apiUrl;
+  private readonly database;
+  private readonly conquestService;
 
-  constructor(apiUrl: string) {
+  constructor(
+    apiUrl: string,
+    database: Database,
+    conquestService: ConquestService,
+  ) {
     this.apiUrl = apiUrl;
+    this.database = database;
+    this.conquestService = conquestService;
   }
 
   login(userName: string, password: string) {
@@ -17,5 +29,37 @@ export class EndApi {
         password,
       }),
     });
+  }
+
+  async startWar(
+    planet: {
+      name: string;
+      raised: string;
+      landColor: string;
+      waterColor: string;
+    },
+    players: number
+  ) {
+    const newPlanet = await new Promise<string>(async (resolve) => {
+      await this.database.write(async () => {
+        const { id } = await this.database
+          .get<Planet>('planets')
+          .create((p: Planet) => {
+            p.name = planet.name;
+            p.landColor = planet.landColor;
+            p.waterColor = planet.waterColor;
+            p.raised = planet.raised;
+          });
+        resolve(id);
+      });
+    });
+
+
+    const { id } = await this.database.get<War>('wars').create((war) => {
+      war.planet.id = newPlanet;
+      war.players = players;
+    });
+
+    return this.conquestService.queue('START_WAR', id);
   }
 }
