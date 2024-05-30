@@ -3,7 +3,7 @@ import { database, sync } from '@end/wm/web';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useWindowDimensions } from 'react-native';
+import { useWindowDimensions, View } from 'react-native';
 import { OrbitControls } from '@react-three/drei';
 import { getRandomName, Hexasphere, hexasphereProxy } from '@end/hexasphere';
 import { faker } from '@faker-js/faker';
@@ -80,23 +80,25 @@ export default function Home() {
 
   return (
     <H database={database} sync={sync} apiUrl={process.env.API_BASE_URL}>
-      <H2 paddingLeft="$1">{name}</H2>
-      <Canvas
-        style={{
-          flex: 1,
-          ...responsiveness,
-        }}
-        camera={cam}
-      >
-        <Hexasphere key={reset} selectedTile={selectedTile} />
-        <OrbitControls />
-      </Canvas>
-      <TabsContainer
-        menuOpen={true}
-        selectTile={selectTile}
-        newPlanet={newPlanet}
-        startGame={startGame}
-      />
+      <View style={{ overflow: 'hidden', height: "100%", width: "100%" }}>
+        <H2 paddingLeft="$1">{name}</H2>
+        <Canvas
+          style={{
+            flex: 1,
+            ...responsiveness,
+          }}
+          camera={cam}
+        >
+          <Hexasphere key={reset} selectedTile={selectedTile} />
+          <OrbitControls />
+        </Canvas>
+        <TabsContainer
+          menuOpen={true}
+          selectTile={selectTile}
+          newPlanet={newPlanet}
+          startGame={startGame}
+        />
+      </View>
     </H>
   );
 }

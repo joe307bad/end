@@ -18,6 +18,11 @@ while [[ RET -ne 0 ]]; do
     RET=$?
 done
 
+# Initialize the replica set
+echo "=> Initialize the replica set"
+mongo admin --eval "rs.initiate({ _id: 'rs0', members: [ {_id: 0, host: 'localhost'}] })"
+mongo admin --eval "rs.status()"
+
 # Create the admin user
 echo "=> Creating admin user with a password in MongoDB"
 mongo admin --eval "db.createUser({user: '$MONGODB_ADMIN_USER', pwd: '$MONGODB_ADMIN_PASS', roles:[{role:'root',db:'admin'}]});"
