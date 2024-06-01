@@ -2238,6 +2238,7 @@ __metadata:
     valtio: "npm:^1.13.2"
     voca: "npm:^1.4.1"
     webpack-merge: "npm:^5.10.0"
+    xstate: "npm:^5.13.0"
   languageName: unknown
   linkType: soft
 
@@ -25663,6 +25664,13 @@ __metadata:
   version: 1.1.3
   resolution: "xmldom-qsa@npm:1.1.3"
   checksum: efd114f489d88c67532b7b6009fab3a5f8a2152e433812a59cb3ed006b6ca99bd74873d2e673e7fd166956e510521324a8412aa218ace125dade98db2c7c1b8a
+  languageName: node
+  linkType: hard
+
+"xstate@npm:^5.13.0":
+  version: 5.13.0
+  resolution: "xstate@npm:5.13.0"
+  checksum: 7369e03ec11849ab3e147cf06420e84cfa2753decd5865eb18c3e34ca43bf706ca88f76262a29c522bbc8d2a7661668f6acea1359d5f401a616c798a02545937
   languageName: node
   linkType: hard
 

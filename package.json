@@ -76,7 +76,8 @@
     "tslib": "^2.3.0",
     "twrnc": "^3.6.8",
     "valtio": "^1.13.2",
-    "voca": "^1.4.1"
+    "voca": "^1.4.1",
+    "xstate": "^5.13.0"
   },
   "devDependencies": {
     "@babel/core": "^7.14.5",

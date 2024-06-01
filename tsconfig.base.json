@@ -20,6 +20,7 @@
       "@end/data": ["libs/data/src/index.ts"],
       "@end/hexasphere": ["libs/hexasphere/src/index.ts"],
       "@end/rnw": ["ui/src/index.ts"],
+      "@end/state": ["libs/state/src/index.ts"],
       "@end/wm/core": ["libs/wm/core/src/index.ts"],
       "@end/wm/rn": ["libs/wm/rn/src/index.ts"],
       "@end/wm/web": ["libs/wm/web/src/index.ts"]
