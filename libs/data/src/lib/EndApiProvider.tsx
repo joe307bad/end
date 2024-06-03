@@ -4,14 +4,13 @@ import { Database } from '@nozbe/watermelondb';
 import { useDatabase } from '@nozbe/watermelondb/hooks';
 import ConquestService from './conquest-service';
 import { useAuth } from '@end/auth';
+import { syncFactory } from '@end/wm/core';
 
 interface Context {
   EndApi: EndApi;
 }
 
-const EndApiContext = createContext<Context>({
-  EndApi: new EndApi('http://localhost:3000/api', null as any, null as any),
-});
+const EndApiContext = createContext<Context>({} as Context);
 
 export function useEndApi() {
   return useContext(EndApiContext);
@@ -20,9 +19,11 @@ export function useEndApi() {
 export function EndApiProvider({
   children,
   baseUrl: burl,
+  sync,
 }: {
   children: ReactNode;
   baseUrl?: string;
+  sync: ReturnType<typeof syncFactory>;
 }) {
   const database = useDatabase();
   const baseUrl = burl ?? 'http://localhost:3000/api';
@@ -30,7 +31,13 @@ export function EndApiProvider({
   return (
     <EndApiContext.Provider
       value={{
-        EndApi: new EndApi(baseUrl, database, new ConquestService(baseUrl, getToken)),
+        EndApi: new EndApi(
+          baseUrl,
+          database,
+          new ConquestService(baseUrl, getToken),
+          sync,
+          getToken
+        ),
       }}
     >
       {children}

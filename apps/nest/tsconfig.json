@@ -13,5 +13,8 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "module": "commonjs"
+  },
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
   }
 }

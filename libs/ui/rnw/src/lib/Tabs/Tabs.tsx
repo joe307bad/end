@@ -16,12 +16,13 @@ import { Slider } from '@miblanchard/react-native-slider';
 import { Sun, tw } from '../components';
 import { PrimaryButton } from '../Display';
 import { CircleDot, Crosshair, Hexagon } from '@tamagui/lucide-icons';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useResponsive } from '../Layout';
 import { derived, hexasphereProxy } from '@end/hexasphere';
 import { useSnapshot } from 'valtio';
 import Select from '../Select/Select';
 import { subscribeKey } from 'valtio/utils';
+import { useEndApi } from '@end/data';
 
 export function TabsContainer({
   menuOpen,
@@ -51,6 +52,9 @@ export function TabsContainer({
 
     return () => unsubscribe();
   }, []);
+
+  const {EndApi} = useEndApi();
+  const onSync = useCallback(() => EndApi.sync(), []);
 
   return (
     <Section
@@ -115,6 +119,7 @@ export function TabsContainer({
           </Tabs>
         </View>
         <PrimaryButton onPress={newPlanet}>New Planet</PrimaryButton>
+        <PrimaryButton onPress={onSync}>Sync</PrimaryButton>
       </View>
       <View onPress={() => {}}>
         <CircleDot

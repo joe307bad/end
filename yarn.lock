@@ -2190,6 +2190,7 @@ __metadata:
     fastify-plugin: "npm:~4.5.0"
     gsap: "npm:^3.12.5"
     identity-obj-proxy: "npm:^3.0.0"
+    isomorphic-fetch: "npm:^3.0.0"
     jest: "npm:^29.4.1"
     jest-circus: "npm:^29.4.1"
     jest-environment-jsdom: "npm:^29.4.1"
@@ -2231,6 +2232,7 @@ __metadata:
     three: "npm:^0.160.0"
     ts-jest: "npm:^29.1.0"
     ts-node: "npm:10.9.1"
+    tsconfig-paths: "npm:^4.2.0"
     tslib: "npm:^2.3.0"
     twrnc: "npm:^3.6.8"
     typescript: "npm:~5.2.2"
@@ -15793,6 +15795,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"isomorphic-fetch@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "isomorphic-fetch@npm:3.0.0"
+  dependencies:
+    node-fetch: "npm:^2.6.1"
+    whatwg-fetch: "npm:^3.4.1"
+  checksum: 511b1135c6d18125a07de661091f5e7403b7640060355d2d704ce081e019bc1862da849482d079ce5e2559b8976d3de7709566063aec1b908369c0b98a2b075b
+  languageName: node
+  linkType: hard
+
 "istanbul-lib-coverage@npm:^3.0.0, istanbul-lib-coverage@npm:^3.2.0":
   version: 3.2.2
   resolution: "istanbul-lib-coverage@npm:3.2.2"
@@ -24320,7 +24332,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsconfig-paths@npm:^4.0.0, tsconfig-paths@npm:^4.1.2":
+"tsconfig-paths@npm:^4.0.0, tsconfig-paths@npm:^4.1.2, tsconfig-paths@npm:^4.2.0":
   version: 4.2.0
   resolution: "tsconfig-paths@npm:4.2.0"
   dependencies:
@@ -25329,7 +25341,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"whatwg-fetch@npm:>=0.10.0, whatwg-fetch@npm:^3.0.0":
+"whatwg-fetch@npm:>=0.10.0, whatwg-fetch@npm:^3.0.0, whatwg-fetch@npm:^3.4.1":
   version: 3.6.20
   resolution: "whatwg-fetch@npm:3.6.20"
   checksum: fa972dd14091321d38f36a4d062298df58c2248393ef9e8b154493c347c62e2756e25be29c16277396046d6eaa4b11bd174f34e6403fff6aaca9fb30fa1ff46d

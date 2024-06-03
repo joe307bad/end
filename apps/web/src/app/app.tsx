@@ -23,7 +23,7 @@ import {
 } from 'react-router-dom';
 import Home from '../pages/Home';
 import { useAuth } from '@end/auth';
-import { database } from '@end/wm/web';
+import { database, sync } from '@end/wm/web';
 import { DatabaseProvider } from '@nozbe/watermelondb/react';
 import Conquest from '../pages/Conquest';
 
@@ -82,7 +82,6 @@ const PrivateRoutes = () => {
 
 function AppRoutes() {
   return (
-
     <Router>
       <Routes>
         <Route element={<PrivateRoutes />}>
@@ -130,7 +129,7 @@ export function App() {
 
   return (
     <DatabaseProvider database={database}>
-      <Providers baseUrl={process.env.API_BASE_URL as string}>
+      <Providers sync={sync} baseUrl={process.env.API_BASE_URL as string}>
         <AppRoutes />
       </Providers>
     </DatabaseProvider>

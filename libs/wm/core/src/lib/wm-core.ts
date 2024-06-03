@@ -8,14 +8,11 @@ import {
 } from '@nozbe/watermelondb';
 import { schemaMigrations } from '@nozbe/watermelondb/Schema/migrations';
 import { Model } from '@nozbe/watermelondb';
-import {
-  field,
-  immutableRelation,
-  relation,
-} from '@nozbe/watermelondb/decorators';
+import { field, relation } from '@nozbe/watermelondb/decorators';
 import { synchronize } from '@nozbe/watermelondb/sync';
+import { IWar, IPlanet } from '@end/war/core';
 
-export class Planet extends Model {
+export class Planet extends Model implements IPlanet {
   static override table = 'planets';
   @field('name')
   name!: string;
@@ -27,7 +24,7 @@ export class Planet extends Model {
   waterColor!: string;
 }
 
-export class War extends Model {
+export class War extends Model implements IWar {
   static override table = 'wars';
   @field('players')
   players!: number;

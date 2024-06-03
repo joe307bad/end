@@ -17,6 +17,7 @@ import t, { useDeviceContext } from 'twrnc';
 import { EndApiProvider } from '@end/data';
 import { AuthProvider } from '@end/auth';
 import { ToastProvider, ToastViewport } from '@tamagui/toast';
+import { syncFactory } from '@end/wm/core';
 
 export const tw = t as any;
 
@@ -25,16 +26,18 @@ export const tamaguiTokens = tokens;
 export function Providers({
   children,
   baseUrl,
+  sync,
 }: {
   children: ReactNode;
   baseUrl?: string;
+  sync: ReturnType<typeof syncFactory>;
 }) {
   // @ts-ignore
   useDeviceContext(tw);
   return (
     <ToastProvider burntOptions={{ from: 'bottom' }}>
       <AuthProvider>
-        <EndApiProvider baseUrl={baseUrl}>
+        <EndApiProvider sync={sync} baseUrl={baseUrl}>
           <TamaguiProvider defaultTheme="dark" config={config}>
             {children}
             <ToastViewport bottom={0} />

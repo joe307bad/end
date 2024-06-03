@@ -11,7 +11,7 @@ export default class ConquestService {
 
   async queue(action: 'START_WAR', warId: string) {
     const token = await this.getToken();
-    return fetch(`${this.apiUrl}/conquest/queue`, {
+    return fetch(`${this.apiUrl}/conquest`, {
       method: 'POST',
       headers: new Headers({
         Authorization: `Bearer ${token}`,
