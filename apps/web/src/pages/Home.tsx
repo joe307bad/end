@@ -56,6 +56,8 @@ export default function Home() {
     });
     hexasphereProxy.selection.selectedId = null;
     hexasphereProxy.selection.cameraPosition = null;
+    hexasphereProxy.colors.land = faker.color.rgb({ format: 'hex' });
+    hexasphereProxy.colors.water = faker.color.rgb({ format: 'hex' });
     setReset(Math.random());
   }, []);
 
@@ -65,22 +67,27 @@ export default function Home() {
 
   const { EndApi } = useEndApi();
 
-  const startGame = useCallback(() => {
-    debugger;
-    EndApi.startWar(
+  const startGame = useCallback(async () => {
+    const raised = hexasphereProxy.tiles
+      .filter((tile) => tile.raised)
+      .map((tile) => {
+        return tile.id;
+      })
+      .join('|');
+    await EndApi.startWar(
       {
-        landColor: '',
-        raised: '',
-        waterColor: '',
-        name: Math.random().toString(),
+        landColor: hexasphereProxy.colors.land,
+        waterColor: hexasphereProxy.colors.water,
+        raised,
+        name,
       },
       5
     );
-  }, []);
+  }, [name]);
 
   return (
     <H database={database} sync={sync} apiUrl={process.env.API_BASE_URL}>
-      <View style={{ overflow: 'hidden', height: "100%", width: "100%" }}>
+      <View style={{ overflow: 'hidden', height: '100%', width: '100%' }}>
         <H2 paddingLeft="$1">{name}</H2>
         <Canvas
           style={{

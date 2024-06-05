@@ -1,4 +1,4 @@
-import { Database } from '@nozbe/watermelondb';
+import { Event } from '@end/war/core';
 
 export default class ConquestService {
   private readonly apiUrl;
@@ -9,7 +9,7 @@ export default class ConquestService {
     this.getToken = getToken;
   }
 
-  async queue(action: 'START_WAR', warId: string) {
+  async log(event: Event) {
     const token = await this.getToken();
     return fetch(`${this.apiUrl}/conquest`, {
       method: 'POST',
@@ -18,9 +18,7 @@ export default class ConquestService {
         Accept: 'application/json',
         'Content-Type': 'application/json',
       }),
-      body: JSON.stringify({
-        warId,
-      }),
+      body: JSON.stringify(event),
     });
   }
 }

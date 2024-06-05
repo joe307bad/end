@@ -1,6 +1,7 @@
 import { Planet, syncFactory, War } from '@end/wm/core';
 import { Database } from '@nozbe/watermelondb';
 import ConquestService from './conquest-service';
+import { Tile } from '@end/war/core';
 
 export class EndApi {
   private readonly apiUrl;
@@ -14,7 +15,7 @@ export class EndApi {
     database: Database,
     conquestService: ConquestService,
     syncService: ReturnType<typeof syncFactory>,
-    token:  () => Promise<string | null>
+    token: () => Promise<string | null>
   ) {
     this.apiUrl = apiUrl;
     this.database = database;
@@ -75,6 +76,24 @@ export class EndApi {
       war.players = players;
     });
 
-    return this.conquestService.queue('START_WAR', id);
+    return this.conquestService.log({
+      type: 'generate-new-war',
+      players: [],
+      tiles: planet.raised
+        .split('|')
+        .reduce<Record<string, Tile>>((acc, cur) => {
+          acc[cur] = {
+            id: '',
+            owner: '',
+            troopCount: 0,
+            habitable: true,
+            // TODO need access to the hexasphere to get this
+            // should prob implement tsyringe next
+            neighborIds: [],
+          };
+
+          return acc;
+        }, {}),
+    });
   }
 }

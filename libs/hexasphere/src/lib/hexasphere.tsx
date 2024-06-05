@@ -255,6 +255,10 @@ export const hexasphereProxy = proxy<{
     selectedId: string | null;
     cameraPosition: THREE.Vector3 | null;
   };
+  colors: {
+    land: string;
+    water: string;
+  };
   tiles: {
     id: string;
     selected: boolean;
@@ -266,6 +270,10 @@ export const hexasphereProxy = proxy<{
   selection: {
     selectedId: null,
     cameraPosition: null,
+  },
+  colors: {
+    land: '',
+    water: '',
   },
   tiles: Object.keys(hexasphere.tileLookup).map((tileId: string) => {
     const perctRaised = faker.number.float({ min: 0.1, max: 0.9 });
@@ -492,15 +500,11 @@ const TileMesh = React.memo(
     id,
     selected,
     defending,
-    landColor,
-    waterColor,
     raised,
   }: {
     id: string;
     selected: boolean;
     defending: boolean;
-    landColor: string;
-    waterColor: string;
     raised: boolean;
   }) => {
     const { land, water, centerPoint } = useMemo(
@@ -518,43 +522,43 @@ const TileMesh = React.memo(
     }, []);
 
     return (
-        <mesh onClick={click}>
-          <mesh visible={raised}>
-            <bufferGeometry>
-              <bufferAttribute
-                attach="attributes-position"
-                array={land.positions}
-                count={land.positions.length / 3}
-                itemSize={3}
-              />
-              <bufferAttribute
-                attach="index"
-                array={land.indices}
-                count={land.indices.length}
-                itemSize={1}
-              />
-            </bufferGeometry>
-            <meshStandardMaterial color={landColor} />
-            <Edges color={selected ? 'yellow' : 'black'} threshold={50} />
-          </mesh>
-          <mesh visible={!raised}>
-            <bufferGeometry>
-              <bufferAttribute
-                attach="attributes-position"
-                array={water.positions}
-                count={water.positions.length / 3}
-                itemSize={3}
-              />
-              <bufferAttribute
-                attach="index"
-                array={water.indices}
-                count={water.indices.length}
-                itemSize={1}
-              />
-            </bufferGeometry>
-            <meshStandardMaterial color={waterColor} />
-          </mesh>
+      <mesh onClick={click}>
+        <mesh visible={raised}>
+          <bufferGeometry>
+            <bufferAttribute
+              attach="attributes-position"
+              array={land.positions}
+              count={land.positions.length / 3}
+              itemSize={3}
+            />
+            <bufferAttribute
+              attach="index"
+              array={land.indices}
+              count={land.indices.length}
+              itemSize={1}
+            />
+          </bufferGeometry>
+          <meshStandardMaterial color={hexasphereProxy.colors.land} />
+          <Edges color={selected ? 'yellow' : 'black'} threshold={50} />
         </mesh>
+        <mesh visible={!raised}>
+          <bufferGeometry>
+            <bufferAttribute
+              attach="attributes-position"
+              array={water.positions}
+              count={water.positions.length / 3}
+              itemSize={3}
+            />
+            <bufferAttribute
+              attach="index"
+              array={water.indices}
+              count={water.indices.length}
+              itemSize={1}
+            />
+          </bufferGeometry>
+          <meshStandardMaterial color={hexasphereProxy.colors.water} />
+        </mesh>
+      </mesh>
     );
   }
 );
@@ -642,9 +646,6 @@ export const Hexasphere = React.memo(
       }
     }, [selectedTile]);
 
-    const landColor = useMemo(() => faker.color.rgb({ format: 'hex' }), []);
-    const waterColor = useMemo(() => faker.color.rgb({ format: 'hex' }), []);
-
     return (
       <>
         <ambientLight />
@@ -657,8 +658,6 @@ export const Hexasphere = React.memo(
               selected={t.selected}
               defending={t.defending}
               raised={t.raised}
-              landColor={landColor}
-              waterColor={waterColor}
             />
           ))}
           <points>

@@ -2,7 +2,7 @@ import { assertEvent, assign, createActor, createMachine, setup } from 'xstate';
 import { IPlanet } from './interfaces/Planet';
 import { faker } from '@faker-js/faker';
 
-interface Tile {
+export interface Tile {
   habitable: boolean;
   neighborIds: string[];
   id: string;
@@ -16,11 +16,11 @@ interface Context {
   tiles: Record<string, Tile>;
 }
 
-type Event =
-  | { type: 'generate-new-war'; players: string[]; tiles: Record<string, Tile> }
+export type Event =
+  | { type: 'generate-new-war'; players: string[]; tiles: Record<string, Tile>}
   | { type: 'attack'; tile1: string; tile2: string };
 
-export const warMachine = setup({
+export const warMachine = () => setup({
   types: {
     context: {} as Context,
     events: {} as Event,
