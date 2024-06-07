@@ -22,13 +22,14 @@ import { derived, hexasphereProxy } from '@end/hexasphere';
 import { useSnapshot } from 'valtio';
 import Select from '../Select/Select';
 import { subscribeKey } from 'valtio/utils';
-import { useEndApi } from '@end/data';
+import { useEndApi } from '@end/data/web';
+import { Effect } from 'effect';
 
 export function TabsContainer({
   menuOpen,
   selectTile,
   newPlanet,
-  startGame
+  startGame,
 }: {
   newPlanet: () => void;
   menuOpen: boolean;
@@ -44,7 +45,7 @@ export function TabsContainer({
       derived,
       'selectedTileIndex',
       (selectedTileIndex) => {
-        if(sv.current) {
+        if (sv.current) {
           sv.current.scrollTo(selectedTileIndex * 67);
         }
       }
@@ -53,7 +54,13 @@ export function TabsContainer({
     return () => unsubscribe();
   }, []);
 
-  const {EndApi} = useEndApi();
+  const { EndApi, services } = useEndApi();
+
+  useEffect(() => {
+    Effect.runPromise(services.war.create()).then((t) => console.log(t));
+    Effect.runPromise(services.conquest.log()).then((t) => console.log(t));
+  }, []);
+
   const onSync = useCallback(() => EndApi.sync(), []);
 
   return (
@@ -105,14 +112,14 @@ export function TabsContainer({
               <View style={tw`h-full overflow-scroll w-full`}>
                 <ScrollView ref={sv}>
                   {hs.tiles.map((t) => (
-                      <TileListItem
-                        id={t.id}
-                        name={t.name}
-                        selectTile={selectTile}
-                        selected={t.selected}
-                        raised={t.raised}
-                      />
-                    ))}
+                    <TileListItem
+                      id={t.id}
+                      name={t.name}
+                      selectTile={selectTile}
+                      selected={t.selected}
+                      raised={t.raised}
+                    />
+                  ))}
                 </ScrollView>
               </View>
             </TabsContent>
@@ -145,7 +152,6 @@ const TileListItem = React.memo(function ({
   raised: boolean;
   selected: boolean;
 }) {
-
   return (
     <ListItem
       display={raised ? 'flex' : 'none'}

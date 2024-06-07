@@ -1,4 +1,4 @@
-import { Planet, syncFactory, War } from '@end/wm/core';
+import { Planet, syncFactory, War } from 'libs/wm/core';
 import { Database } from '@nozbe/watermelondb';
 import ConquestService from './conquest-service';
 import { Tile } from '@end/war/core';

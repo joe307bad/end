@@ -14,7 +14,7 @@ import { config, tokens } from './tamagui.config';
 import { View } from 'react-native';
 import { Badge } from './Display';
 import t, { useDeviceContext } from 'twrnc';
-import { EndApiProvider } from '@end/data';
+import { EndApiProvider } from '@end/data/web';
 import { AuthProvider } from '@end/auth';
 import { ToastProvider, ToastViewport } from '@tamagui/toast';
 import { syncFactory } from '@end/wm/core';

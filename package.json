@@ -38,6 +38,7 @@
     "bcrypt": "^5.1.1",
     "burnt": "^0.12.2",
     "dotenv": "^16.3.1",
+    "effect": "^3.2.9",
     "expo": "49.0.16",
     "expo-build-properties": "~0.8.3",
     "expo-font": "~11.4.0",

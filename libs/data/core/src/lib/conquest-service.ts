@@ -1,4 +1,4 @@
-import { Event } from '@end/war/core';
+import { Event } from 'libs/war/core';
 
 export default class ConquestService {
   private readonly apiUrl;

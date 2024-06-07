@@ -10,7 +10,7 @@ import { faker } from '@faker-js/faker';
 import { H2 } from 'tamagui';
 // @ts-ignore
 import v from 'voca';
-import { useEndApi } from '@end/data';
+import { useEndApi } from '@end/data/web';
 
 export default function Home() {
   const ref = useRef(null);

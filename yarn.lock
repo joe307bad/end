@@ -2169,6 +2169,7 @@ __metadata:
     detox: "npm:^20.11.1"
     dotenv: "npm:^16.3.1"
     eas-cli: "npm:~5.2.0"
+    effect: "npm:^3.2.9"
     esbuild: "npm:^0.19.2"
     eslint: "npm:~8.48.0"
     eslint-config-prettier: "npm:^9.0.0"
@@ -12107,6 +12108,13 @@ __metadata:
   version: 1.1.1
   resolution: "ee-first@npm:1.1.1"
   checksum: b5bb125ee93161bc16bfe6e56c6b04de5ad2aa44234d8f644813cc95d861a6910903132b05093706de2b706599367c4130eb6d170f6b46895686b95f87d017b7
+  languageName: node
+  linkType: hard
+
+"effect@npm:^3.2.9":
+  version: 3.2.9
+  resolution: "effect@npm:3.2.9"
+  checksum: deca1b55f52ead9ebf47dc0d894394ae8281a8558a82eecca8109e2cf602b4e8f7c4b7b483e832dcb8d9c43915fb109dee299dcbdf964469df6739a4e5dad8d9
   languageName: node
   linkType: hard
 

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import * as Typography from '../Typography';
 import { Input, XStack, YStack, Text } from 'tamagui';
 import { PrimaryButton } from '../Display';
-import { useEndApi } from '@end/data';
+import { useEndApi } from '@end/data/web';
 import { useAuth } from '@end/auth';
 import { Toast, useToastController, useToastState } from '@tamagui/toast';
 
