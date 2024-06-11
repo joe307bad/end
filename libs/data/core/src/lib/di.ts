@@ -41,7 +41,7 @@ const WarServiceLive = Layer.effect(
     return {
       create: () =>
         Effect.gen(function* () {
-          console.log('hey');
+          // console.log('hey');
           const token = yield* auth.getToken();
           return { id: token };
         }),

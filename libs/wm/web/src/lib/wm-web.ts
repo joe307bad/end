@@ -1,7 +1,7 @@
 import LokiJSAdapter from '@nozbe/watermelondb/adapters/lokijs';
 import {databaseFactory, migrations, schema, syncFactory} from '@end/wm/core';
 
-const adapter = new LokiJSAdapter({
+export const adapter = new LokiJSAdapter({
   schema,
   // (You might want to comment out migrations for development purposes -- see Migrations documentation)
   migrations,
