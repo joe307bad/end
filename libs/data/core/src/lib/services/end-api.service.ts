@@ -1,10 +1,9 @@
 import { Context, Effect, Layer, pipe } from 'effect';
+import { AuthService } from './auth.service';
+import { DbService } from './db.service';
 import { SyncLivePipe, SyncService } from './sync.service';
-import { UnknownException } from 'effect/Cause';
 
 interface EndApi {
-  readonly sync: () => Effect.Effect<string | null, UnknownException>;
-
   readonly login: (
     userName: string,
     password: string
@@ -26,14 +25,12 @@ const EndApiService = Context.GenericTag<EndApi>('end-api');
 const EndApiLive = Layer.effect(
   EndApiService,
   Effect.gen(function* () {
-    const { sync } = yield* SyncService;
     // const conquest = yield* ConquestService;
-    // const auth = yield* AuthService;
-    // const database = yield* DbService;
+    const auth = yield* AuthService;
+    const database = yield* DbService;
     // const config = yield* ConfigService;
 
     return EndApiService.of({
-      sync,
       login: (userName: string, password: string) => {
         return Effect.succeed({} as any);
       },
@@ -52,6 +49,6 @@ const EndApiLive = Layer.effect(
   })
 );
 
-const EndApiPipe = pipe(EndApiLive, Layer.provide(SyncLivePipe));
+const EndApiPipe = pipe(EndApiLive);
 
 export { EndApiService, EndApiPipe, EndApi };

@@ -43,7 +43,7 @@ export function EndApiProvider({
   const services = useServices(getToken);
 
   useEffect(() => {
-    execute(services.endApi.sync()).then(console.log);
+    execute(services.syncService.sync()).then(console.log);
   }, []);
 
   return (
