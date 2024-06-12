@@ -1,8 +1,13 @@
-import React, { createContext, ReactNode, useContext, useEffect, useMemo } from 'react';
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+} from 'react';
 import { EndApi, servicesFactory, execute } from '@end/data/core';
 import { useDatabase } from '@nozbe/watermelondb/hooks';
-import ConquestService from '../../../core/src/lib/conquest-service';
-import { useAuth } from 'libs/auth/src';
+import { useAuth } from '@end/auth';
 import { syncFactory } from '@end/wm/core';
 import { adapter } from '@end/wm/web';
 
@@ -38,8 +43,8 @@ export function EndApiProvider({
   const services = useServices(getToken);
 
   useEffect(() => {
-    execute(services.endApi.sync()).then(console.log)
-  }, [])
+    execute(services.endApi.sync()).then(console.log);
+  }, []);
 
   return (
     <EndApiContext.Provider
@@ -48,7 +53,7 @@ export function EndApiProvider({
         EndApi: new EndApi(
           baseUrl,
           database,
-          new ConquestService(baseUrl, getToken),
+          {} as any, //new ConquestService(baseUrl, getToken),
           sync,
           getToken
         ),
