@@ -11,9 +11,9 @@ import { useAuth } from '@end/auth';
 import { syncFactory } from '@end/wm/core';
 import { adapter } from '@end/wm/web';
 
-function useServices(getToken: () => Promise<string | null>) {
+function useServices(getToken: () => Promise<string | null>, apiUrl: string) {
   return useMemo(() => {
-    return servicesFactory(getToken, adapter);
+    return servicesFactory(getToken, adapter, apiUrl);
   }, []);
 }
 
@@ -40,7 +40,7 @@ export function EndApiProvider({
   const database = useDatabase();
   const baseUrl = burl ?? 'http://localhost:3000/api';
   const { getToken } = useAuth();
-  const services = useServices(getToken);
+  const services = useServices(getToken, baseUrl);
 
   useEffect(() => {
     execute(services.syncService.sync()).then(console.log);

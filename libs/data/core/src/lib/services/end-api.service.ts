@@ -1,13 +1,13 @@
 import { Context, Effect, Layer, pipe } from 'effect';
 import { AuthService } from './auth.service';
 import { DbService } from './db.service';
-import { SyncLivePipe, SyncService } from './sync.service';
+import { ConfigService } from './config.service';
 
 interface EndApi {
   readonly login: (
     userName: string,
     password: string
-  ) => Effect.Effect<Response>;
+  ) => Effect.Effect<Response, Error>;
 
   readonly startWar: (
     planet: {
@@ -28,11 +28,25 @@ const EndApiLive = Layer.effect(
     // const conquest = yield* ConquestService;
     const auth = yield* AuthService;
     const database = yield* DbService;
-    // const config = yield* ConfigService;
+    const config = yield* ConfigService;
 
     return EndApiService.of({
       login: (userName: string, password: string) => {
-        return Effect.succeed({} as any);
+        return Effect.tryPromise({
+          try: () =>
+            fetch(`${config.apiUrl}/auth/login`, {
+              method: 'POST',
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userName,
+                password,
+              }),
+            }),
+          catch: (error) => new Error(`Error logging in: ${error?.toString()}`),
+        });
       },
       startWar: (
         planet: {

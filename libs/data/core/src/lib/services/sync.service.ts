@@ -3,6 +3,7 @@ import { syncFactory } from '@end/wm/core';
 import { DbService } from './db.service';
 import { AuthService } from './auth.service';
 import { UnknownException } from 'effect/Cause';
+import { ConfigService } from './config.service';
 
 interface Sync {
   readonly sync: () => Effect.Effect<string | null, UnknownException>;
@@ -15,7 +16,7 @@ const SyncLive = Layer.effect(
   Effect.gen(function* () {
     const { database } = yield* DbService;
     const { getToken } = yield* AuthService;
-    // const apiUrl = yield* ConfigService;
+    const apiUrl = yield* ConfigService;
     const sync = syncFactory(yield* database());
 
     return SyncService.of({

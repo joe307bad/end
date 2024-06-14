@@ -4,6 +4,7 @@ import { AuthLiveFactory } from './auth.service';
 import { DbLiveFactory } from './db.service';
 import { DatabaseAdapter } from '@nozbe/watermelondb';
 import { SyncLivePipe, SyncService } from './sync.service';
+import { ConfigServiceFactory } from './config.service';
 
 export const program = Effect.gen(function* () {
   return yield* Effect.succeed({
@@ -13,10 +14,12 @@ export const program = Effect.gen(function* () {
 });
 const servicesFactory = (
   getToken: () => Promise<string | null>,
-  databaseAdapter: DatabaseAdapter
+  databaseAdapter: DatabaseAdapter,
+  apiUrl: string
 ) => {
   const { AuthLivePipe } = AuthLiveFactory(getToken);
   const { DbLivePipe } = DbLiveFactory(databaseAdapter);
+  const { ConfigLivePipe } = ConfigServiceFactory(apiUrl);
 
   const appLayer = Layer.merge(EndApiPipe, SyncLivePipe);
 
@@ -25,6 +28,7 @@ const servicesFactory = (
       program,
       Effect.provide(
         appLayer.pipe(
+          Layer.provide(ConfigLivePipe),
           Layer.provide(DbLivePipe),
           Layer.provideMerge(AuthLivePipe)
         )
