@@ -11,6 +11,7 @@ export default class ConquestService {
 
   async log(event: Event) {
     const token = await this.getToken();
+
     return fetch(`${this.apiUrl}/conquest`, {
       method: 'POST',
       headers: new Headers({

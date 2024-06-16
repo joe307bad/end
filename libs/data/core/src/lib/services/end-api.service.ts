@@ -1,7 +1,5 @@
 import { Context, Effect, Layer, pipe } from 'effect';
-import { AuthService } from './auth.service';
-import { DbService } from './db.service';
-import { ConfigService } from './config.service';
+import { FetchService } from './fetch.service';
 
 interface EndApi {
   readonly login: (
@@ -25,27 +23,13 @@ const EndApiService = Context.GenericTag<EndApi>('end-api');
 const EndApiLive = Layer.effect(
   EndApiService,
   Effect.gen(function* () {
-    // const conquest = yield* ConquestService;
-    const auth = yield* AuthService;
-    const database = yield* DbService;
-    const config = yield* ConfigService;
+    const fetch = yield* FetchService;
 
     return EndApiService.of({
       login: (userName: string, password: string) => {
-        return Effect.tryPromise({
-          try: () =>
-            fetch(`${config.apiUrl}/auth/login`, {
-              method: 'POST',
-              headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                userName,
-                password,
-              }),
-            }),
-          catch: (error) => new Error(`Error logging in: ${error?.toString()}`),
+        return fetch.post('/auth/login', {
+          userName,
+          password,
         });
       },
       startWar: (

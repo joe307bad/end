@@ -5,6 +5,7 @@ import { DbLiveFactory } from './db.service';
 import { DatabaseAdapter } from '@nozbe/watermelondb';
 import { SyncLivePipe, SyncService } from './sync.service';
 import { ConfigServiceFactory } from './config.service';
+import { FetchLivePipe } from './fetch.service';
 
 export const program = Effect.gen(function* () {
   return yield* Effect.succeed({
@@ -28,6 +29,7 @@ const servicesFactory = (
       program,
       Effect.provide(
         appLayer.pipe(
+          Layer.provide(FetchLivePipe),
           Layer.provide(ConfigLivePipe),
           Layer.provide(DbLivePipe),
           Layer.provideMerge(AuthLivePipe)
