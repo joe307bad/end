@@ -5,6 +5,7 @@ import { PrimaryButton } from '../Display';
 import { useEndApi } from '@end/data/web';
 import { useAuth } from '@end/auth';
 import { Toast, useToastController, useToastState } from '@tamagui/toast';
+import { execute } from '@end/data/core';
 
 type Props = {
   goToHome?: () => void;
@@ -39,13 +40,13 @@ export function Landing({ goToHome }: Props) {
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { EndApi } = useEndApi();
+  const { services } = useEndApi();
   const { setToken } = useAuth();
   const toast = useToastController();
 
   const login = useCallback(() => {
     setLoading(true);
-    EndApi.login(userName, password)
+    execute(services.endApi.login(userName, password))
       .then(async (res) => {
         setLoading(false);
         const json: { access_token: string } = await res.json?.();

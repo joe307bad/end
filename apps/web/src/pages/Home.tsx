@@ -8,12 +8,10 @@ import { OrbitControls } from '@react-three/drei';
 import { getRandomName, Hexasphere, hexasphereProxy } from '@end/hexasphere';
 import { faker } from '@faker-js/faker';
 import { H2 } from 'tamagui';
-// @ts-ignore
-import v from 'voca';
 import { useEndApi } from '@end/data/web';
+import { execute } from '@end/data/core';
 
 export default function Home() {
-  const ref = useRef(null);
 
   const { width } = useWindowDimensions();
 
@@ -65,7 +63,7 @@ export default function Home() {
     return getRandomName();
   }, [reset]);
 
-  const { EndApi } = useEndApi();
+  const { services } = useEndApi();
 
   const startGame = useCallback(async () => {
     const raised = hexasphereProxy.tiles
@@ -74,14 +72,16 @@ export default function Home() {
         return tile.id;
       })
       .join('|');
-    await EndApi.startWar(
-      {
-        landColor: hexasphereProxy.colors.land,
-        waterColor: hexasphereProxy.colors.water,
-        raised,
-        name,
-      },
-      5
+    await execute(
+      services.conquestService.startWar(
+        {
+          landColor: hexasphereProxy.colors.land,
+          waterColor: hexasphereProxy.colors.water,
+          raised,
+          name,
+        },
+        5
+      )
     );
   }, [name]);
 

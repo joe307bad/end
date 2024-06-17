@@ -24,6 +24,7 @@ import Select from '../Select/Select';
 import { subscribeKey } from 'valtio/utils';
 import { useEndApi } from '@end/data/web';
 import { Effect } from 'effect';
+import { execute } from '@end/data/core';
 
 export function TabsContainer({
   menuOpen,
@@ -54,14 +55,14 @@ export function TabsContainer({
     return () => unsubscribe();
   }, []);
 
-  const { EndApi, services } = useEndApi();
+  const { services } = useEndApi();
 
   useEffect(() => {
     // Effect.runPromise(services.war.create()).then((t) => console.log(t));
     // Effect.runPromise(services.conquest.log()).then((t) => console.log(t));
   }, []);
 
-  const onSync = useCallback(() => EndApi.sync(), []);
+  const onSync = useCallback(() => execute(services.syncService.sync()), []);
 
   return (
     <Section

@@ -6,11 +6,13 @@ import { DatabaseAdapter } from '@nozbe/watermelondb';
 import { SyncLivePipe, SyncService } from './sync.service';
 import { ConfigServiceFactory } from './config.service';
 import { FetchLivePipe } from './fetch.service';
+import { ConquestPipe, ConquestService } from './conquest.service';
 
 export const program = Effect.gen(function* () {
   return yield* Effect.succeed({
     endApi: yield* EndApiService,
     syncService: yield* SyncService,
+    conquestService: yield* ConquestService,
   });
 });
 const servicesFactory = (
@@ -22,7 +24,7 @@ const servicesFactory = (
   const { DbLivePipe } = DbLiveFactory(databaseAdapter);
   const { ConfigLivePipe } = ConfigServiceFactory(apiUrl);
 
-  const appLayer = Layer.merge(EndApiPipe, SyncLivePipe);
+  const appLayer = Layer.mergeAll(EndApiPipe, SyncLivePipe, ConquestPipe);
 
   return Effect.runSync(
     pipe(

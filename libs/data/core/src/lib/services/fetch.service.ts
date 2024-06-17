@@ -23,7 +23,7 @@ const FetchLive = Layer.effect(
       ) => {
         return Effect.tryPromise({
           try: () =>
-            fetch(`${config.apiUrl}/${route}`, {
+            fetch(`${config.apiUrl}${route}`, {
               method: 'POST',
               headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),

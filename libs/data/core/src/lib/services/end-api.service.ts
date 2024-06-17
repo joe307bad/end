@@ -6,16 +6,6 @@ interface EndApi {
     userName: string,
     password: string
   ) => Effect.Effect<Response, Error>;
-
-  readonly startWar: (
-    planet: {
-      name: string;
-      raised: string;
-      landColor: string;
-      waterColor: string;
-    },
-    players: number
-  ) => Effect.Effect<Response>;
 }
 
 const EndApiService = Context.GenericTag<EndApi>('end-api');
@@ -31,17 +21,6 @@ const EndApiLive = Layer.effect(
           userName,
           password,
         });
-      },
-      startWar: (
-        planet: {
-          name: string;
-          raised: string;
-          landColor: string;
-          waterColor: string;
-        },
-        players: number
-      ) => {
-        return Effect.succeed({} as any);
       },
     });
   })

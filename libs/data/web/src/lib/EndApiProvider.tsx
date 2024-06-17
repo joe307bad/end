@@ -1,12 +1,5 @@
-import React, {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useMemo,
-} from 'react';
-import { EndApi, servicesFactory, execute } from '@end/data/core';
-import { useDatabase } from '@nozbe/watermelondb/hooks';
+import React, { createContext, ReactNode, useContext, useMemo } from 'react';
+import { servicesFactory } from '@end/data/core';
 import { useAuth } from '@end/auth';
 import { syncFactory } from '@end/wm/core';
 import { adapter } from '@end/wm/web';
@@ -18,7 +11,6 @@ function useServices(getToken: () => Promise<string | null>, apiUrl: string) {
 }
 
 interface Context {
-  EndApi: EndApi;
   services: ReturnType<typeof useServices>;
 }
 
@@ -31,34 +23,17 @@ export function useEndApi() {
 export function EndApiProvider({
   children,
   baseUrl: burl,
-  sync,
 }: {
   children: ReactNode;
   baseUrl?: string;
   sync: ReturnType<typeof syncFactory>;
 }) {
-  const database = useDatabase();
   const baseUrl = burl ?? 'http://localhost:3000/api';
   const { getToken } = useAuth();
   const services = useServices(getToken, baseUrl);
 
-  useEffect(() => {
-    execute(services.syncService.sync()).then(console.log);
-  }, []);
-
   return (
-    <EndApiContext.Provider
-      value={{
-        services,
-        EndApi: new EndApi(
-          baseUrl,
-          database,
-          {} as any, //new ConquestService(baseUrl, getToken),
-          sync,
-          getToken
-        ),
-      }}
-    >
+    <EndApiContext.Provider value={{ services }}>
       {children}
     </EndApiContext.Provider>
   );

@@ -272,8 +272,8 @@ export const hexasphereProxy = proxy<{
     cameraPosition: null,
   },
   colors: {
-    land: '',
-    water: '',
+    land: faker.color.rgb({ format: 'hex' }),
+    water: faker.color.rgb({ format: 'hex' }),
   },
   tiles: Object.keys(hexasphere.tileLookup).map((tileId: string) => {
     const perctRaised = faker.number.float({ min: 0.1, max: 0.9 });
