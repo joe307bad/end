@@ -11,6 +11,7 @@ import { H2 } from 'tamagui';
 import { useEndApi } from '@end/data/web';
 import { execute } from '@end/data/core';
 import { useNavigate } from 'react-router-dom';
+import { Effect, pipe } from 'effect';
 
 export default function Home() {
   const { width } = useWindowDimensions();
@@ -66,33 +67,35 @@ export default function Home() {
 
   const { services } = useEndApi();
 
-  const startGame = useCallback(async () => {
-    const raised = hexasphereProxy.tiles
-      .filter((tile) => tile.raised)
-      .map((tile) => {
-        return tile.id;
-      })
-      .join('|');
-    (
+  const startGame = useCallback(
+    async function () {
+      const raised = hexasphereProxy.tiles
+        .filter((tile) => tile.raised)
+        .map((tile) => {
+          return tile.id;
+        })
+        .join('|');
+
       await execute(
-        services.conquestService.startWar(
-          {
-            landColor: hexasphereProxy.colors.land,
-            waterColor: hexasphereProxy.colors.water,
-            raised,
-            name,
-          },
-          5
+        pipe(
+          services.conquestService.startWar(
+            {
+              landColor: hexasphereProxy.colors.land,
+              waterColor: hexasphereProxy.colors.water,
+              raised,
+              name,
+            },
+            5
+          ),
+          Effect.andThen((response) =>
+            services.syncService.sync().pipe(Effect.map(() => response))
+          ),
+          Effect.andThen((response) => navigate(`/war/${response.warId}`))
         )
-      )
-    )
-      .json()
-      .then(async (response) => {
-        await execute(services.syncService.sync());
-        console.log({ response });
-        navigate(`/war/${response.warId}`);
-      });
-  }, [name]);
+      );
+    },
+    [name]
+  );
 
   return (
     // <H database={database} sync={sync} apiUrl={process.env.API_BASE_URL}>

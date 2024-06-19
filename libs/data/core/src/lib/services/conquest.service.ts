@@ -15,7 +15,7 @@ interface Conquest {
       waterColor: string;
     },
     players: number
-  ) => Effect.Effect<Response, Error>;
+  ) => Effect.Effect<{ warId: string }, Error>;
   readonly getWar: (warId: string) => Effect.Effect<Response, Error>;
 }
 
@@ -78,7 +78,7 @@ const ConquestLive = Layer.effect(
             return getToken().pipe(Effect.map((token) => ({ war, token })));
           }),
           Effect.flatMap(({ war, token }) => {
-            return fetch.post(
+            return fetch.post<{ warId: string }>(
               '/conquest',
               {
                 type: 'generate-new-war',
