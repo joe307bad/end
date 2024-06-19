@@ -26,7 +26,6 @@ export function EndApiProvider({
 }: {
   children: ReactNode;
   baseUrl?: string;
-  sync: ReturnType<typeof syncFactory>;
 }) {
   const baseUrl = burl ?? 'http://localhost:3000/api';
   const { getToken } = useAuth();

@@ -7,6 +7,7 @@ interface Fetch {
     body: Record<string, any>,
     token?: string | null
   ) => Effect.Effect<Response, Error>;
+  readonly get: (route: string) => Effect.Effect<Response, Error>;
 }
 
 const FetchService = Context.GenericTag<Fetch>('fetch-service');
@@ -32,6 +33,13 @@ const FetchLive = Layer.effect(
               },
               body: JSON.stringify(body),
             }),
+          catch: (error) =>
+            new Error(`Error fetching ${route}: ${error?.toString()}`),
+        });
+      },
+      get: (route: string) => {
+        return Effect.tryPromise({
+          try: () => fetch(`${config.apiUrl}${route}`),
           catch: (error) =>
             new Error(`Error fetching ${route}: ${error?.toString()}`),
         });

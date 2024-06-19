@@ -23,9 +23,10 @@ import {
 } from 'react-router-dom';
 import Home from '../pages/Home';
 import { useAuth } from '@end/auth';
-import { database, sync } from '@end/wm/web';
 import { DatabaseProvider } from '@nozbe/watermelondb/react';
 import Conquest from '../pages/Conquest';
+import War from '../pages/War';
+import { useEndApi } from '@end/data/web';
 
 function WithNavigate({
   children,
@@ -81,32 +82,36 @@ const PrivateRoutes = () => {
 };
 
 function AppRoutes() {
+  const { services } = useEndApi();
   return (
-    <Router>
-      <Routes>
-        <Route element={<PrivateRoutes />}>
-          <Route path="/home" element={<Home />} />
-          <Route path="/conquest" element={<Conquest />} />
-        </Route>
-        <Route
-          path="/"
-          element={
-            <Container>
-              <WithNavigate>
-                {(n) => (
-                  <>
-                    <Landing goToHome={() => n('/home')} />
-                    <Link to={'#'}>
-                      <Badge title="Download the Android app" />
-                    </Link>
-                  </>
-                )}
-              </WithNavigate>
-            </Container>
-          }
-        />
-      </Routes>
-    </Router>
+    <DatabaseProvider database={services.endApi.database}>
+      <Router>
+        <Routes>
+          <Route element={<PrivateRoutes />}>
+            <Route path="/home" element={<Home />} />
+            <Route path="/conquest" element={<Conquest />} />
+            <Route path="/war/:id" element={<War />} />
+          </Route>
+          <Route
+            path="/"
+            element={
+              <Container>
+                <WithNavigate>
+                  {(n) => (
+                    <>
+                      <Landing goToHome={() => n('/home')} />
+                      <Link to={'#'}>
+                        <Badge title="Download the Android app" />
+                      </Link>
+                    </>
+                  )}
+                </WithNavigate>
+              </Container>
+            }
+          />
+        </Routes>
+      </Router>
+    </DatabaseProvider>
   );
 }
 
@@ -128,11 +133,9 @@ export function App() {
   }, [n]);
 
   return (
-    <DatabaseProvider database={database}>
-      <Providers sync={sync} baseUrl={process.env.API_BASE_URL as string}>
-        <AppRoutes />
-      </Providers>
-    </DatabaseProvider>
+    <Providers baseUrl={process.env.API_BASE_URL as string}>
+      <AppRoutes />
+    </Providers>
   );
 }
 

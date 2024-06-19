@@ -1,9 +1,10 @@
-import { Event, Tile } from '@end/war/core';
+import { Tile } from '@end/war/core';
 import { Effect, Context, Layer, pipe } from 'effect';
 import { AuthService } from './auth.service';
 import { FetchService } from './fetch.service';
 import { Planet, War } from '@end/wm/core';
 import { DbService } from './db.service';
+import { hexasphere } from '@end/hexasphere';
 
 interface Conquest {
   readonly startWar: (
@@ -15,6 +16,7 @@ interface Conquest {
     },
     players: number
   ) => Effect.Effect<Response, Error>;
+  readonly getWar: (warId: string) => Effect.Effect<Response, Error>;
 }
 
 const ConquestService = Context.GenericTag<Conquest>('conquest-api');
@@ -56,9 +58,16 @@ const ConquestLive = Layer.effect(
                   });
                 });
 
-                return database.get<War>('wars').create((war) => {
-                  war.planet.id = newPlanet;
-                  war.players = players;
+                return new Promise<string>(async (resolve) => {
+                  await database.write(async () => {
+                    const { id } = await database
+                      .get<War>('wars')
+                      .create((war) => {
+                        war.planet.id = newPlanet;
+                        war.players = players;
+                      });
+                    resolve(id);
+                  });
                 });
               },
               catch: (error) =>
@@ -73,6 +82,7 @@ const ConquestLive = Layer.effect(
               '/conquest',
               {
                 type: 'generate-new-war',
+                warId: war,
                 players: [],
                 tiles: planet.raised
                   .split('|')
@@ -82,9 +92,7 @@ const ConquestLive = Layer.effect(
                       owner: '',
                       troopCount: 0,
                       habitable: true,
-                      // TODO need access to the hexasphere to get this
-                      // should prob implement tsyringe next
-                      neighborIds: [],
+                      neighborIds: hexasphere.tileLookup[cur].neighborIds,
                     };
 
                     return acc;
@@ -95,6 +103,7 @@ const ConquestLive = Layer.effect(
           })
         );
       },
+      getWar: (warId: string) => fetch.get(`/conquest/war/${warId}`),
     });
   })
 );

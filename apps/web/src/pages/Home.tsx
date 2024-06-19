@@ -1,6 +1,6 @@
 import { Home as H, TabsContainer } from '@end/components';
 import { database, sync } from '@end/wm/web';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useWindowDimensions, View } from 'react-native';
@@ -10,10 +10,11 @@ import { faker } from '@faker-js/faker';
 import { H2 } from 'tamagui';
 import { useEndApi } from '@end/data/web';
 import { execute } from '@end/data/core';
+import { useNavigate } from 'react-router-dom';
 
 export default function Home() {
-
   const { width } = useWindowDimensions();
+  const navigate = useNavigate();
 
   const [cameraResponsiveness, responsiveness] = useMemo(() => {
     if (width < 835) {
@@ -72,40 +73,48 @@ export default function Home() {
         return tile.id;
       })
       .join('|');
-    await execute(
-      services.conquestService.startWar(
-        {
-          landColor: hexasphereProxy.colors.land,
-          waterColor: hexasphereProxy.colors.water,
-          raised,
-          name,
-        },
-        5
+    (
+      await execute(
+        services.conquestService.startWar(
+          {
+            landColor: hexasphereProxy.colors.land,
+            waterColor: hexasphereProxy.colors.water,
+            raised,
+            name,
+          },
+          5
+        )
       )
-    );
+    )
+      .json()
+      .then(async (response) => {
+        await execute(services.syncService.sync());
+        console.log({ response });
+        navigate(`/war/${response.warId}`);
+      });
   }, [name]);
 
   return (
-    <H database={database} sync={sync} apiUrl={process.env.API_BASE_URL}>
-      <View style={{ overflow: 'hidden', height: '100%', width: '100%' }}>
-        <H2 paddingLeft="$1">{name}</H2>
-        <Canvas
-          style={{
-            flex: 1,
-            ...responsiveness,
-          }}
-          camera={cam}
-        >
-          <Hexasphere key={reset} selectedTile={selectedTile} />
-          <OrbitControls />
-        </Canvas>
-        <TabsContainer
-          menuOpen={true}
-          selectTile={selectTile}
-          newPlanet={newPlanet}
-          startGame={startGame}
-        />
-      </View>
-    </H>
+    // <H database={database} sync={sync} apiUrl={process.env.API_BASE_URL}>
+    <View style={{ overflow: 'hidden', height: '100%', width: '100%' }}>
+      <H2 paddingLeft="$1">{name}</H2>
+      <Canvas
+        style={{
+          flex: 1,
+          ...responsiveness,
+        }}
+        camera={cam}
+      >
+        <Hexasphere key={reset} selectedTile={selectedTile} />
+        <OrbitControls />
+      </Canvas>
+      <TabsContainer
+        menuOpen={true}
+        selectTile={selectTile}
+        newPlanet={newPlanet}
+        startGame={startGame}
+      />
+    </View>
+    // </H>
   );
 }

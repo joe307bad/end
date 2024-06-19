@@ -26,18 +26,16 @@ export const tamaguiTokens = tokens;
 export function Providers({
   children,
   baseUrl,
-  sync,
 }: {
   children: ReactNode;
   baseUrl?: string;
-  sync: ReturnType<typeof syncFactory>;
 }) {
   // @ts-ignore
   useDeviceContext(tw);
   return (
     <ToastProvider burntOptions={{ from: 'bottom' }}>
       <AuthProvider>
-        <EndApiProvider sync={sync} baseUrl={baseUrl}>
+        <EndApiProvider baseUrl={baseUrl}>
           <TamaguiProvider defaultTheme="dark" config={config}>
             {children}
             <ToastViewport bottom={0} />
