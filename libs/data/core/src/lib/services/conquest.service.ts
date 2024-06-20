@@ -5,6 +5,8 @@ import { FetchService } from './fetch.service';
 import { Planet, War } from '@end/wm/core';
 import { DbService } from './db.service';
 import { hexasphere } from '@end/hexasphere';
+import { BehaviorSubject } from 'rxjs';
+import { io } from 'socket.io-client';
 
 interface Conquest {
   readonly startWar: (
@@ -17,6 +19,8 @@ interface Conquest {
     players: number
   ) => Effect.Effect<{ warId: string }, Error>;
   readonly getWar: (warId: string) => Effect.Effect<Response, Error>;
+  readonly connectToWarLog: (warId: string) => BehaviorSubject<string | null>;
+  readonly createWarLogEvent: (warId: string) => void;
 }
 
 const ConquestService = Context.GenericTag<Conquest>('conquest-api');
@@ -28,6 +32,12 @@ const ConquestLive = Layer.effect(
     const { getToken } = yield* AuthService;
     const db = yield* DbService;
     const database = yield* db.database();
+    const warLog = new BehaviorSubject<string | null>(null);
+    const socket = io('ws://localhost:3000');
+    socket.on('connect', () => {
+      warLog.next(socket?.id ?? '');
+    });
+    const sender = Math.random();
 
     return ConquestService.of({
       startWar: (
@@ -104,6 +114,16 @@ const ConquestLive = Layer.effect(
         );
       },
       getWar: (warId: string) => fetch.get(`/conquest/war/${warId}`),
+      connectToWarLog: (warId: string) => {
+        socket.emit('joinRoom', { warId: warId });
+        socket.on('serverToRoom', (message) => {
+          warLog.next(message.toString());
+        });
+        return warLog;
+      },
+      createWarLogEvent: (warId: string) => {
+        socket.emit('roomToServer', `${warId}|${sender}|attack-1-2-3}`);
+      },
     });
   })
 );

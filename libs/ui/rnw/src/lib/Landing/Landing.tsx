@@ -49,9 +49,8 @@ export function Landing({ goToHome }: Props) {
     execute(services.endApi.login(userName, password))
       .then(async (res) => {
         setLoading(false);
-        const json: { access_token: string } = await res.json?.();
-        if (json?.access_token) {
-          await setToken(json.access_token);
+        if (res?.access_token) {
+          await setToken(res.access_token);
           goToHome?.();
         } else {
           toast.show('An error occurred. Try again.', {

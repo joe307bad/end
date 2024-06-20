@@ -17,8 +17,14 @@ import * as console from 'console';
   },
 })
 export class ConquestGateway {
+  private clients: Set<Socket> = new Set();
   @WebSocketServer()
   server: Server;
+
+  handleConnection(client: Socket) {
+    console.log(`Client connected: ${client.id}`);
+    this.clients.add(client);
+  }
 
   @SubscribeMessage('events')
   findAll(@MessageBody() data: any): Observable<WsResponse<number>> {
@@ -28,9 +34,9 @@ export class ConquestGateway {
   }
 
   @SubscribeMessage('roomToServer')
-  handleChatMessage(client: Socket, payload: any) {
+  handleChatMessage(client: Socket, payload: string) {
     try {
-      const [room, sender, message] = payload.body.split("|");
+      const [room, sender, message] = payload.split("|");
       const clients = this.server.in(room);
       this.server.to(room).emit('serverToRoom', `${sender} says ${message}`);
     } catch (err) {
@@ -39,8 +45,8 @@ export class ConquestGateway {
   }
 
   @SubscribeMessage('joinRoom')
-  handleJoinRoom(client: Socket, room: { body: string }) {
-    client.join(room.body);
+  handleJoinRoom(client: Socket, room: { warId: string }) {
+    client.join(room.warId);
     client.emit('joinedRoom', room);
   }
 
