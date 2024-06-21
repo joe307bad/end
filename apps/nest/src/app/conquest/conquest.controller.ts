@@ -11,6 +11,9 @@ export class War {
   @Prop({ required: true })
   state: string;
 
+  @Prop({ required: true })
+  warId: string;
+
   _id: ObjectId;
 }
 
@@ -33,29 +36,31 @@ export class ConquestController {
         warActor.send(event);
         const state = warActor.getSnapshot();
         await this.warModel
-          .create({ state: JSON.stringify(state) })
+          .create({ state: JSON.stringify(state), warId: event.warId })
           .then((r) => {
             return { id: r._id };
           });
 
         return { state, warId: event.warId };
       case 'attack':
-        const war = await this.warModel.findById(event.warId).exec();
+        const war = await this.warModel.findOne({ warId: event.warId }).exec();
         const warState = JSON.parse(war.state);
-        const existingWarActor = createActor(warMachine(event.warId, warState));
+        const existingWarActor = createActor(
+          warMachine(event.warId, warState.context, warState.value)
+        );
         existingWarActor.start();
         existingWarActor.send(event);
         const existingWarState = existingWarActor.getSnapshot();
-        await this.warModel
+        const r = await this.warModel
           .updateOne(
-            { _id: event.warId },
-            { state: JSON.stringify(existingWarState) }
+            { warId: event.warId },
+            { state: JSON.stringify(existingWarState), warId: event.warId }
           )
           .then((r) => {
             return { id: r.upsertedId };
           });
 
-        return existingWarState;
+        return { state: existingWarState, warId: event.warId };
     }
   }
 

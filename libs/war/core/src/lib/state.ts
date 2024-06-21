@@ -25,7 +25,11 @@ export type Event =
     }
   | { type: 'attack'; tile1: string; tile2: string; warId: string };
 
-export const warMachine = (warId: string, initialContext?: Context) =>
+export const warMachine = (
+  warId: string,
+  initialContext?: Context,
+  initialState?: string
+) =>
   setup({
     types: {
       context: {} as Context,
@@ -53,7 +57,7 @@ export const warMachine = (warId: string, initialContext?: Context) =>
     },
   }).createMachine({
     id: `war-${warId}`,
-    initial: 'war-created',
+    initial: initialState ?? 'war-created',
     context:
       initialContext ??
       ({
@@ -89,6 +93,8 @@ export const warMachine = (warId: string, initialContext?: Context) =>
                   ...context.tiles[event.tile2],
                   troopCount: tile2TroopCount - 1,
                 };
+                console.log({ context: context.tiles[event.tile1] });
+                console.log({ context: context.tiles[event.tile2] });
 
                 return context.tiles;
               },

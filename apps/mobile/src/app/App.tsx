@@ -85,10 +85,7 @@ export function Routes() {
   const [loggedIn, setLoggedIn] = useState(!!getToken());
 
   return (
-    <Providers
-      sync={() => Promise.resolve()}
-      baseUrl={process?.env?.EXPO_PUBLIC_API_BASE_URL}
-    >
+    <Providers baseUrl={process?.env?.EXPO_PUBLIC_API_BASE_URL}>
       <DatabaseProvider database={database}>
         <StatusBar translucent backgroundColor={'black'} />
         <NavigationContainer theme={MyTheme}>

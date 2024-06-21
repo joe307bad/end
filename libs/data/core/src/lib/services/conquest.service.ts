@@ -1,4 +1,4 @@
-import { Tile } from '@end/war/core';
+import { Event, Tile } from '@end/war/core';
 import { Effect, Context, Layer, pipe } from 'effect';
 import { AuthService } from './auth.service';
 import { FetchService } from './fetch.service';
@@ -21,6 +21,11 @@ interface Conquest {
   readonly getWar: (warId: string) => Effect.Effect<Response, Error>;
   readonly connectToWarLog: (warId: string) => BehaviorSubject<string | null>;
   readonly createWarLogEvent: (warId: string) => void;
+  readonly attack: (payload: {
+    tile1: string;
+    tile2: string;
+    warId: string;
+  }) => Effect.Effect<Response, Error>;
 }
 
 const ConquestService = Context.GenericTag<Conquest>('conquest-api');
@@ -123,6 +128,21 @@ const ConquestLive = Layer.effect(
       },
       createWarLogEvent: (warId: string) => {
         socket.emit('roomToServer', `${warId}|${sender}|attack-1-2-3}`);
+      },
+      attack: (event: { tile1: string; tile2: string; warId: string }) => {
+        return pipe(
+          getToken(),
+          Effect.flatMap((token) =>
+            fetch.post(
+              '/conquest',
+              {
+                type: 'attack',
+                ...event,
+              },
+              token
+            )
+          )
+        );
       },
     });
   })
