@@ -7,12 +7,14 @@ import { SyncLivePipe, SyncService } from './sync.service';
 import { ConfigServiceFactory } from './config.service';
 import { FetchLivePipe } from './fetch.service';
 import { ConquestPipe, ConquestService } from './conquest.service';
+import { HexaPipe, HexaService } from './hexa.service';
 
 export const program = Effect.gen(function* () {
   return yield* Effect.succeed({
     endApi: yield* EndApiService,
     syncService: yield* SyncService,
     conquestService: yield* ConquestService,
+    hexaService: yield* HexaService,
   });
 });
 const servicesFactory = (
@@ -24,7 +26,12 @@ const servicesFactory = (
   const { DbLivePipe } = DbLiveFactory(databaseAdapter);
   const { ConfigLivePipe } = ConfigServiceFactory(apiUrl);
 
-  const appLayer = Layer.mergeAll(EndApiPipe, SyncLivePipe, ConquestPipe);
+  const appLayer = Layer.mergeAll(
+    EndApiPipe,
+    SyncLivePipe,
+    ConquestPipe,
+    HexaPipe
+  );
 
   return Effect.runSync(
     pipe(

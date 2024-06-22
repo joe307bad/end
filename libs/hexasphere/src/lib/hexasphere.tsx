@@ -129,16 +129,6 @@ export type Tile = {
   raised?: boolean;
 } & LandAndWater;
 
-export type RenderedTile = {
-  positions: Float32Array;
-  indices: Uint16Array;
-  color: string;
-  raised: boolean;
-  centerPoint: { faces: Face[] } & Coords;
-  neighbors: Tile[];
-  id: string;
-};
-
 export type THexasphere = {
   radius: number;
   tiles: Tile[];
@@ -265,6 +255,7 @@ export const hexasphereProxy = proxy<{
     defending: boolean;
     raised: boolean;
     name: string;
+    troopCount: number;
   }[];
 }>({
   selection: {
@@ -283,6 +274,7 @@ export const hexasphereProxy = proxy<{
       defending: false,
       raised: faker.datatype.boolean(perctRaised),
       name: getRandomName(),
+      troopCount: 0,
     };
   }),
 });
@@ -295,47 +287,7 @@ Object.keys(hexasphere.tileLookup).forEach((tileId) => {
   hexasphere.tileLookup[tileId].water = water;
 });
 
-export function selectTile(id: string, cameraPosition: THREE.Vector3) {
-  const currentlySelected = hexasphereProxy.tiles.find((tile) => tile.selected);
-
-  if (currentlySelected) {
-    currentlySelected.selected = false;
-  }
-
-  const newSelected = hexasphereProxy.tiles.find((tile) => tile.id === id);
-
-  if (newSelected) {
-    newSelected.selected = true;
-    hexasphereProxy.selection.selectedId = newSelected.id;
-    hexasphereProxy.selection.cameraPosition = cameraPosition;
-
-    const currentlyDefending = hexasphereProxy.tiles.filter(
-      (tile) => tile.defending
-    );
-
-    if (currentlyDefending.length > 0) {
-      currentlyDefending.forEach((tile) => {
-        tile.defending = false;
-      });
-    }
-
-    const neighbors = hexasphere.tileLookup[newSelected.id].neighborIds;
-
-    newSelected.raised &&
-      neighbors.forEach((neighborTileId) => {
-        const neighbor = hexasphereProxy.tiles.find(
-          (tile) => tile.id === neighborTileId
-        );
-        if (neighbor) {
-          neighbor.defending = true;
-        }
-      });
-  }
-
-  return currentlySelected;
-}
-
-export const derived = derive({
+export const derivedDefault = derive({
   cameraPath: (get) => {
     const selectedId = get(hexasphereProxy.selection).selectedId;
     const cameraPosition = get(hexasphereProxy.selection).cameraPosition;
@@ -361,12 +313,14 @@ const TroopCount = React.memo(
     z,
     selected,
     defending,
+    troopCount,
   }: {
     x: number;
     y: number;
     z: number;
     selected: boolean;
     defending: boolean;
+    troopCount: number;
   }) => {
     const countGeo: React.MutableRefObject<THREE.CylinderGeometry | null> =
       useRef(null);
@@ -387,11 +341,6 @@ const TroopCount = React.memo(
       }
     }, [selected, defending]);
 
-    const randomNumber = useMemo(
-      () => faker.number.int({ min: 1, max: 9999 }).toString(),
-      []
-    );
-
     useEffect(() => {
       if (
         countGeo.current &&
@@ -400,10 +349,10 @@ const TroopCount = React.memo(
         textGeo.current &&
         textMesh.current
       ) {
-        if (parseInt(randomNumber) > 99) {
+        if (troopCount > 99) {
           cyl.current.scale.x = 1.5;
         }
-        if (parseInt(randomNumber) > 999) {
+        if (troopCount > 999) {
           cyl.current.scale.x = 2;
         }
 
@@ -476,7 +425,7 @@ const TroopCount = React.memo(
         <mesh ref={textMesh}>
           <textGeometry
             ref={textGeo}
-            args={[randomNumber, { font, size: 2, height: 0.25 }]}
+            args={[troopCount.toString(), { font, size: 2, height: 0.25 }]}
           />
           <meshBasicMaterial
             side={THREE.DoubleSide}
@@ -501,11 +450,19 @@ const TileMesh = React.memo(
     selected,
     defending,
     raised,
+    troopCount,
+    selectTile,
+    landColor,
+    waterColor,
   }: {
     id: string;
     selected: boolean;
     defending: boolean;
     raised: boolean;
+    troopCount: number;
+    selectTile(id: string, position: THREE.Vector3): any;
+    landColor: string;
+    waterColor: string;
   }) => {
     const { land, water, centerPoint } = useMemo(
       () => hexasphere.tileLookup[id],
@@ -538,8 +495,16 @@ const TileMesh = React.memo(
               itemSize={1}
             />
           </bufferGeometry>
-          <meshStandardMaterial color={hexasphereProxy.colors.land} />
+          <meshStandardMaterial color={landColor} />
           <Edges color={selected ? 'yellow' : 'black'} threshold={50} />
+          <TroopCount
+            x={centerPoint.x}
+            y={centerPoint.y}
+            z={centerPoint.z}
+            selected={false}
+            defending={false}
+            troopCount={troopCount}
+          />
         </mesh>
         <mesh visible={!raised}>
           <bufferGeometry>
@@ -556,7 +521,7 @@ const TileMesh = React.memo(
               itemSize={1}
             />
           </bufferGeometry>
-          <meshStandardMaterial color={hexasphereProxy.colors.water} />
+          <meshStandardMaterial color={waterColor} />
         </mesh>
       </mesh>
     );
@@ -565,8 +530,63 @@ const TileMesh = React.memo(
 
 var camPosIndex = 0;
 
+export function selectTile(
+  id: string,
+  cameraPosition: THREE.Vector3,
+  proxy: typeof hexasphereProxy
+) {
+  const currentlySelected = proxy.tiles.find((tile) => tile.selected);
+
+  if (currentlySelected) {
+    currentlySelected.selected = false;
+  }
+
+  const newSelected = proxy.tiles.find((tile) => tile.id === id);
+
+  if (newSelected) {
+    newSelected.selected = true;
+    proxy.selection.selectedId = newSelected.id;
+    proxy.selection.cameraPosition = cameraPosition;
+
+    const currentlyDefending = proxy.tiles.filter((tile) => tile.defending);
+
+    if (currentlyDefending.length > 0) {
+      currentlyDefending.forEach((tile) => {
+        tile.defending = false;
+      });
+    }
+
+    const neighbors = hexasphere.tileLookup[newSelected.id].neighborIds;
+
+    newSelected.raised &&
+      neighbors.forEach((neighborTileId) => {
+        const neighbor = proxy.tiles.find((tile) => tile.id === neighborTileId);
+        if (neighbor) {
+          neighbor.defending = true;
+        }
+      });
+  }
+
+  return currentlySelected;
+}
+
 export const Hexasphere = React.memo(
-  ({ selectedTile }: { selectedTile?: string }) => {
+  ({
+    selectedTile,
+    proxy: p,
+    landColor: lc,
+    waterColor: wc,
+    derived: d,
+  }: {
+    selectedTile?: string;
+    proxy?: typeof hexasphereProxy;
+    landColor?: string;
+    waterColor?: string;
+    derived?: typeof derivedDefault;
+  }) => {
+    const proxy = p ?? hexasphereProxy;
+    const derived = d ?? derivedDefault;
+
     const mesh: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
 
     const stars = useMemo(() => {
@@ -630,7 +650,7 @@ export const Hexasphere = React.memo(
       }
     });
 
-    const hs = useSnapshot(hexasphereProxy);
+    const hs = useSnapshot(proxy);
 
     useEffect(() => {
       const unsubscribe = subscribeKey(derived, 'cameraPath', (s) => {
@@ -642,9 +662,16 @@ export const Hexasphere = React.memo(
 
     useEffect(() => {
       if (selectedTile) {
-        selectTile(selectedTile, camera.position);
+        selectTile(selectedTile, camera.position, proxy);
       }
     }, [selectedTile]);
+
+    const landColor = lc ?? hexasphereProxy.colors.land;
+    const waterColor = wc ?? hexasphereProxy.colors.water;
+
+    const st = useCallback((id: string, position: THREE.Vector3) => {
+      return selectTile(id, position, proxy);
+    }, []);
 
     return (
       <>
@@ -656,8 +683,12 @@ export const Hexasphere = React.memo(
               key={t.id}
               id={t.id}
               selected={t.selected}
+              selectTile={st}
               defending={t.defending}
               raised={t.raised}
+              troopCount={t.troopCount}
+              landColor={landColor}
+              waterColor={waterColor}
             />
           ))}
           <points>

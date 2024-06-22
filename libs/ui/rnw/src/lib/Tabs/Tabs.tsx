@@ -12,13 +12,12 @@ import {
   ScrollView,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
-import { Slider } from '@miblanchard/react-native-slider';
-import { Sun, tw } from '../components';
+import { tw } from '../components';
 import { PrimaryButton } from '../Display';
 import { CircleDot, Crosshair, Hexagon } from '@tamagui/lucide-icons';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useResponsive } from '../Layout';
-import { derived, hexasphereProxy } from '@end/hexasphere';
+import { derivedDefault, hexasphereProxy } from '@end/hexasphere';
 import { useSnapshot } from 'valtio';
 import Select from '../Select/Select';
 import { subscribeKey } from 'valtio/utils';
@@ -43,7 +42,7 @@ export function TabsContainer({
 
   useEffect(() => {
     const unsubscribe = subscribeKey(
-      derived,
+      derivedDefault,
       'selectedTileIndex',
       (selectedTileIndex) => {
         if (sv.current) {
