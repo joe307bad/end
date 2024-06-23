@@ -66,10 +66,9 @@ export class ConquestController {
 
   @Get('war/:id')
   async war(@Param() params: { id?: string }) {
-    const war = await this.entityModel
+    const war = await this.warModel
       .findOne({
-        table: 'wars',
-        _id: { $eq: params.id },
+        warId: { $eq: params.id },
       })
       .exec();
     return { war };

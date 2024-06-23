@@ -41,7 +41,7 @@ const hexasphereProxy = proxy<{
       defending: false,
       raised: faker.datatype.boolean(perctRaised),
       name: getRandomName(),
-      troopCount: 10,
+      troopCount: 4,
     };
   }),
 });
@@ -130,10 +130,10 @@ const HexaLive = Layer.effect(
       getDerived: () => derived,
       getColors: () => {
         return {
-          land: "#000000",
-          water: "#FFFFaF"
-        }
-      }
+          land: hexasphereProxy.colors.land,
+          water: hexasphereProxy.colors.water,
+        };
+      },
     });
   })
 );

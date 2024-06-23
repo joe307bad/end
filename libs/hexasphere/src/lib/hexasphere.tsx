@@ -314,6 +314,7 @@ const TroopCount = React.memo(
     selected,
     defending,
     troopCount,
+    showTroopCount,
   }: {
     x: number;
     y: number;
@@ -321,7 +322,12 @@ const TroopCount = React.memo(
     selected: boolean;
     defending: boolean;
     troopCount: number;
+    showTroopCount: boolean;
   }) => {
+    const textPositionX = React.useRef<number>();
+    const textPositionY = React.useRef<number>();
+    const textPositionZ = React.useRef<number>();
+    const onFirstLoad = React.useRef(true);
     const countGeo: React.MutableRefObject<THREE.CylinderGeometry | null> =
       useRef(null);
     const text: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
@@ -349,10 +355,10 @@ const TroopCount = React.memo(
         textGeo.current &&
         textMesh.current
       ) {
-        if (troopCount > 99) {
+        if (troopCount > 99 || troopCount < 0) {
           cyl.current.scale.x = 1.5;
         }
-        if (troopCount > 999) {
+        if (troopCount > 999 || troopCount < -9) {
           cyl.current.scale.x = 2;
         }
 
@@ -362,17 +368,44 @@ const TroopCount = React.memo(
         text.current?.position.copy(center.clone());
         text.current?.lookAt(cp.clone());
         text.current?.position.copy(cp.clone());
+      }
+    }, [troopCount]);
 
+    useEffect(() => {
+      if (textGeo.current && textMesh.current) {
+        if (
+          textPositionX.current === undefined ||
+          textPositionY.current === undefined ||
+          textPositionZ.current === undefined
+        ) {
+          textPositionX.current = textMesh.current.position.x;
+          textPositionY.current = textMesh.current.position.y;
+          textPositionZ.current = textMesh.current.position.z;
+        }
+
+        console.log(
+          textPositionX.current,
+          textPositionY.current,
+          textPositionX.current
+        );
+
+        onFirstLoad.current = false;
         textGeo.current.computeBoundingBox();
         const b = textGeo.current.boundingBox?.getCenter(new THREE.Vector3());
 
         if (b) {
+          textMesh.current.position.x = textPositionX.current;
+          textMesh.current.position.y = textPositionY.current;
+          textMesh.current.position.z = textPositionZ.current;
+
+          // console.log(b.x, b.y, b.z);
+
           textMesh.current.position.x -= b.x;
           textMesh.current.position.y -= b.y;
-          textMesh.current.position.z += 1;
+          textMesh.current.position.z = 1;
         }
       }
-    }, []);
+    }, [troopCount]);
     const { camera } = useThree();
 
     useFrame(() => {
@@ -393,7 +426,7 @@ const TroopCount = React.memo(
     });
 
     return (
-      <mesh ref={text} position={[x, y, z]}>
+      <mesh visible={showTroopCount} ref={text} position={[x, y, z]}>
         <mesh ref={cyl}>
           <cylinderGeometry
             ref={countGeo}
@@ -454,6 +487,7 @@ const TileMesh = React.memo(
     selectTile,
     landColor,
     waterColor,
+    showTroopCount,
   }: {
     id: string;
     selected: boolean;
@@ -463,6 +497,7 @@ const TileMesh = React.memo(
     selectTile(id: string, position: THREE.Vector3): any;
     landColor: string;
     waterColor: string;
+    showTroopCount: boolean;
   }) => {
     const { land, water, centerPoint } = useMemo(
       () => hexasphere.tileLookup[id],
@@ -504,6 +539,7 @@ const TileMesh = React.memo(
             selected={false}
             defending={false}
             troopCount={troopCount}
+            showTroopCount={showTroopCount}
           />
         </mesh>
         <mesh visible={!raised}>
@@ -577,12 +613,14 @@ export const Hexasphere = React.memo(
     landColor: lc,
     waterColor: wc,
     derived: d,
+    showTroopCount = false,
   }: {
     selectedTile?: string;
     proxy?: typeof hexasphereProxy;
     landColor?: string;
     waterColor?: string;
     derived?: typeof derivedDefault;
+    showTroopCount?: boolean;
   }) => {
     const proxy = p ?? hexasphereProxy;
     const derived = d ?? derivedDefault;
@@ -689,6 +727,7 @@ export const Hexasphere = React.memo(
               troopCount={t.troopCount}
               landColor={landColor}
               waterColor={waterColor}
+              showTroopCount={showTroopCount}
             />
           ))}
           <points>

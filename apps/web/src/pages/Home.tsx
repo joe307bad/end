@@ -42,7 +42,7 @@ export default function Home() {
     return cam;
   }, []);
 
-  const [selectedTile, selectTile] = useState<string>();
+  const [selectedTile, selectTile] = useState<string>('0,50,0');
   const [reset, setReset] = useState(Math.random());
 
   const newPlanet = useCallback(() => {

@@ -82,19 +82,17 @@ export const warMachine = (
               tiles: ({ context, event }) => {
                 let { troopCount: tile1TroopCount } =
                   context.tiles[event.tile1];
-                let { troopCount: tile2TroopCount } =
-                  context.tiles[event.tile2];
+                // let { troopCount: tile2TroopCount } =
+                //   context.tiles[event.tile2];
 
                 context.tiles[event.tile1] = {
                   ...context.tiles[event.tile1],
                   troopCount: tile1TroopCount - 1,
                 };
-                context.tiles[event.tile2] = {
-                  ...context.tiles[event.tile2],
-                  troopCount: tile2TroopCount - 1,
-                };
-                console.log({ context: context.tiles[event.tile1] });
-                console.log({ context: context.tiles[event.tile2] });
+                // context.tiles[event.tile2] = {
+                //   ...context.tiles[event.tile2],
+                //   // troopCount: tile2TroopCount - 1,
+                // };
 
                 return context.tiles;
               },
