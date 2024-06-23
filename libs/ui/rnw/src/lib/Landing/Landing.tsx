@@ -47,7 +47,7 @@ export function Landing({ goToHome }: Props) {
   const login = useCallback(() => {
     setLoading(true);
     execute(services.endApi.login(userName, password))
-      .then(async (res) => {
+      .then(async (res: any) => {
         setLoading(false);
         if (res?.access_token) {
           await setToken(res.access_token);
