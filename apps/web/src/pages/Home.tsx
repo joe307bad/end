@@ -1,5 +1,4 @@
-import { Home as H, TabsContainer } from '@end/components';
-import { database, sync } from '@end/wm/web';
+import { newPlanet, TabsContainer } from '@end/components';
 import React, { useCallback, useMemo, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -44,22 +43,6 @@ export default function Home() {
 
   const [selectedTile, selectTile] = useState<string>('0,50,0');
   const [reset, setReset] = useState(Math.random());
-
-  const newPlanet = useCallback(() => {
-    hexasphereProxy.tiles.forEach((tile) => {
-      const raisedness = faker.number.float({ min: 0.1, max: 0.9 });
-
-      tile.name = getRandomName();
-      tile.raised = faker.datatype.boolean(raisedness);
-      tile.selected = false;
-      tile.defending = false;
-    });
-    hexasphereProxy.selection.selectedId = null;
-    hexasphereProxy.selection.cameraPosition = null;
-    hexasphereProxy.colors.land = faker.color.rgb({ format: 'hex' });
-    hexasphereProxy.colors.water = faker.color.rgb({ format: 'hex' });
-    setReset(Math.random());
-  }, []);
 
   const name = useMemo(() => {
     return getRandomName();
@@ -114,7 +97,7 @@ export default function Home() {
       <TabsContainer
         menuOpen={true}
         selectTile={selectTile}
-        newPlanet={newPlanet}
+        newPlanet={() => newPlanet(setReset)}
         startGame={startGame}
       />
     </View>

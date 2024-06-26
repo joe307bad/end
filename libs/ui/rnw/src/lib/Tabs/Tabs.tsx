@@ -22,7 +22,6 @@ import { useSnapshot } from 'valtio';
 import Select from '../Select/Select';
 import { subscribeKey } from 'valtio/utils';
 import { useEndApi } from '@end/data/web';
-import { Effect } from 'effect';
 import { execute } from '@end/data/core';
 
 export function TabsContainer({

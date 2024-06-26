@@ -1,7 +1,7 @@
 import React, { createContext, ReactNode, useContext, useMemo } from 'react';
 import { servicesFactory } from '@end/data/core';
 import { useAuth } from '@end/auth';
-import { adapter } from '@end/wm/web';
+import { adapter } from '@end/wm/rn';
 
 function useServices(getToken: () => Promise<string | null>, apiUrl: string) {
   return useMemo(() => {

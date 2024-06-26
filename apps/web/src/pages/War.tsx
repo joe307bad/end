@@ -9,8 +9,7 @@ import React, {
 import { useParams } from 'react-router-dom';
 import { execute } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
-import { io } from 'socket.io-client';
-import { Badge, PrimaryButton, TabsContainer } from '@end/components';
+import { Badge, PrimaryButton } from '@end/components';
 import { Canvas } from '@react-three/fiber';
 import { Hexasphere } from '@end/hexasphere';
 import { OrbitControls } from '@react-three/drei';

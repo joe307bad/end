@@ -18,8 +18,9 @@
     "paths": {
       "@end/auth": ["libs/auth/src/index.ts"],
       "@end/components": ["libs/ui/rnw/src/index.ts"],
-      "@end/data/web": ["libs/data/web/src/index.ts"],
+      "@end/data/rn": ["libs/data/rn/src/index.ts"],
       "@end/data/core": ["libs/data/core/src/index.ts"],
+      "@end/data/web": ["libs/data/web/src/index.ts"],
       "@end/hexasphere": ["libs/hexasphere/src/index.ts"],
       "@end/rnw": ["ui/src/index.ts"],
       "@end/war/core": ["libs/war/core/src/index.ts"],

@@ -2231,6 +2231,7 @@ __metadata:
     style-loader: "npm:^3.3.3"
     tamagui: "npm:^1.80.4"
     tamagui-loader: "npm:^1.80.4"
+    text-encoding-polyfill: "npm:^0.6.7"
     three: "npm:^0.160.0"
     ts-jest: "npm:^29.1.0"
     ts-node: "npm:10.9.1"
@@ -23928,6 +23929,13 @@ __metadata:
     glob: "npm:^7.1.4"
     minimatch: "npm:^3.0.4"
   checksum: 019d33d81adff3f9f1bfcff18125fb2d3c65564f437d9be539270ee74b994986abb8260c7c2ce90e8f30162178b09dbbce33c6389273afac4f36069c48521f57
+  languageName: node
+  linkType: hard
+
+"text-encoding-polyfill@npm:^0.6.7":
+  version: 0.6.7
+  resolution: "text-encoding-polyfill@npm:0.6.7"
+  checksum: 5486a2320e2384b0153d2835a8e6e3a643ff28fcd05c2e9fa5d69c7879a2b8fdb7faa44708792a9205f074f10606ee3b6470c8f3f4da1be90a014b79057008d0
   languageName: node
   linkType: hard
 

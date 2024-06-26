@@ -52,7 +52,14 @@
     "@miblanchard/react-native-slider": "*",
     "gsap": "*",
     "three-stdlib": "*",
-    "valtio": "*"
+    "valtio": "*",
+    "xstate": "*",
+    "@jest/globals": "*",
+    "isomorphic-fetch": "*",
+    "effect": "*",
+    "voca": "*",
+    "socket.io-client": "*",
+    "text-encoding-polyfill": "*"
   },
   "scripts": {
     "eas-build-pre-install": "cd ../../ && node tools/scripts/eas-build-pre-install.mjs . apps/mobile && cp package-lock.json apps/mobile",

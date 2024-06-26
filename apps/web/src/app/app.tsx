@@ -1,5 +1,4 @@
 import React, { ReactNode, useCallback, useEffect, useState } from 'react';
-import { View } from 'react-native';
 import {
   Badge,
   Container,
@@ -26,7 +25,7 @@ import { useAuth } from '@end/auth';
 import { DatabaseProvider } from '@nozbe/watermelondb/react';
 import Conquest from '../pages/Conquest';
 import War from '../pages/War';
-import { useEndApi } from '@end/data/web';
+import { EndApiProvider, useEndApi } from '@end/data/web';
 
 function WithNavigate({
   children,
@@ -99,7 +98,7 @@ function AppRoutes() {
                 <WithNavigate>
                   {(n) => (
                     <>
-                      <Landing goToHome={() => n('/home')} />
+                      <Landing services={services} goToHome={() => n('/home')} />
                       <Link to={'#'}>
                         <Badge title="Download the Android app" />
                       </Link>
@@ -133,8 +132,10 @@ export function App() {
   }, [n]);
 
   return (
-    <Providers baseUrl={process.env.API_BASE_URL as string}>
-      <AppRoutes />
+    <Providers>
+      <EndApiProvider baseUrl={process.env.API_BASE_URL}>
+        <AppRoutes />
+      </EndApiProvider>
     </Providers>
   );
 }

@@ -16,7 +16,12 @@ import {
   useThree,
 } from '@react-three/fiber';
 import * as THREE from 'three';
-import { BufferAttribute, MathUtils, NormalBufferAttributes } from 'three';
+import {
+  BufferAttribute,
+  BufferGeometry,
+  MathUtils,
+  NormalBufferAttributes,
+} from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 // @ts-ignore
@@ -383,12 +388,6 @@ const TroopCount = React.memo(
           textPositionZ.current = textMesh.current.position.z;
         }
 
-        console.log(
-          textPositionX.current,
-          textPositionY.current,
-          textPositionX.current
-        );
-
         onFirstLoad.current = false;
         textGeo.current.computeBoundingBox();
         const b = textGeo.current.boundingBox?.getCenter(new THREE.Vector3());
@@ -499,10 +498,18 @@ const TileMesh = React.memo(
     waterColor: string;
     showTroopCount: boolean;
   }) => {
-    const { land, water, centerPoint } = useMemo(
-      () => hexasphere.tileLookup[id],
-      []
-    );
+    const { land, water, centerPoint } = useMemo(() => {
+      const bg = new BufferGeometry();
+      const tile = hexasphere.tileLookup[id];
+      const pos = tile.land.positions;
+      bg.setAttribute('position', new BufferAttribute(pos, 3));
+      bg.setIndex(Array.from(tile.land.indices));
+      const water = new BufferGeometry();
+      const waterPos = tile.water.positions;
+      water.setAttribute('position', new BufferAttribute(waterPos, 3));
+      water.setIndex(Array.from(tile.water.indices));
+      return { land: bg, water, centerPoint: tile.centerPoint };
+    }, []);
 
     const { camera } = useThree();
 
@@ -515,21 +522,7 @@ const TileMesh = React.memo(
 
     return (
       <mesh onClick={click}>
-        <mesh visible={raised}>
-          <bufferGeometry>
-            <bufferAttribute
-              attach="attributes-position"
-              array={land.positions}
-              count={land.positions.length / 3}
-              itemSize={3}
-            />
-            <bufferAttribute
-              attach="index"
-              array={land.indices}
-              count={land.indices.length}
-              itemSize={1}
-            />
-          </bufferGeometry>
+        <mesh visible={raised} geometry={land}>
           <meshStandardMaterial color={landColor} />
           <Edges color={selected ? 'yellow' : 'black'} threshold={50} />
           <TroopCount
@@ -542,21 +535,7 @@ const TileMesh = React.memo(
             showTroopCount={showTroopCount}
           />
         </mesh>
-        <mesh visible={!raised}>
-          <bufferGeometry>
-            <bufferAttribute
-              attach="attributes-position"
-              array={water.positions}
-              count={water.positions.length / 3}
-              itemSize={3}
-            />
-            <bufferAttribute
-              attach="index"
-              array={water.indices}
-              count={water.indices.length}
-              itemSize={1}
-            />
-          </bufferGeometry>
+        <mesh visible={!raised} geometry={water}>
           <meshStandardMaterial color={waterColor} />
         </mesh>
       </mesh>
@@ -649,7 +628,7 @@ export const Hexasphere = React.memo(
         return new Array(stars).fill(undefined).flatMap(createStar);
       };
 
-      return new Float32Array(createStars(1000));
+      return new Float32Array(createStars(50));
     }, []);
 
     const { camera } = useThree();
@@ -714,7 +693,7 @@ export const Hexasphere = React.memo(
     return (
       <>
         <ambientLight />
-        <directionalLight position={[0, 100, 25]} />
+        {/*<directionalLight position={[0, 100, 25]} />*/}
         <mesh ref={mesh}>
           {hs.tiles.map((t, i) => (
             <TileMesh
@@ -730,17 +709,17 @@ export const Hexasphere = React.memo(
               showTroopCount={showTroopCount}
             />
           ))}
-          <points>
-            <bufferGeometry>
-              <bufferAttribute
-                attach="attributes-position"
-                count={stars.length / 3}
-                itemSize={3}
-                array={stars}
-              />
-            </bufferGeometry>
-            <pointsMaterial size={2} color={'white'} transparent />
-          </points>
+          {/*<points>*/}
+          {/*  <bufferGeometry>*/}
+          {/*    <bufferAttribute*/}
+          {/*      attach="attributes-position"*/}
+          {/*      count={stars.length / 3}*/}
+          {/*      itemSize={3}*/}
+          {/*      array={stars}*/}
+          {/*    />*/}
+          {/*  </bufferGeometry>*/}
+          {/*  <pointsMaterial size={2} color={'white'} transparent />*/}
+          {/*</points>*/}
         </mesh>
       </>
     );

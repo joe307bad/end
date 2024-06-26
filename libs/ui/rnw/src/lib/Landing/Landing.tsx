@@ -1,14 +1,14 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import * as Typography from '../Typography';
-import { Input, XStack, YStack, Text } from 'tamagui';
+import { Input, XStack, YStack } from 'tamagui';
 import { PrimaryButton } from '../Display';
-import { useEndApi } from '@end/data/web';
 import { useAuth } from '@end/auth';
 import { Toast, useToastController, useToastState } from '@tamagui/toast';
-import { execute } from '@end/data/core';
+import { execute, servicesFactory } from '@end/data/core';
 
 type Props = {
   goToHome?: () => void;
+  services: ReturnType<typeof servicesFactory>;
 };
 
 const CurrentToast = () => {
@@ -36,11 +36,10 @@ const CurrentToast = () => {
   );
 };
 
-export function Landing({ goToHome }: Props) {
+export function Landing({ goToHome, services }: Props) {
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { services } = useEndApi();
   const { setToken } = useAuth();
   const toast = useToastController();
 
