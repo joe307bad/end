@@ -1,5 +1,4 @@
-import { Home as H, newPlanet, PrimaryButton } from '@end/components';
-import { database, sync } from '@end/wm/rn';
+import { newPlanet, PrimaryButton } from '@end/components';
 import { Canvas } from '@react-three/fiber/native';
 import React, { startTransition, useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
@@ -7,7 +6,7 @@ import { Hexasphere } from '@end/hexasphere';
 import useControls from 'r3f-native-orbitcontrols';
 import * as THREE from 'three';
 
-export default function Home({ logOut }: { logOut: () => void }) {
+export default function Home({ navigation }: { navigation: any }) {
   const [OrbitControls, events] = useControls();
   const [reset, setReset] = useState(Math.random());
   const cam = useMemo(() => {
@@ -27,18 +26,12 @@ export default function Home({ logOut }: { logOut: () => void }) {
 
   return (
     <View style={{ flex: 1 }} {...events}>
-      <H
-        database={database}
-        sync={sync}
-        apiUrl={process?.env?.EXPO_PUBLIC_API_BASE_URL}
-      >
-        <Canvas frameloop="demand" renderToHardwareTextureAndroid={true} camera={cam}>
-          <Hexasphere key={reset} />
-          <OrbitControls />
-        </Canvas>
-      </H>
+      <Canvas camera={cam}>
+        <Hexasphere key={reset} />
+        <OrbitControls />
+      </Canvas>
       <PrimaryButton onPress={np}>New Planet</PrimaryButton>
-      <PrimaryButton onPress={logOut}>Logout</PrimaryButton>
+      <PrimaryButton onPress={() => {}}>Logout</PrimaryButton>
     </View>
   );
 }

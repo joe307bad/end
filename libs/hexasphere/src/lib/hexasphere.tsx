@@ -455,6 +455,7 @@ const TroopCount = React.memo(
           ) : null}
         </mesh>
         <mesh ref={textMesh}>
+          {/* TODO this TextGeometry renders slowly on React Native */}
           <textGeometry
             ref={textGeo}
             args={[troopCount.toString(), { font, size: 2, height: 0.25 }]}
@@ -475,6 +476,28 @@ type LandAndWater = {
   water: { positions: Float32Array; indices: Uint16Array };
   landGeometry: THREE.BufferGeometry<NormalBufferAttributes>;
 };
+
+const geometries = Object.keys(hexasphere.tileLookup).reduce<
+  Record<
+    string,
+    {
+      land: THREE.BufferGeometry;
+      water: THREE.BufferGeometry;
+    }
+  >
+>((acc, curr) => {
+  const bg = new BufferGeometry();
+  const tile = hexasphere.tileLookup[curr];
+  const pos = tile.land.positions;
+  bg.setAttribute('position', new BufferAttribute(pos, 3));
+  bg.setIndex(Array.from(tile.land.indices));
+  const water = new BufferGeometry();
+  const waterPos = tile.water.positions;
+  water.setAttribute('position', new BufferAttribute(waterPos, 3));
+  water.setIndex(Array.from(tile.water.indices));
+  acc[curr] = { land: bg, water };
+  return acc;
+}, {});
 
 const TileMesh = React.memo(
   ({
@@ -499,16 +522,10 @@ const TileMesh = React.memo(
     showTroopCount: boolean;
   }) => {
     const { land, water, centerPoint } = useMemo(() => {
-      const bg = new BufferGeometry();
-      const tile = hexasphere.tileLookup[id];
-      const pos = tile.land.positions;
-      bg.setAttribute('position', new BufferAttribute(pos, 3));
-      bg.setIndex(Array.from(tile.land.indices));
-      const water = new BufferGeometry();
-      const waterPos = tile.water.positions;
-      water.setAttribute('position', new BufferAttribute(waterPos, 3));
-      water.setIndex(Array.from(tile.water.indices));
-      return { land: bg, water, centerPoint: tile.centerPoint };
+      return {
+        ...geometries[id],
+        centerPoint: hexasphere.tileLookup[id].centerPoint,
+      };
     }, []);
 
     const { camera } = useThree();
@@ -593,6 +610,7 @@ export const Hexasphere = React.memo(
     waterColor: wc,
     derived: d,
     showTroopCount = false,
+    cameraPath: cp,
   }: {
     selectedTile?: string;
     proxy?: typeof hexasphereProxy;
@@ -600,6 +618,9 @@ export const Hexasphere = React.memo(
     waterColor?: string;
     derived?: typeof derivedDefault;
     showTroopCount?: boolean;
+    cameraPath?: {
+      current: { points: THREE.Vector3[]; tangents: THREE.Vector3[] };
+    };
   }) => {
     const proxy = p ?? hexasphereProxy;
     const derived = d ?? derivedDefault;
@@ -639,18 +660,21 @@ export const Hexasphere = React.memo(
     }>();
 
     useFrame(() => {
-      if (cameraPath.current) {
+      const speed = 10;
+      const path = cp ?? cameraPath;
+      if (path.current) {
         camPosIndex++;
-        if (camPosIndex > 20) {
+        if (camPosIndex > speed) {
           camPosIndex = 0;
-          cameraPath.current = undefined;
+          path.current = undefined;
+          console.log('cam reset');
         } else {
-          const perc = camPosIndex / 20;
+          const perc = camPosIndex / speed;
           const index = Math.round(1000 * perc) - 1;
           // @ts-ignore
-          var camPos = cameraPath.current.points[index];
+          var camPos = path.current.points[index];
           // @ts-ignore
-          var camRot = cameraPath.current.tangents[index];
+          var camRot = path.current.tangents[index];
 
           if (camRot && camPos) {
             camera.position.x = camPos.x;
@@ -669,19 +693,21 @@ export const Hexasphere = React.memo(
 
     const hs = useSnapshot(proxy);
 
-    useEffect(() => {
-      const unsubscribe = subscribeKey(derived, 'cameraPath', (s) => {
-        cameraPath.current = s;
-      });
+    // TODO this doesnt work on React Native
+    // In this case, the `unsubscribe` is not called and it causes the camera to jump
+    // useEffect(() => {
+    //   const unsubscribe = subscribeKey(derived, 'cameraPath', (s) => {
+    //     cameraPath.current = s;
+    //   });
+    //
+    //   return () => unsubscribe();
+    // }, []);
 
-      return () => unsubscribe();
-    }, []);
-
-    useEffect(() => {
-      if (selectedTile) {
-        selectTile(selectedTile, camera.position, proxy);
-      }
-    }, [selectedTile]);
+    // useEffect(() => {
+    //   if (selectedTile) {
+    //     selectTile(selectedTile, camera.position, proxy);
+    //   }
+    // }, [selectedTile]);
 
     const landColor = lc ?? hexasphereProxy.colors.land;
     const waterColor = wc ?? hexasphereProxy.colors.water;
@@ -709,17 +735,17 @@ export const Hexasphere = React.memo(
               showTroopCount={showTroopCount}
             />
           ))}
-          {/*<points>*/}
-          {/*  <bufferGeometry>*/}
-          {/*    <bufferAttribute*/}
-          {/*      attach="attributes-position"*/}
-          {/*      count={stars.length / 3}*/}
-          {/*      itemSize={3}*/}
-          {/*      array={stars}*/}
-          {/*    />*/}
-          {/*  </bufferGeometry>*/}
-          {/*  <pointsMaterial size={2} color={'white'} transparent />*/}
-          {/*</points>*/}
+          <points>
+            <bufferGeometry>
+              <bufferAttribute
+                attach="attributes-position"
+                count={stars.length / 3}
+                itemSize={3}
+                array={stars}
+              />
+            </bufferGeometry>
+            <pointsMaterial size={2} color={'white'} transparent />
+          </points>
         </mesh>
       </>
     );

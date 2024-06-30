@@ -26,7 +26,7 @@ export function newPlanet(setReset: (r: number) => void) {
   hexasphereProxy.selection.cameraPosition = null;
   hexasphereProxy.colors.land = faker.color.rgb({ format: 'hex' });
   hexasphereProxy.colors.water = faker.color.rgb({ format: 'hex' });
-  setReset(Math.random());
+  // setReset(Math.random());
 };
 
 export function Providers({ children }: { children: ReactNode }) {
