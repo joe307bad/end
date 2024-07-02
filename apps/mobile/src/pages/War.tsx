@@ -59,7 +59,6 @@ export default function War() {
             waterColor={getColors().water}
             landColor={getColors().land}
             showTroopCount={true}
-            cameraPath={cameraPath}
           />
           <OrbitControls />
         </Suspense>
