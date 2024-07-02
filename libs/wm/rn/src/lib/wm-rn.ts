@@ -1,7 +1,7 @@
 import SQLiteAdapter from '@nozbe/watermelondb/adapters/sqlite';
 import {databaseFactory, migrations, schema, syncFactory} from '@end/wm/core';
 
-const adapter = new SQLiteAdapter({
+export const adapter = new SQLiteAdapter({
   schema,
   // (You might want to comment it out for development purposes -- see Migrations documentation)
   migrations,

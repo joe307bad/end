@@ -109,6 +109,9 @@ export function ContainerWithNav({
             <NavButton currentRoute={currentRoute} navigate={navigate}>
               Home
             </NavButton>
+            <NavButton currentRoute={currentRoute} navigate={navigate}>
+              Conquest
+            </NavButton>
             <NavButton currentRoute={currentRoute} onPress={logOut}>
               Logout
             </NavButton>

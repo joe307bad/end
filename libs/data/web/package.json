@@ -1,5 +1,5 @@
 {
-  "name": "@end/data",
+  "name": "@end/data/web",
   "version": "0.0.1",
   "dependencies": {
     "tslib": "^2.3.0"

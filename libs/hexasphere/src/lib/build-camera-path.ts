@@ -15,7 +15,8 @@ function getPointInBetweenByPerc(
 const center = new THREE.Vector3(0, 0, 0);
 
 export function buildCameraPath(point1: THREE.Vector3, point2: THREE.Vector3) {
-  const pointsOnPath = 64;
+  const pointsOnPath = 1000;
+  const evenPoints = 1000;
   const radius = center.distanceTo(point1);
 
   function _getPoints(_point1: THREE.Vector3, _point2: THREE.Vector3) {
@@ -39,16 +40,16 @@ export function buildCameraPath(point1: THREE.Vector3, point2: THREE.Vector3) {
 
   let points = new THREE.CatmullRomCurve3(
     _getPoints(point1, point2)
-  ).getSpacedPoints(15);
+  ).getSpacedPoints(evenPoints);
 
   if (point1.distanceTo(point2) > radius) {
     points = [
       ...new THREE.CatmullRomCurve3(
         _getPoints(point1, new THREE.Vector3(radius, 0, 0))
-      ).getSpacedPoints(15),
+      ).getSpacedPoints(evenPoints),
       ...new THREE.CatmullRomCurve3(
         _getPoints(new THREE.Vector3(radius, 0, 0), point2)
-      ).getSpacedPoints(15),
+      ).getSpacedPoints(evenPoints),
     ];
   }
 
@@ -78,20 +79,20 @@ export function buildCameraPath(point1: THREE.Vector3, point2: THREE.Vector3) {
 
     points = [
       ...new THREE.CatmullRomCurve3(_getPoints(point1, middle)).getSpacedPoints(
-        15
+        evenPoints
       ),
       ...new THREE.CatmullRomCurve3(_getPoints(middle, point2)).getSpacedPoints(
-        15
+        evenPoints
       ),
     ];
   }
 
-  const tangents = [...Array(20).keys()].map((_, i) =>
-    new THREE.CatmullRomCurve3(points).getTangent(i / 20)
+  const tangents = [...Array(evenPoints).keys()].map((_, i) =>
+    new THREE.CatmullRomCurve3(points).getTangent(i / evenPoints)
   );
 
   return {
-    points: new THREE.CatmullRomCurve3(points).getSpacedPoints(20),
+    points: new THREE.CatmullRomCurve3(points).getSpacedPoints(evenPoints),
     tangents,
   };
 }

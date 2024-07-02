@@ -3,23 +3,39 @@ import {
   appSchema,
   Database,
   DatabaseAdapter,
+  Relation,
   tableSchema,
 } from '@nozbe/watermelondb';
 import { schemaMigrations } from '@nozbe/watermelondb/Schema/migrations';
 import { Model } from '@nozbe/watermelondb';
-import { field } from '@nozbe/watermelondb/decorators';
+import { field, relation } from '@nozbe/watermelondb/decorators';
 import { synchronize } from '@nozbe/watermelondb/sync';
+import { IWar, IPlanet } from '@end/war/core';
 
-export class Planet extends Model {
+export class Planet extends Model implements IPlanet {
   static override table = 'planets';
-  // @ts-ignore
-  @field('name') name: string;
+  @field('name')
+  name!: string;
+  @field('raised')
+  raised!: string;
+  @field('landColor')
+  landColor!: string;
+  @field('waterColor')
+  waterColor!: string;
+}
+
+export class War extends Model implements IWar {
+  static override table = 'wars';
+  @field('players')
+  players!: number;
+  @relation('planets', 'planet_id')
+  planet!: Relation<Planet>;
 }
 
 export const databaseFactory = (adapter: DatabaseAdapter) =>
   new Database({
     adapter,
-    modelClasses: [Planet],
+    modelClasses: [Planet, War],
   });
 
 export const schema = appSchema({
@@ -27,7 +43,22 @@ export const schema = appSchema({
   tables: [
     tableSchema({
       name: 'planets',
-      columns: [{ name: 'name', type: 'string' }],
+      columns: [
+        { name: 'name', type: 'string' },
+        { name: 'raised', type: 'string' },
+        {
+          name: 'landColor',
+          type: 'string',
+        },
+        { name: 'waterColor', type: 'string' },
+      ],
+    }),
+    tableSchema({
+      name: 'wars',
+      columns: [
+        { name: 'planet_id', type: 'string' },
+        { name: 'players', type: 'number' },
+      ],
     }),
   ],
 });
