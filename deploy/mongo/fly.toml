@@ -1,12 +1,12 @@
-# fly.toml app configuration file generated for end-mongo on 2024-01-01T23:52:22-05:00
+# fly.toml app configuration file generated for end-mongo-1 on 2024-07-05T20:02:00-04:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "end-mongo"
-primary_region = "iad"
-kill_signal = "SIGINT"
-kill_timeout = "5s"
+app = 'end-mongo-1'
+primary_region = 'iad'
+kill_signal = 'SIGINT'
+kill_timeout = '5s'
 
 [experimental]
   auto_rollback = true
@@ -14,12 +14,11 @@ kill_timeout = "5s"
 [build]
 
 [env]
-  PORT = "27017"
+  PORT = '27017'
 
 [[mounts]]
-  source = "productiondb_storage"
-  destination = "/var/lib/mongodb"
-  auto_extend_size_threshold = 0
+  source = 'productiondb_storage'
+  destination = '/var/lib/mongodb'
 
 [http_service]
   internal_port = 27017
@@ -27,26 +26,27 @@ kill_timeout = "5s"
   auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 0
-  processes = ["app"]
+  processes = ['app']
 
 [[services]]
-  protocol = "tcp"
+  protocol = 'tcp'
   internal_port = 27017
-  processes = ["app"]
+  processes = ['app']
 
   [[services.ports]]
     port = 27017
+
   [services.concurrency]
-    type = "connections"
+    type = 'connections'
     hard_limit = 25
     soft_limit = 20
 
   [[services.tcp_checks]]
-    interval = "15s"
-    timeout = "2s"
-    grace_period = "1s"
+    interval = '15s'
+    timeout = '2s'
+    grace_period = '1s'
 
 [[vm]]
-  cpu_kind = "shared"
+  memory = '2gb'
+  cpu_kind = 'shared'
   cpus = 1
-  memory_mb = 1024
