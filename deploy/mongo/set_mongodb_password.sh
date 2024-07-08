@@ -14,18 +14,20 @@ RET=1
 while [[ RET -ne 0 ]]; do
     echo "=> Waiting for confirmation of MongoDB service startup..."
     sleep 5
-    mongo admin --eval "help" >/dev/null 2>&1
+    mongosh admin --eval "help" >/dev/null 2>&1
     RET=$?
 done
 
+# TODO create key file
+# https://stackoverflow.com/questions/74868404/security-keyfile-error-when-creating-mongdb-container-with-docker-compose-file
 # Initialize the replica set
 echo "=> Initialize the replica set"
-mongo admin --eval "rs.initiate({ _id: 'rs0', members: [ {_id: 0, host: 'localhost'}] })"
-mongo admin --eval "rs.status()"
+mongosh admin --eval "rs.initiate({ _id: 'rs0', members: [ {_id: 0, host: 'localhost'}] })"
+mongosh admin --eval "rs.status()"
 
 # Create the admin user
 echo "=> Creating admin user with a password in MongoDB"
-mongo admin --eval "db.createUser({user: '$MONGODB_ADMIN_USER', pwd: '$MONGODB_ADMIN_PASS', roles:[{role:'root',db:'admin'}]});"
+mongosh admin --eval "db.createUser({user: '$MONGODB_ADMIN_USER', pwd: '$MONGODB_ADMIN_PASS', roles:[{role:'root',db:'admin'}]});"
 
 sleep 3
 
@@ -36,7 +38,7 @@ sleep 3
 # to actually create the user and assign it to the database.
 if [ "$MONGODB_APPLICATION_DATABASE" != "admin" ]; then
     echo "=> Creating an ${MONGODB_APPLICATION_DATABASE} user with a password in MongoDB"
-    mongo admin -u $MONGODB_ADMIN_USER -p $MONGODB_ADMIN_PASS << EOF
+    mongosh admin -u $MONGODB_ADMIN_USER -p $MONGODB_ADMIN_PASS << EOF
 use $MONGODB_APPLICATION_DATABASE
 db.createUser({user: '$MONGODB_APPLICATION_USER', pwd: '$MONGODB_APPLICATION_PASS', roles:[{role:'dbOwner', db:'$MONGODB_APPLICATION_DATABASE'}]})
 EOF
@@ -52,7 +54,7 @@ touch /data/db/.mongodb_password_set
 echo "========================================================================"
 echo "You can now connect to the admin MongoDB server using:"
 echo ""
-echo "    mongo admin -u $MONGODB_ADMIN_USER -p $MONGODB_ADMIN_PASS --host <host> --port <port>"
+echo "    mongosh admin -u $MONGODB_ADMIN_USER -p $MONGODB_ADMIN_PASS --host <host> --port <port>"
 echo ""
 echo "Please remember to change the admin password as soon as possible!"
 echo "========================================================================"

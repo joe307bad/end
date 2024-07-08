@@ -1,8 +1,4 @@
-FROM mongo:4.2.6
-
-ENV AUTH yes
-ENV STORAGE_ENGINE wiredTiger
-ENV JOURNALING yes
+FROM mongo:7.0.0
 
 ADD deploy/mongo/run.sh /run.sh
 ADD deploy/mongo/set_mongodb_password.sh /set_mongodb_password.sh
