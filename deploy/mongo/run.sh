@@ -1,19 +1,12 @@
 #!/bin/bash
 set -m
 
-mongodb_cmd="mongod -f /etc/mongod.conf --storageEngine $STORAGE_ENGINE"
+openssl rand -base64 756 > /mongodb.key
+
+chmod 600 /mongodb.key
+
+mongodb_cmd="/usr/bin/mongod --replSet rs0 --keyFile /mongodb.key --auth --bind_ip_all --storageEngine wiredTiger"
 cmd="$mongodb_cmd"
-if [ "$AUTH" == "yes" ]; then
-    cmd="$cmd --auth"
-fi
-
-if [ "$JOURNALING" == "no" ]; then
-    cmd="$cmd --nojournal"
-fi
-
-if [ "$OPLOG_SIZE" != "" ]; then
-    cmd="$cmd --oplogSize $OPLOG_SIZE"
-fi
 
 $cmd &
 

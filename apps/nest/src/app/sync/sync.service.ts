@@ -11,11 +11,8 @@ export class Entity {
   _id: string;
 }
 
-export const EntitySchema = SchemaFactory.createForClass(Entity);
 
-export class CreateEntitySchema {
-  readonly table: string;
-}
+export const EntitySchema = SchemaFactory.createForClass(Entity);
 
 @Injectable()
 export class SyncService {

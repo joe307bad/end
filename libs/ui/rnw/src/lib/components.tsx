@@ -1,112 +1,46 @@
-import React, { ReactNode, useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
+import React, { ReactNode, useCallback, useMemo } from 'react';
 import * as THREE from 'three';
-import {
-  Button,
-  H1,
-  H2,
-  Input,
-  TamaguiProvider,
-  XStack,
-  YStack,
-} from 'tamagui';
+import { TamaguiProvider } from 'tamagui';
 import { config, tokens } from './tamagui.config';
 import { View } from 'react-native';
-import { Badge } from './Display';
 import t, { useDeviceContext } from 'twrnc';
-import { EndApiProvider } from '@end/data';
 import { AuthProvider } from '@end/auth';
 import { ToastProvider, ToastViewport } from '@tamagui/toast';
+import { getRandomName, hexasphereProxy } from '@end/hexasphere';
+import { faker } from '@faker-js/faker';
 
 export const tw = t as any;
 
 export const tamaguiTokens = tokens;
 
-export function Providers({
-  children,
-  baseUrl,
-}: {
-  children: ReactNode;
-  baseUrl?: string;
-}) {
+export function newPlanet(setReset: (r: number) => void) {
+  hexasphereProxy.tiles.forEach((tile) => {
+    const raisedness = faker.number.float({ min: 0.1, max: 0.9 });
+
+    tile.name = getRandomName();
+    tile.raised = faker.datatype.boolean(raisedness);
+    tile.selected = false;
+    tile.defending = false;
+  });
+  hexasphereProxy.selection.selectedId = null;
+  hexasphereProxy.selection.cameraPosition = null;
+  hexasphereProxy.colors.land = faker.color.rgb({ format: 'hex' });
+  hexasphereProxy.colors.water = faker.color.rgb({ format: 'hex' });
+  // setReset(Math.random());
+};
+
+export function Providers({ children }: { children: ReactNode }) {
   // @ts-ignore
   useDeviceContext(tw);
   return (
     <ToastProvider burntOptions={{ from: 'bottom' }}>
       <AuthProvider>
-        <EndApiProvider baseUrl={baseUrl}>
-          <TamaguiProvider defaultTheme="dark" config={config}>
-            {children}
-            <ToastViewport bottom={0} />
-          </TamaguiProvider>
-        </EndApiProvider>
+        <TamaguiProvider defaultTheme="dark" config={config}>
+          {children}
+          <ToastViewport bottom={0} />
+        </TamaguiProvider>
       </AuthProvider>
     </ToastProvider>
-  );
-}
-
-export function SystemDetails({
-  children,
-  name,
-  id,
-  discoverSystem,
-  setName,
-  h1,
-}: {
-  children: ReactNode;
-  id?: string;
-  name: string;
-  tags: string[];
-  discoverSystem?: () => void;
-  setName?: (name: string) => void;
-  h1?: string;
-}) {
-  return (
-    <>
-      <H1 id={h1}>{name}</H1>
-      <H2>{Date().toLocaleString()} - cd-13</H2>
-      <YStack
-        width="100%"
-        maxWidth={300}
-        marginHorizontal={15}
-        marginVertical={10}
-      >
-        <XStack height={20} alignItems="center" space="$3">
-          <Badge title="Undiscovered" color="red" />
-          {id ? <Badge title={`# - ${id}`} color="blue" /> : null}
-        </XStack>
-      </YStack>
-      {children}
-      <Input
-        onChange={(e) => {
-          setName?.(e?.nativeEvent?.text);
-        }}
-        placeholder={name}
-      />
-      <Button onPress={discoverSystem}>Discover</Button>
-    </>
-  );
-}
-
-export function SolarSystem({ children }: { children: ReactNode }) {
-  return <>{children}</>;
-}
-
-export function Sun() {
-  return (
-    <mesh>
-      <sphereGeometry args={[2.5, 32, 32]} />
-      <meshStandardMaterial color="#E1DC59" />
-    </mesh>
-  );
-}
-
-export function Lights() {
-  return (
-    <>
-      <ambientLight />
-      <pointLight position={[0, 0, 0]} />
-    </>
   );
 }
 
