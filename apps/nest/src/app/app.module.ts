@@ -18,7 +18,7 @@ import { ConquestModule } from './conquest/conquest.module';
     ConquestModule,
     ConfigModule.forRoot(),
     MongooseModule.forRoot(
-      `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_PROD_URL}?authSource=admin`
+      `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_PROD_URL}`
     ),
     SyncModule,
   ],
