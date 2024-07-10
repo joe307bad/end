@@ -168,7 +168,7 @@
   },
   "scripts": {
     "tsc": "nx run-many -t tsc",
-    "deploy": "nx affected -t deploy --base=origin/main",
+    "deploy": "nx affected -t deploy",
     "build": "nx run-many -t build --exclude mobile",
     "nest:dev": "nx serve nest"
   },
