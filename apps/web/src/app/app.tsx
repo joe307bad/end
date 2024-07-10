@@ -133,7 +133,7 @@ export function App() {
 
   return (
     <Providers>
-      <EndApiProvider baseUrl={process.env.API_BASE_URL}>
+      <EndApiProvider baseUrl={process.env.API_BASE_URL} webSocketUrl={process.env.WEBSOCKET_URL}>
         <AppRoutes />
       </EndApiProvider>
     </Providers>

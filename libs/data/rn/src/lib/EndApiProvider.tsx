@@ -5,7 +5,7 @@ import { adapter } from '@end/wm/rn';
 
 function useServices(getToken: () => Promise<string | null>, apiUrl: string) {
   return useMemo(() => {
-    return servicesFactory(getToken, adapter, apiUrl);
+    return servicesFactory(getToken, adapter, apiUrl, '');
   }, []);
 }
 
