@@ -40,7 +40,7 @@ const ConquestLive = Layer.effect(
     const config = yield* ConfigService;
     const database = yield* db.database();
     const warLog = new BehaviorSubject<string | null>(null);
-    const socket = io(`ws://${config.webSocketUrl ?? 'localhost:3000'}`);
+    const socket = io(`https://${config.webSocketUrl ?? 'localhost:3000'}`, {  });
     socket.on('connect', () => {
       warLog.next(socket?.id ?? '');
     });
