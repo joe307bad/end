@@ -3,9 +3,13 @@ import { servicesFactory } from '@end/data/core';
 import { useAuth } from '@end/auth';
 import { adapter } from '@end/wm/web';
 
-function useServices(getToken: () => Promise<string | null>, apiUrl: string) {
+function useServices(
+  getToken: () => Promise<string | null>,
+  apiUrl: string,
+  webSocketUrl: string
+) {
   return useMemo(() => {
-    return servicesFactory(getToken, adapter, apiUrl);
+    return servicesFactory(getToken, adapter, apiUrl, webSocketUrl);
   }, []);
 }
 
@@ -22,13 +26,16 @@ export function useEndApi() {
 export function EndApiProvider({
   children,
   baseUrl: burl,
+  webSocketUrl: wsurl
 }: {
   children: ReactNode;
   baseUrl?: string;
+  webSocketUrl?: string;
 }) {
   const baseUrl = burl ?? 'http://localhost:3000/api';
+  const webSocketUrl = wsurl ?? 'localhost:3000';
   const { getToken } = useAuth();
-  const services = useServices(getToken, baseUrl);
+  const services = useServices(getToken, baseUrl, webSocketUrl);
 
   return (
     <EndApiContext.Provider value={{ services }}>

@@ -8,6 +8,7 @@ module.exports = composePlugins(withNx(), withReact(), (config) => {
   config.plugins.push(
     new webpack.DefinePlugin({
       'process.env': {
+        WEBSOCKET_URL: JSON.stringify(process.env.WEBSOCKET_URL),
         API_BASE_URL: JSON.stringify(process.env.API_BASE_URL),
       },
     })

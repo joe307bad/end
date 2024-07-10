@@ -7,6 +7,7 @@ import { DbService } from './db.service';
 import { hexasphere } from '@end/hexasphere';
 import { BehaviorSubject } from 'rxjs';
 import { io } from 'socket.io-client';
+import { ConfigService } from './config.service';
 
 interface Conquest {
   readonly startWar: (
@@ -36,9 +37,10 @@ const ConquestLive = Layer.effect(
     const fetch = yield* FetchService;
     const { getToken } = yield* AuthService;
     const db = yield* DbService;
+    const config = yield* ConfigService;
     const database = yield* db.database();
     const warLog = new BehaviorSubject<string | null>(null);
-    const socket = io('ws://localhost:3000');
+    const socket = io(`ws://${config.webSocketUrl ?? 'localhost:3000'}`);
     socket.on('connect', () => {
       warLog.next(socket?.id ?? '');
     });

@@ -20,11 +20,12 @@ export const program = Effect.gen(function* () {
 const servicesFactory = (
   getToken: () => Promise<string | null>,
   databaseAdapter: DatabaseAdapter,
-  apiUrl: string
+  apiUrl: string,
+  webSocketUrl: string
 ) => {
   const { AuthLivePipe } = AuthLiveFactory(getToken);
   const { DbLivePipe } = DbLiveFactory(databaseAdapter);
-  const { ConfigLivePipe } = ConfigServiceFactory(apiUrl);
+  const { ConfigLivePipe } = ConfigServiceFactory(apiUrl, webSocketUrl);
 
   const appLayer = Layer.mergeAll(
     EndApiPipe,
