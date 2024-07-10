@@ -115,22 +115,6 @@ function AppRoutes() {
 }
 
 export function App() {
-  const word = faker.random.word();
-  const [n, setName] = useState(word.charAt(0).toUpperCase() + word.slice(1));
-
-  const discoverSystem = useCallback(() => {
-    fetch('https://end.fly.dev/system', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name: n }),
-    })
-      .then((response) => response.json())
-      .then((data) => console.log(data))
-      .catch((error) => console.error(error));
-  }, [n]);
-
   return (
     <Providers>
       <EndApiProvider baseUrl={process.env.API_BASE_URL} webSocketUrl={process.env.WEBSOCKET_URL}>
