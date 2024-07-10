@@ -6,7 +6,6 @@ import {
   Landing,
   Providers,
 } from '@end/components';
-import { faker } from '@faker-js/faker';
 import './app.module.scss';
 
 import {
