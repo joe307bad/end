@@ -29,7 +29,7 @@ sleep 3
 # If everything went well, add a file as a flag so we know in the future to not re-create the
 # users if we're recreating the container (provided we're using some persistent storage)
 echo "=> Done!"
-touch /data/db/.mongodb_password_set
+touch /var/lib/mongodb/.mongodb_password_set
 
 echo "========================================================================"
 echo "You can now connect to the admin MongoDB server using:"
