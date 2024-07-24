@@ -63,6 +63,7 @@ function WarComponent({ war }: { war: War }) {
           getProxy().tiles.forEach((tile) => {
             if (tiles[tile.id]) {
               tile.troopCount = tiles[tile.id].troopCount;
+              tile.owner = parseInt(tiles[tile.id].owner);
             }
           });
         });

@@ -12,6 +12,7 @@ type Tile = {
   raised: boolean;
   name: string;
   troopCount: number;
+  owner: number;
 };
 
 const hexasphereProxy = proxy<{
@@ -42,6 +43,7 @@ const hexasphereProxy = proxy<{
       raised: faker.datatype.boolean(perctRaised),
       name: getRandomName(),
       troopCount: 4,
+      owner: 0
     };
   }),
 });

@@ -2,7 +2,6 @@ import React, {
   startTransition,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
 } from 'react';
@@ -261,6 +260,7 @@ export const hexasphereProxy = proxy<{
     raised: boolean;
     name: string;
     troopCount: number;
+    owner: number;
   }[];
 }>({
   selection: {
@@ -280,6 +280,7 @@ export const hexasphereProxy = proxy<{
       raised: faker.datatype.boolean(perctRaised),
       name: getRandomName(),
       troopCount: 0,
+      owner: 0,
     };
   }),
 });
@@ -320,6 +321,7 @@ const TroopCount = React.memo(
     defending,
     troopCount,
     showTroopCount,
+    ringColor,
   }: {
     x: number;
     y: number;
@@ -328,6 +330,7 @@ const TroopCount = React.memo(
     defending: boolean;
     troopCount: number;
     showTroopCount: boolean;
+    ringColor: string;
   }) => {
     const textPositionX = React.useRef<number>();
     const textPositionY = React.useRef<number>();
@@ -453,6 +456,16 @@ const TroopCount = React.memo(
               />
             </mesh>
           ) : null}
+          {ringColor ? (
+            <mesh ref={defendingRing} position={[0, 1, 0]}>
+              <ringGeometry args={[2, 2.5, 25]} />
+              <meshBasicMaterial
+                side={THREE.DoubleSide}
+                attach="material"
+                color={ringColor}
+              />
+            </mesh>
+          ) : null}
         </mesh>
         <mesh ref={textMesh}>
           {/* TODO this TextGeometry renders slowly on React Native */}
@@ -510,6 +523,7 @@ const TileMesh = React.memo(
     landColor,
     waterColor,
     showTroopCount,
+    ringColor,
   }: {
     id: string;
     selected: boolean;
@@ -520,6 +534,7 @@ const TileMesh = React.memo(
     landColor: string;
     waterColor: string;
     showTroopCount: boolean;
+    ringColor: string;
   }) => {
     const { land, water, centerPoint } = useMemo(() => {
       return {
@@ -550,6 +565,7 @@ const TileMesh = React.memo(
             defending={false}
             troopCount={troopCount}
             showTroopCount={showTroopCount}
+            ringColor={ringColor}
           />
         </mesh>
         <mesh visible={!raised} geometry={water}>
@@ -693,21 +709,20 @@ export const Hexasphere = React.memo(
 
     const hs = useSnapshot(proxy);
 
-    // TODO this doesnt work on React Native
     // In this case, the `unsubscribe` is not called and it causes the camera to jump
-    // useEffect(() => {
-    //   const unsubscribe = subscribeKey(derived, 'cameraPath', (s) => {
-    //     cameraPath.current = s;
-    //   });
-    //
-    //   return () => unsubscribe();
-    // }, []);
+    useEffect(() => {
+      const unsubscribe = subscribeKey(derived, 'cameraPath', (s) => {
+        cameraPath.current = s;
+      });
 
-    // useEffect(() => {
-    //   if (selectedTile) {
-    //     selectTile(selectedTile, camera.position, proxy);
-    //   }
-    // }, [selectedTile]);
+      return () => unsubscribe();
+    }, []);
+
+    useEffect(() => {
+      if (selectedTile) {
+        selectTile(selectedTile, camera.position, proxy);
+      }
+    }, [selectedTile]);
 
     const landColor = lc ?? hexasphereProxy.colors.land;
     const waterColor = wc ?? hexasphereProxy.colors.water;
@@ -715,6 +730,8 @@ export const Hexasphere = React.memo(
     const st = useCallback((id: string, position: THREE.Vector3) => {
       return selectTile(id, position, proxy);
     }, []);
+
+    console.log(hs.tiles)
 
     return (
       <>
@@ -733,6 +750,7 @@ export const Hexasphere = React.memo(
               landColor={landColor}
               waterColor={waterColor}
               showTroopCount={showTroopCount}
+              ringColor={t.owner === 1 ? 'green' : 'blue'}
             />
           ))}
           <points>

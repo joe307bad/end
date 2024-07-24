@@ -1,5 +1,4 @@
-import { assertEvent, assign, createActor, createMachine, setup } from 'xstate';
-import { IPlanet } from './interfaces/Planet';
+import { assign, setup } from 'xstate';
 import { faker } from '@faker-js/faker';
 
 export interface Tile {
@@ -7,7 +6,7 @@ export interface Tile {
   neighborIds: string[];
   id: string;
   troopCount: number;
-  owner: string;
+  owner: number;
 }
 
 interface Context {
@@ -43,7 +42,7 @@ export const warMachine = (
 
           Object.keys(event.tiles).forEach((tileId) => {
             event.tiles[tileId].troopCount = 5;
-            event.tiles[tileId].owner = faker.datatype.boolean(0.5) ? '1' : '2';
+            event.tiles[tileId].owner = faker.datatype.boolean(0.5) ? 1 : 2;
           });
 
           return event.tiles;

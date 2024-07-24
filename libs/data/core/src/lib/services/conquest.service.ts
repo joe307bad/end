@@ -106,7 +106,7 @@ const ConquestLive = Layer.effect(
                   .reduce<Record<string, Tile>>((acc, cur) => {
                     acc[cur] = {
                       id: '',
-                      owner: '',
+                      owner: 0,
                       troopCount: 0,
                       habitable: true,
                       neighborIds: hexasphere.tileLookup[cur].neighborIds,
