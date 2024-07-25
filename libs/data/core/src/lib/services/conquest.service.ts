@@ -1,4 +1,4 @@
-import { Event, Tile } from '@end/war/core';
+import { Tile } from '@end/war/core';
 import { Effect, Context, Layer, pipe } from 'effect';
 import { AuthService } from './auth.service';
 import { FetchService } from './fetch.service';
@@ -40,7 +40,7 @@ const ConquestLive = Layer.effect(
     const config = yield* ConfigService;
     const database = yield* db.database();
     const warLog = new BehaviorSubject<string | null>(null);
-    const socket = io(`${config.webSocketUrl ?? 'localhost:3000'}`, {  });
+    const socket = io(`${config.webSocketUrl ?? 'localhost:3000'}`, {});
     socket.on('connect', () => {
       warLog.next(socket?.id ?? '');
     });
@@ -135,14 +135,7 @@ const ConquestLive = Layer.effect(
         return pipe(
           getToken(),
           Effect.flatMap((token) =>
-            fetch.post(
-              '/conquest',
-              {
-                type: 'attack',
-                ...event,
-              },
-              token
-            )
+            fetch.post('/conquest', { type: 'attack', ...event }, token)
           )
         );
       },

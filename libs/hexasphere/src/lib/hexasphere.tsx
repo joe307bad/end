@@ -10,6 +10,7 @@ import { faker } from '@faker-js/faker';
 import {
   extend,
   Object3DNode,
+  ThreeElements,
   ThreeEvent,
   useFrame,
   useThree,
@@ -376,11 +377,7 @@ const TroopCount = React.memo(
         text.current?.position.copy(center.clone());
         text.current?.lookAt(cp.clone());
         text.current?.position.copy(cp.clone());
-      }
-    }, [troopCount]);
 
-    useEffect(() => {
-      if (textGeo.current && textMesh.current) {
         if (
           textPositionX.current === undefined ||
           textPositionY.current === undefined ||
@@ -544,6 +541,19 @@ const TileMesh = React.memo(
     }, []);
 
     const { camera } = useThree();
+    const coneRef: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
+
+    useEffect(() => {
+      if (coneRef.current) {
+        console.log(Math.random());
+        const cp = new THREE.Vector3(centerPoint.x, centerPoint.y, centerPoint.z);
+        var direction = cp.clone().sub(center).normalize();
+        var moveThisFar = direction.clone().multiplyScalar(2);
+        coneRef.current.position.add(moveThisFar);
+        coneRef.current.lookAt(cp);
+        coneRef.current.rotateX(MathUtils.degToRad(-270));
+      }
+    }, [coneRef.current]);
 
     const click = useCallback((e: ThreeEvent<MouseEvent>) => {
       e.stopPropagation();
@@ -554,6 +564,14 @@ const TileMesh = React.memo(
 
     return (
       <mesh onClick={click}>
+        <mesh ref={coneRef} position={[centerPoint.x, centerPoint.y, centerPoint.z]}>
+          <coneGeometry args={[2, 2.5, 25]} />
+          <meshBasicMaterial
+            side={THREE.DoubleSide}
+            attach="material"
+            color={'orange'}
+          />
+        </mesh>
         <mesh visible={raised} geometry={land}>
           <meshStandardMaterial color={landColor} />
           <Edges color={selected ? 'yellow' : 'black'} threshold={50} />
