@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import '@react-three/fiber';
 import { faker } from '@faker-js/faker';
@@ -35,6 +36,7 @@ import { buildCameraPath } from './build-camera-path';
 import { Edges } from '@react-three/drei';
 // @ts-ignore
 import v from 'voca';
+import { getPointInBetweenByPerc } from '@end/components';
 
 extend({ TextGeometry });
 
@@ -397,8 +399,6 @@ const TroopCount = React.memo(
           textMesh.current.position.y = textPositionY.current;
           textMesh.current.position.z = textPositionZ.current;
 
-          // console.log(b.x, b.y, b.z);
-
           textMesh.current.position.x -= b.x;
           textMesh.current.position.y -= b.y;
           textMesh.current.position.z = 1;
@@ -493,6 +493,7 @@ const geometries = Object.keys(hexasphere.tileLookup).reduce<
     {
       land: THREE.BufferGeometry;
       water: THREE.BufferGeometry;
+      neighbors: Tile[];
     }
   >
 >((acc, curr) => {
@@ -505,9 +506,111 @@ const geometries = Object.keys(hexasphere.tileLookup).reduce<
   const waterPos = tile.water.positions;
   water.setAttribute('position', new BufferAttribute(waterPos, 3));
   water.setIndex(Array.from(tile.water.indices));
-  acc[curr] = { land: bg, water };
+  acc[curr] = { land: bg, water, neighbors: tile.neighbors };
   return acc;
 }, {});
+
+const AttackArrow = React.memo(
+  ({
+    showAttackArrows,
+    centerPoint,
+    neighbor,
+    raisedTiles,
+  }: {
+    neighbor: Tile;
+    showAttackArrows: boolean;
+    centerPoint: Coords;
+    raisedTiles?: Set<string>;
+  }) => {
+    const coneRef: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
+    const coneContainerRef: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
+    const id = useMemo(() => {
+      const cp = [
+        neighbor.centerPoint.x,
+        neighbor.centerPoint.y,
+        neighbor.centerPoint.z,
+      ];
+      return cp.join(',');
+    }, []);
+
+    useEffect(() => {
+      if (coneRef.current) {
+        const cp = new THREE.Vector3(
+          centerPoint.x,
+          centerPoint.y,
+          centerPoint.z
+        );
+        const n = new THREE.Vector3(
+          neighbor.centerPoint.x,
+          neighbor.centerPoint.y,
+          neighbor.centerPoint.z
+        );
+        const b = getPointInBetweenByPerc(cp, n, 0.5);
+        coneRef.current.position.x = b.x;
+        coneRef.current.position.y = b.y;
+        coneRef.current.position.z = b.z;
+
+        var direction = cp.clone().sub(center).normalize();
+        var moveThisFar = direction.clone().multiplyScalar(2);
+        coneRef.current.position.add(moveThisFar);
+
+        coneRef.current.lookAt(cp);
+        coneRef.current.rotateX(MathUtils.degToRad(-90));
+        // coneRef.current?.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), MathUtils.degToRad(45))
+        coneRef.current.scale.y = 1.5;
+        coneRef.current.scale.x = -0.5;
+        coneRef.current.scale.z = -0.5;
+      }
+    }, [coneRef.current]);
+
+    useFrame(() => {
+      if (coneContainerRef.current) {
+        // coneContainerRef.current.rotation.x += 0.2;
+      }
+    });
+
+    return (
+      <mesh ref={coneContainerRef}>
+        <mesh
+          visible={showAttackArrows && raisedTiles?.has(id)}
+          ref={coneRef}
+          position={[centerPoint.x, centerPoint.y, centerPoint.z]}
+        >
+          <Edges color={'black'} threshold={25} />
+          <coneGeometry args={[2, 2.5, 7]} />
+          <meshBasicMaterial
+            side={THREE.DoubleSide}
+            attach="material"
+            color={'orange'}
+          />
+        </mesh>
+      </mesh>
+    );
+  }
+);
+
+const AttackArrows = React.memo(
+  ({
+    neighbors,
+    showAttackArrows,
+    centerPoint,
+    raisedTiles,
+  }: {
+    neighbors: Tile[];
+    showAttackArrows: boolean;
+    centerPoint: Coords;
+    raisedTiles?: Set<string>;
+  }) => {
+    return neighbors.map((neighbor) => (
+      <AttackArrow
+        neighbor={neighbor}
+        centerPoint={centerPoint}
+        showAttackArrows={showAttackArrows}
+        raisedTiles={raisedTiles}
+      />
+    ));
+  }
+);
 
 const TileMesh = React.memo(
   ({
@@ -521,6 +624,7 @@ const TileMesh = React.memo(
     waterColor,
     showTroopCount,
     ringColor,
+    raisedTiles,
   }: {
     id: string;
     selected: boolean;
@@ -532,8 +636,9 @@ const TileMesh = React.memo(
     waterColor: string;
     showTroopCount: boolean;
     ringColor: string;
+    raisedTiles?: Set<string>;
   }) => {
-    const { land, water, centerPoint } = useMemo(() => {
+    const { land, neighbors, water, centerPoint } = useMemo(() => {
       return {
         ...geometries[id],
         centerPoint: hexasphere.tileLookup[id].centerPoint,
@@ -541,19 +646,6 @@ const TileMesh = React.memo(
     }, []);
 
     const { camera } = useThree();
-    const coneRef: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
-
-    useEffect(() => {
-      if (coneRef.current) {
-        console.log(Math.random());
-        const cp = new THREE.Vector3(centerPoint.x, centerPoint.y, centerPoint.z);
-        var direction = cp.clone().sub(center).normalize();
-        var moveThisFar = direction.clone().multiplyScalar(2);
-        coneRef.current.position.add(moveThisFar);
-        coneRef.current.lookAt(cp);
-        coneRef.current.rotateX(MathUtils.degToRad(-270));
-      }
-    }, [coneRef.current]);
 
     const click = useCallback((e: ThreeEvent<MouseEvent>) => {
       e.stopPropagation();
@@ -564,14 +656,12 @@ const TileMesh = React.memo(
 
     return (
       <mesh onClick={click}>
-        <mesh ref={coneRef} position={[centerPoint.x, centerPoint.y, centerPoint.z]}>
-          <coneGeometry args={[2, 2.5, 25]} />
-          <meshBasicMaterial
-            side={THREE.DoubleSide}
-            attach="material"
-            color={'orange'}
-          />
-        </mesh>
+        <AttackArrows
+          neighbors={neighbors}
+          showAttackArrows={selected}
+          centerPoint={centerPoint}
+          raisedTiles={raisedTiles}
+        />
         <mesh visible={raised} geometry={land}>
           <meshStandardMaterial color={landColor} />
           <Edges color={selected ? 'yellow' : 'black'} threshold={50} />
@@ -645,6 +735,7 @@ export const Hexasphere = React.memo(
     derived: d,
     showTroopCount = false,
     cameraPath: cp,
+    raisedTiles,
   }: {
     selectedTile?: string;
     proxy?: typeof hexasphereProxy;
@@ -655,6 +746,7 @@ export const Hexasphere = React.memo(
     cameraPath?: {
       current: { points: THREE.Vector3[]; tangents: THREE.Vector3[] };
     };
+    raisedTiles?: Set<string>;
   }) => {
     const proxy = p ?? hexasphereProxy;
     const derived = d ?? derivedDefault;
@@ -701,7 +793,6 @@ export const Hexasphere = React.memo(
         if (camPosIndex > speed) {
           camPosIndex = 0;
           path.current = undefined;
-          console.log('cam reset');
         } else {
           const perc = camPosIndex / speed;
           const index = Math.round(1000 * perc) - 1;
@@ -749,8 +840,6 @@ export const Hexasphere = React.memo(
       return selectTile(id, position, proxy);
     }, []);
 
-    console.log(hs.tiles)
-
     return (
       <>
         <ambientLight />
@@ -769,6 +858,7 @@ export const Hexasphere = React.memo(
               waterColor={waterColor}
               showTroopCount={showTroopCount}
               ringColor={t.owner === 1 ? 'green' : 'blue'}
+              raisedTiles={raisedTiles}
             />
           ))}
           <points>

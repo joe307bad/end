@@ -42,7 +42,9 @@ function WarComponent({ war }: { war: War }) {
       services.conquestService.attack({ tile1, tile2, warId: params.id })
     );
   }, []);
-  //
+
+  const [raisedTiles, setRaisedTiles] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     war.planet.fetch().then((planet: Planet) => {
       setTitle(`The War of ${planet.name}`);
@@ -54,6 +56,7 @@ function WarComponent({ war }: { war: War }) {
       getProxy().tiles.forEach((tile) => {
         tile.raised = raisedTiles.has(tile.id);
       });
+      setRaisedTiles(raisedTiles);
     });
     if (params.id) {
       execute(services.conquestService.getWar(params.id))
@@ -73,11 +76,6 @@ function WarComponent({ war }: { war: War }) {
             const s = JSON.parse(
               JSON.parse(r).updateDescription.updatedFields.state
             );
-            const raisedTiles = s.context.tiles;
-            // console.log('///');
-            // console.log({ tiles: s.context.tiles });
-            // console.log({ tile1: s.context.tiles[tile1].troopCount });
-            // console.log({ tile2: s.context.tiles[tile2].troopCount });
 
             const tile = getProxy().tiles.find((tile) => tile.id === tile1);
 
@@ -122,6 +120,7 @@ function WarComponent({ war }: { war: War }) {
           waterColor={getColors().water}
           landColor={getColors().land}
           showTroopCount={true}
+          raisedTiles={raisedTiles}
         />
         <OrbitControls />
       </Canvas>

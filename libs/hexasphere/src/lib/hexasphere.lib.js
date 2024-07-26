@@ -89,17 +89,14 @@
           var faces = [new Face(corners[0], corners[1], corners[4], false), new Face(corners[1], corners[9], corners[4], false), new Face(corners[4], corners[9], corners[5], false), new Face(corners[5], corners[9], corners[3], false), new Face(corners[2], corners[3], corners[7], false), new Face(corners[3], corners[2], corners[5], false), new Face(corners[7], corners[10], corners[2], false), new Face(corners[0], corners[8], corners[10], false), new Face(corners[0], corners[4], corners[8], false), new Face(corners[8], corners[2], corners[10], false), new Face(corners[8], corners[4], corners[5], false), new Face(corners[8], corners[5], corners[2], false), new Face(corners[1], corners[0], corners[6], false), new Face(corners[11], corners[1], corners[6], false), new Face(corners[3], corners[9], corners[11], false), new Face(corners[6], corners[10], corners[7], false), new Face(corners[3], corners[11], corners[7], false), new Face(corners[11], corners[6], corners[7], false), new Face(corners[6], corners[0], corners[10], false), new Face(corners[9], corners[1], corners[11], false)];
           var getPointIfExists = function getPointIfExists(point) {
             if (points[point]) {
-              // console.log("EXISTING!");
               return points[point];
             } else {
-              // console.log("NOT EXISTING!");
               points[point] = point;
               return point;
             }
           };
           var newFaces = [];
           for (var f = 0; f < faces.length; f++) {
-            // console.log("-0---");
             var prev = null;
             var bottom = [faces[f].points[0]];
             var left = faces[f].points[0].subdivide(faces[f].points[1], numDivisions, getPointIfExists);
