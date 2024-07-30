@@ -4,14 +4,12 @@ import React, {
   useEffect,
   useMemo,
   useRef,
-  useState,
 } from 'react';
 import '@react-three/fiber';
 import { faker } from '@faker-js/faker';
 import {
   extend,
   Object3DNode,
-  ThreeElements,
   ThreeEvent,
   useFrame,
   useThree,
@@ -38,7 +36,16 @@ import { buildCameraPath } from './build-camera-path';
 import { Edges } from '@react-three/drei';
 // @ts-ignore
 import v from 'voca';
-import { getPointInBetweenByPerc } from '@end/components';
+function getPointInBetweenByPerc(
+  pointA: THREE.Vector3,
+  pointB: THREE.Vector3,
+  percentage: number
+): THREE.Vector3 {
+  var dir = pointB.clone().sub(pointA);
+  var len = dir.length();
+  dir = dir.normalize().multiplyScalar(len * percentage);
+  return pointA.clone().add(dir);
+}
 
 extend({ TextGeometry });
 
