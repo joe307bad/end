@@ -20,8 +20,10 @@ import * as THREE from 'three';
 import {
   BufferAttribute,
   BufferGeometry,
+  Group,
   MathUtils,
   NormalBufferAttributes,
+  Object3DEventMap,
 } from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
@@ -134,6 +136,7 @@ export type Tile = {
   neighborIds: string[];
   neighbors: Tile[];
   raised?: boolean;
+  owner?: number;
 } & LandAndWater;
 
 export type THexasphere = {
@@ -516,14 +519,19 @@ const AttackArrow = React.memo(
     centerPoint,
     neighbor,
     raisedTiles,
+    tileOwners,
+    owner,
   }: {
     neighbor: Tile;
-    showAttackArrows: boolean;
+    showAttackArrows?: boolean;
     centerPoint: Coords;
     raisedTiles?: Set<string>;
+    tileOwners?: Map<string, number>;
+    owner?: number;
   }) => {
-    const coneRef: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
-    const coneContainerRef: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
+    const coneInner: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
+    const coneRef = useRef<Group<Object3DEventMap>>(null);
+
     const id = useMemo(() => {
       const cp = [
         neighbor.centerPoint.x,
@@ -533,58 +541,77 @@ const AttackArrow = React.memo(
       return cp.join(',');
     }, []);
 
+    const id1 = useMemo(() => {
+      const cp = [centerPoint.x, centerPoint.y, centerPoint.z];
+      return cp.join(',');
+    }, []);
+
     useEffect(() => {
-      if (coneRef.current) {
-        const cp = new THREE.Vector3(
-          centerPoint.x,
-          centerPoint.y,
-          centerPoint.z
-        );
-        const n = new THREE.Vector3(
+      if (coneRef.current && coneInner.current) {
+        const point1 = new THREE.Vector3(
           neighbor.centerPoint.x,
           neighbor.centerPoint.y,
           neighbor.centerPoint.z
         );
-        const b = getPointInBetweenByPerc(cp, n, 0.5);
-        coneRef.current.position.x = b.x;
-        coneRef.current.position.y = b.y;
-        coneRef.current.position.z = b.z;
+        const direction = point1.clone().sub(center).normalize();
+        const moveThisFar = direction.clone().multiplyScalar(4);
+        point1.add(moveThisFar);
 
-        var direction = cp.clone().sub(center).normalize();
-        var moveThisFar = direction.clone().multiplyScalar(2);
-        coneRef.current.position.add(moveThisFar);
+        const point2 = new THREE.Vector3(
+          centerPoint.x,
+          centerPoint.y,
+          centerPoint.z
+        );
+        const direction1 = point1.clone().sub(center).normalize();
+        const moveThisFar1 = direction1.clone().multiplyScalar(4);
+        point2.add(moveThisFar1);
 
-        coneRef.current.lookAt(cp);
-        coneRef.current.rotateX(MathUtils.degToRad(-90));
-        // coneRef.current?.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), MathUtils.degToRad(45))
-        coneRef.current.scale.y = 1.5;
-        coneRef.current.scale.x = -0.5;
-        coneRef.current.scale.z = -0.5;
+        const hw = getPointInBetweenByPerc(point1.clone(), point2.clone(), 0.5);
+        coneRef.current.position.x = hw.x;
+        coneRef.current.position.y = hw.y;
+        coneRef.current.position.z = hw.z;
+
+        coneInner.current.rotateX(THREE.MathUtils.degToRad(45));
+        coneInner.current.scale.y = 1.5;
+        coneInner.current.scale.x = -0.5;
+        coneInner.current.scale.z = -0.5;
+
+        coneRef.current.lookAt(point1);
       }
-    }, [coneRef.current]);
+    }, [coneRef.current, coneInner.current]);
+
+    const { camera } = useThree();
 
     useFrame(() => {
-      if (coneContainerRef.current) {
-        // coneContainerRef.current.rotation.x += 0.2;
+      if (coneRef.current) {
+        coneRef.current.rotation.z += 0.03;
       }
     });
 
+    const visible = useMemo(() => {
+      if (!showAttackArrows) {
+        return false;
+      }
+
+      const isNotOwner = (() => {
+        if (!tileOwners?.get(id)) {
+          return false;
+        }
+
+        return tileOwners.get(id) !== owner;
+      })();
+
+      return raisedTiles?.has(id) && raisedTiles?.has(id1) && isNotOwner;
+    }, [tileOwners, raisedTiles, id, id1, showAttackArrows]);
+
     return (
-      <mesh ref={coneContainerRef}>
-        <mesh
-          visible={showAttackArrows && raisedTiles?.has(id)}
-          ref={coneRef}
-          position={[centerPoint.x, centerPoint.y, centerPoint.z]}
-        >
+      <group visible={visible} ref={coneRef}>
+        <mesh ref={coneInner}>
           <Edges color={'black'} threshold={25} />
+          <meshBasicMaterial color="red" />
           <coneGeometry args={[2, 2.5, 7]} />
-          <meshBasicMaterial
-            side={THREE.DoubleSide}
-            attach="material"
-            color={'orange'}
-          />
         </mesh>
-      </mesh>
+      </group>
     );
   }
 );
@@ -595,11 +622,15 @@ const AttackArrows = React.memo(
     showAttackArrows,
     centerPoint,
     raisedTiles,
+    tileOwners,
+    owner,
   }: {
     neighbors: Tile[];
-    showAttackArrows: boolean;
+    showAttackArrows?: boolean;
     centerPoint: Coords;
     raisedTiles?: Set<string>;
+    tileOwners?: Map<string, number>;
+    owner?: number;
   }) => {
     return neighbors.map((neighbor) => (
       <AttackArrow
@@ -607,6 +638,8 @@ const AttackArrows = React.memo(
         centerPoint={centerPoint}
         showAttackArrows={showAttackArrows}
         raisedTiles={raisedTiles}
+        tileOwners={tileOwners}
+        owner={owner}
       />
     ));
   }
@@ -625,6 +658,9 @@ const TileMesh = React.memo(
     showTroopCount,
     ringColor,
     raisedTiles,
+    showAttackArrows,
+    tileOwners,
+    owner,
   }: {
     id: string;
     selected: boolean;
@@ -637,6 +673,9 @@ const TileMesh = React.memo(
     showTroopCount: boolean;
     ringColor: string;
     raisedTiles?: Set<string>;
+    showAttackArrows?: boolean;
+    tileOwners?: Map<string, number>;
+    owner?: number;
   }) => {
     const { land, neighbors, water, centerPoint } = useMemo(() => {
       return {
@@ -658,9 +697,11 @@ const TileMesh = React.memo(
       <mesh onClick={click}>
         <AttackArrows
           neighbors={neighbors}
-          showAttackArrows={selected}
+          showAttackArrows={showAttackArrows}
           centerPoint={centerPoint}
           raisedTiles={raisedTiles}
+          tileOwners={tileOwners}
+          owner={owner}
         />
         <mesh visible={raised} geometry={land}>
           <meshStandardMaterial color={landColor} />
@@ -736,6 +777,8 @@ export const Hexasphere = React.memo(
     showTroopCount = false,
     cameraPath: cp,
     raisedTiles,
+    showAttackArrows,
+    tileOwners,
   }: {
     selectedTile?: string;
     proxy?: typeof hexasphereProxy;
@@ -747,6 +790,8 @@ export const Hexasphere = React.memo(
       current: { points: THREE.Vector3[]; tangents: THREE.Vector3[] };
     };
     raisedTiles?: Set<string>;
+    showAttackArrows?: boolean;
+    tileOwners?: Map<string, number>;
   }) => {
     const proxy = p ?? hexasphereProxy;
     const derived = d ?? derivedDefault;
@@ -859,6 +904,9 @@ export const Hexasphere = React.memo(
               showTroopCount={showTroopCount}
               ringColor={t.owner === 1 ? 'green' : 'blue'}
               raisedTiles={raisedTiles}
+              showAttackArrows={showAttackArrows && t.selected}
+              tileOwners={tileOwners}
+              owner={t.owner}
             />
           ))}
           <points>

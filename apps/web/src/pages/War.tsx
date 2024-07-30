@@ -44,12 +44,13 @@ function WarComponent({ war }: { war: War }) {
   }, []);
 
   const [raisedTiles, setRaisedTiles] = useState<Set<string>>(new Set());
+  const [tileOwners, setTileOwners] = useState<Map<string, number>>(new Map());
 
   useEffect(() => {
     war.planet.fetch().then((planet: Planet) => {
       setTitle(`The War of ${planet.name}`);
       const raisedTiles = new Set(planet.raised.split('|'));
-      console.log(planet);
+
       getProxy().colors.land = planet.landColor;
       getProxy().colors.water = planet.waterColor;
 
@@ -63,12 +64,15 @@ function WarComponent({ war }: { war: War }) {
         .then((r) => r.json())
         .then((res) => {
           const tiles = JSON.parse(res.war.state).context.tiles;
+          const owners = new Map();
           getProxy().tiles.forEach((tile) => {
             if (tiles[tile.id]) {
               tile.troopCount = tiles[tile.id].troopCount;
               tile.owner = parseInt(tiles[tile.id].owner);
+              owners.set(tile.id, tiles[tile.id].owner);
             }
           });
+          setTileOwners(owners);
         });
       services.conquestService.connectToWarLog(params.id).subscribe((r) => {
         try {
@@ -121,6 +125,8 @@ function WarComponent({ war }: { war: War }) {
           landColor={getColors().land}
           showTroopCount={true}
           raisedTiles={raisedTiles}
+          showAttackArrows={true}
+          tileOwners={tileOwners}
         />
         <OrbitControls />
       </Canvas>
