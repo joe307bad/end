@@ -9,11 +9,17 @@ import React, {
 import { useParams } from 'react-router-dom';
 import { execute } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
-import { Badge, PrimaryButton } from '@end/components';
+import {
+  Badge,
+  GameTabs,
+  newPlanet,
+  PrimaryButton,
+  TabsContainer,
+} from '@end/components';
 import { Canvas } from '@react-three/fiber';
 import { Hexasphere } from '@end/hexasphere';
 import { OrbitControls } from '@react-three/drei';
-import { View } from 'react-native';
+import { useWindowDimensions, View } from 'react-native';
 import * as THREE from 'three';
 import {
   compose,
@@ -103,6 +109,26 @@ function WarComponent({ war }: { war: War }) {
 
     return cam;
   }, []);
+  const { width } = useWindowDimensions();
+
+  const [cameraResponsiveness, responsiveness] = useMemo(() => {
+    if (width < 835) {
+      return [[0, 300, 25], {}];
+    }
+
+    if (width < 1297) {
+      return [[0, 160, 25], {}];
+    }
+
+    return [
+      [0, 160, 25],
+      {
+        minWidth: 2000,
+        width: '150%',
+        marginLeft: -600,
+      },
+    ];
+  }, [width]);
 
   return (
     <View style={{ overflow: 'hidden', height: '100%', width: '100%' }}>
@@ -116,7 +142,13 @@ function WarComponent({ war }: { war: War }) {
         <H2 paddingLeft="$1">{title}</H2>
         <Badge styles="pl-10" title={params.id} />
       </View>
-      <Canvas style={{ flex: 1 }} camera={cam}>
+      <Canvas
+        style={{
+          flex: 1,
+          ...responsiveness,
+        }}
+        camera={cam}
+      >
         <Hexasphere
           derived={getDerived()}
           proxy={getProxy()}
@@ -130,7 +162,13 @@ function WarComponent({ war }: { war: War }) {
         />
         <OrbitControls />
       </Canvas>
-      <PrimaryButton onPress={attack}>Attack</PrimaryButton>
+      <GameTabs
+        menuOpen={true}
+        proxy={getProxy()}
+        selectTile={() => {}}
+        newPlanet={() => {}}
+        startGame={() => {}}
+      />
     </View>
   );
 }
