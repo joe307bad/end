@@ -9,19 +9,23 @@ import {
   Label,
   RadioGroup,
   XStack,
-  YStack, H3
+  YStack,
+  H3,
+  Input,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
 import { tw } from '../components';
 import { PrimaryButton } from '../Display';
 import { CircleDot, Crosshair, Hexagon } from '@tamagui/lucide-icons';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useResponsive } from '../Layout';
 import { derivedDefault, hexasphereProxy } from '@end/hexasphere';
 import Select from '../Select/Select';
 import { subscribeKey } from 'valtio/utils';
 import { useEndApi } from '@end/data/web';
 import { execute } from '@end/data/core';
+
+type TurnAction = 'portal' | 'deploy' | 'attack' | 'reenforce' | null | string;
 
 export function GameTabs({
   proxy,
@@ -56,6 +60,12 @@ export function GameTabs({
   const { services } = useEndApi();
 
   const onSync = useCallback(() => execute(services.syncService.sync()), []);
+
+  const [turnAction, setTurnAction] = useState<TurnAction>('portal');
+
+  const setSelectedTile = useCallback((tile: string) => {
+    selectTile(tile);
+  }, []);
 
   return (
     <Section
@@ -98,16 +108,17 @@ export function GameTabs({
               </Tabs.Tab>
             </Tabs.List>
             <Separator />
-            <TabsContent value="tab1">
+            <TabsContent value="tab1" style={{ justifyContent: 'start' }}>
               <View style={{ width: '100%' }}>
                 <RadioGroup
                   aria-labelledby="Select one item"
-                  defaultValue="3"
+                  defaultValue="portal"
                   name="form"
+                  onValueChange={setTurnAction}
                 >
                   <XStack space="$0.5">
                     <XStack alignItems="center">
-                      <RadioGroup.Item value={'1'} id={'1'} size={'$3'}>
+                      <RadioGroup.Item value={'portal'} id={'1'} size={'$3'}>
                         <RadioGroup.Indicator />
                       </RadioGroup.Item>
 
@@ -116,7 +127,7 @@ export function GameTabs({
                       </Label>
                     </XStack>
                     <XStack alignItems="center">
-                      <RadioGroup.Item value={'2'} id={'2'} size={'$3'}>
+                      <RadioGroup.Item value={'deploy'} id={'2'} size={'$3'}>
                         <RadioGroup.Indicator />
                       </RadioGroup.Item>
 
@@ -125,41 +136,133 @@ export function GameTabs({
                       </Label>
                     </XStack>
                     <XStack alignItems="center">
-                      <RadioGroup.Item value={'2'} id={'2'} size={'$3'}>
-                        <RadioGroup.Indicator />
-                      </RadioGroup.Item>
-
-                      <Label size={'$3'} htmlFor={'2'} padding="$1">
-                        Attack
-                      </Label>
-                    </XStack>
-                    <XStack alignItems="center">
-                      <RadioGroup.Item value={'3'} id={'3'} size={'$3'}>
+                      <RadioGroup.Item value={'attack'} id={'3'} size={'$3'}>
                         <RadioGroup.Indicator />
                       </RadioGroup.Item>
 
                       <Label size={'$3'} htmlFor={'3'} padding="$1">
+                        Attack
+                      </Label>
+                    </XStack>
+                    <XStack alignItems="center">
+                      <RadioGroup.Item value={'reenforce'} id={'4'} size={'$3'}>
+                        <RadioGroup.Indicator />
+                      </RadioGroup.Item>
+
+                      <Label size={'$3'} htmlFor={'4'} padding="$1">
                         Reenforce
                       </Label>
                     </XStack>
                   </XStack>
                 </RadioGroup>
               </View>
-              <YStack style={{display: 'flex', width: '100%'}} space="$1">
-                <H3>Change portal location</H3>
-                <XStack alignItems="center">
-                  <Select
-                    label="Portal entry #1"
-                    items={proxy.tiles.map(t => t.name)}
-                  />
-                </XStack>
-                <XStack alignItems="center">
-                  <Select
-                    label="Portal entry #2"
-                    items={proxy.tiles.map(t => t.name)}
-                  />
-                </XStack>
-              </YStack>
+              {(() => {
+                switch (turnAction) {
+                  case 'portal':
+                    return (
+                      <YStack
+                        style={{ display: 'flex', width: '100%' }}
+                        space="$1"
+                      >
+                        <H3>Change portal location</H3>
+                        <XStack alignItems="center">
+                          <Select
+                            label="Portal entry #1"
+                            items={proxy.tiles.map((t) => ({
+                              key: t.name,
+                              value: t.id,
+                            }))}
+                          />
+                        </XStack>
+                        <XStack alignItems="center">
+                          <Select
+                            label="Portal entry #2"
+                            items={proxy.tiles.map((t) => ({
+                              key: t.name,
+                              value: t.id,
+                            }))}
+                          />
+                        </XStack>
+                      </YStack>
+                    );
+                  case 'deploy':
+                    return (
+                      <YStack
+                        style={{ display: 'flex', width: '100%' }}
+                        space="$1"
+                      >
+                        <H3>Deploy or remove troops for a territory</H3>
+                        <XStack alignItems="center">
+                          <Select
+                            label="Territory"
+                            items={proxy.tiles.map((t) => ({
+                              key: t.name,
+                              value: t.id,
+                            }))}
+                          />
+                        </XStack>
+                        <XStack alignItems="center">
+                          <Label size={'$3'} htmlFor={'2'} paddingRight="$1">
+                            Troop change +/-
+                          </Label>
+                          <Input padding="$0.5" />
+                        </XStack>
+                      </YStack>
+                    );
+                  case 'attack':
+                    return (
+                      <YStack
+                        style={{ display: 'flex', width: '100%' }}
+                        space="$1"
+                      >
+                        <H3>Attack a territory</H3>
+                        <XStack alignItems="center">
+                          <Select
+                            label="Attacker"
+                            items={proxy.tiles.map((t) => ({
+                              key: t.name,
+                              value: t.id,
+                            }))}
+                          />
+                        </XStack>
+                        <XStack alignItems="center">
+                          <Select
+                            label="Defender"
+                            items={proxy.tiles.map((t) => ({
+                              key: t.name,
+                              value: t.id,
+                            }))}
+                          />
+                        </XStack>
+                      </YStack>
+                    );
+                  case 'reenforce':
+                    return (
+                      <YStack
+                        style={{ display: 'flex', width: '100%' }}
+                        space="$1"
+                      >
+                        <H3>Reenforce a territory</H3>
+                        <XStack alignItems="center">
+                          <Select
+                            label="Territory"
+                            onValueChange={setSelectedTile}
+                            items={proxy.tiles.map((t) => ({
+                              key: t.name,
+                              value: t.id,
+                            }))}
+                          />
+                        </XStack>
+                        <XStack alignItems="center">
+                          <Label size={'$3'} htmlFor={'2'} paddingRight="$1">
+                            Troop change +/-
+                          </Label>
+                          <Input padding="$0.5" />
+                        </XStack>
+                      </YStack>
+                    );
+                }
+              })()}
             </TabsContent>
             <TabsContent value="tab2" style={tw`h-full`}>
               <View style={tw`h-full overflow-scroll w-full`}></View>

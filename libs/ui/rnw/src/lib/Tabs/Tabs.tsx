@@ -101,7 +101,10 @@ export function TabsContainer({
               <View>
                 <Select
                   label="Number of players"
-                  items={[2, 3, 4, 5, 6, 7, 8, 9, 10]}
+                  items={[2, 3, 4, 5, 6, 7, 8, 9, 10].map((p) => ({
+                    key: p.toString(),
+                    value: p.toString(),
+                  }))}
                 />
                 <Spacer />
                 <PrimaryButton onPress={startGame}>Start game</PrimaryButton>

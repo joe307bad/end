@@ -130,6 +130,8 @@ function WarComponent({ war }: { war: War }) {
     ];
   }, [width]);
 
+  const [selectedTile, setSelectedTile] = useState(tile1);
+
   return (
     <View style={{ overflow: 'hidden', height: '100%', width: '100%' }}>
       <View
@@ -152,7 +154,7 @@ function WarComponent({ war }: { war: War }) {
         <Hexasphere
           derived={getDerived()}
           proxy={getProxy()}
-          selectedTile={tile1}
+          selectedTile={selectedTile}
           waterColor={getColors().water}
           landColor={getColors().land}
           showTroopCount={true}
@@ -165,7 +167,7 @@ function WarComponent({ war }: { war: War }) {
       <GameTabs
         menuOpen={true}
         proxy={getProxy()}
-        selectTile={() => {}}
+        selectTile={setSelectedTile}
         newPlanet={() => {}}
         startGame={() => {}}
       />
