@@ -18,20 +18,22 @@ import {
 export default function Select({
   label,
   items,
+  ...props
 }: {
   label: string;
-  items: any[];
-}) {
+  items: { key: string; value: string }[];
+} & SelectProps) {
   return (
     <XStack gap="$4">
       <Label htmlFor="select-demo-2">{label}</Label>
-
-      <SelectDemoItem id="select-demo-2" items={items} native />
+      <SelectDemoItem {...props} id="select-demo-2" items={items} native />
     </XStack>
   );
 }
 
-export function SelectDemoItem(props: SelectProps & { items: any[] }) {
+export function SelectDemoItem(
+  props: SelectProps & { items: { key: string; value: string }[] }
+) {
   const [val, setVal] = useState('apple');
   return (
     <S
@@ -73,12 +75,8 @@ export function SelectDemoItem(props: SelectProps & { items: any[] }) {
               () =>
                 props.items.map((item, i) => {
                   return (
-                    <S.Item
-                      index={i}
-                      key={item}
-                      value={item}
-                    >
-                      <S.ItemText>{item}</S.ItemText>
+                    <S.Item index={i} key={item.key} value={item.value}>
+                      <S.ItemText>{item.key}</S.ItemText>
 
                       <S.ItemIndicator marginLeft="auto">
                         <Check size={16} />

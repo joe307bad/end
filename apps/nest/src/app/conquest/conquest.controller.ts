@@ -43,24 +43,36 @@ export class ConquestController {
 
         return { state, warId: event.warId };
       case 'attack':
-        const war = await this.warModel.findOne({ warId: event.warId }).exec();
-        const warState = JSON.parse(war.state);
-        const existingWarActor = createActor(
-          warMachine(event.warId, warState.context, warState.value)
-        );
-        existingWarActor.start();
-        existingWarActor.send(event);
-        const existingWarState = existingWarActor.getSnapshot();
-        const r = await this.warModel
-          .updateOne(
-            { warId: event.warId },
-            { state: JSON.stringify(existingWarState), warId: event.warId }
-          )
-          .then((r) => {
-            return { id: r.upsertedId };
-          });
+        try {
+          const war = await this.warModel
+            .findOne({ warId: event.warId })
+            .exec();
+          const warState = JSON.parse(war.state);
+          const existingWarActor = createActor(
+            warMachine(event.warId, warState.context, warState.value)
+          );
+          existingWarActor.start();
+          existingWarActor.send(event);
+          const existingWarState = existingWarActor.getSnapshot();
+          await this.warModel
+            .updateOne(
+              { warId: event.warId },
+              {
+                state: JSON.stringify({
+                  context: existingWarState.context,
+                  value: existingWarState.value,
+                }),
+                warId: event.warId,
+              }
+            )
+            .then((r) => {
+              return { id: r.upsertedId };
+            });
 
-        return { state: existingWarState, warId: event.warId };
+          return { state: existingWarState, warId: event.warId };
+        } catch (e) {
+          return e.message;
+        }
     }
   }
 
