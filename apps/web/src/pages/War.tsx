@@ -9,13 +9,7 @@ import React, {
 import { useParams } from 'react-router-dom';
 import { execute } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
-import {
-  Badge,
-  GameTabs,
-  newPlanet,
-  PrimaryButton,
-  TabsContainer,
-} from '@end/components';
+import { Badge, GameTabs } from '@end/components';
 import { Canvas } from '@react-three/fiber';
 import { Hexasphere } from '@end/hexasphere';
 import { OrbitControls } from '@react-three/drei';
@@ -29,6 +23,90 @@ import {
 import { Database } from '@nozbe/watermelondb';
 import { Observable } from 'rxjs';
 import { Planet, War } from '@end/wm/core';
+import { Position, ReactFlow } from '@xyflow/react';
+
+import '@xyflow/react/dist/style.css';
+
+const initialNodes = [
+  {
+    id: '1',
+    position: { x: 100, y: 0 },
+    data: { label: '1' },
+  },
+  {
+    id: '2',
+    position: { x: 0, y: 45 },
+    data: { label: '2' },
+    targetPosition: Position.Right,
+  },
+  {
+    id: '3',
+    position: { x: 0, y: 90 },
+    data: { label: '3' },
+    targetPosition: Position.Right,
+  },
+  {
+    id: '4',
+    position: { x: 200, y: 45 },
+    data: { label: '4' },
+    targetPosition: Position.Left,
+  },
+  {
+    id: '5',
+    position: { x: 200, y: 90 },
+    data: { label: '5' },
+    targetPosition: Position.Left,
+  },
+];
+const initialEdges = [
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    color: 'white',
+    type: 'smoothstep',
+  },
+  { id: 'e1-3', source: '1', target: '3', type: 'smoothstep' },
+  {
+    id: 'e1-4',
+    source: '1',
+    target: '4',
+    type: 'smoothstep',
+  },
+  {
+    id: 'e1-5',
+    source: '1',
+    target: '5',
+    type: 'smoothstep',
+  },
+];
+
+function AttackDialog() {
+  return (
+    <div style={{ width: '100vw', height: '100vh', padding: 10 }}>
+      <ReactFlow
+        style={{ backgroundColor: 'transparent', padding: 10, top: 10 }}
+        fitViewOptions={{ padding: 10 }}
+        viewport={{ zoom: 1, y: 2, x: 2 }}
+        autoPanOnNodeDrag={false}
+        nodesDraggable={false}
+        panOnScroll={false}
+        zoomOnDoubleClick={false}
+        zoomOnPinch={false}
+        zoomOnScroll={false}
+        panOnDrag={false}
+        edgesFocusable={false}
+        nodesConnectable={false}
+        nodesFocusable={true}
+        draggable={false}
+        elementsSelectable={true}
+        colorMode="dark"
+        nodes={initialNodes}
+        edges={initialEdges}
+      />
+    </div>
+  );
+}
 
 const tile1 = '0,50,0';
 const tile2 = '0,-50,0';
@@ -170,6 +248,7 @@ function WarComponent({ war }: { war: War }) {
         selectTile={setSelectedTile}
         newPlanet={() => {}}
         startGame={() => {}}
+        attackDialog={AttackDialog}
       />
     </View>
   );

@@ -17,7 +17,13 @@ import { TabsContent } from './TabsContent';
 import { tw } from '../components';
 import { PrimaryButton } from '../Display';
 import { CircleDot, Crosshair, Hexagon } from '@tamagui/lucide-icons';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  ElementType,
+  useCallback,
+  useEffect,
+  useRef,
+  useState
+} from 'react';
 import { useResponsive } from '../Layout';
 import { derivedDefault, hexasphereProxy } from '@end/hexasphere';
 import Select from '../Select/Select';
@@ -33,12 +39,14 @@ export function GameTabs({
   selectTile,
   newPlanet,
   startGame,
+  attackDialog: AttackDialog,
 }: {
   proxy: typeof hexasphereProxy;
   newPlanet: () => void;
   menuOpen: boolean;
   selectTile: (id: string, tileList?: { scrollTo(): void }) => void;
   startGame: () => void;
+  attackDialog?: ElementType;
 }) {
   const { bp } = useResponsive(menuOpen, 1297);
   const sv = useRef<ScrollView | any>(null);
@@ -61,7 +69,7 @@ export function GameTabs({
 
   const onSync = useCallback(() => execute(services.syncService.sync()), []);
 
-  const [turnAction, setTurnAction] = useState<TurnAction>('portal');
+  const [turnAction, setTurnAction] = useState<TurnAction>('attack');
 
   const setSelectedTile = useCallback((tile: string) => {
     selectTile(tile);
@@ -216,24 +224,7 @@ export function GameTabs({
                         space="$1"
                       >
                         <H3>Attack a territory</H3>
-                        <XStack alignItems="center">
-                          <Select
-                            label="Attacker"
-                            items={proxy.tiles.map((t) => ({
-                              key: t.name,
-                              value: t.id,
-                            }))}
-                          />
-                        </XStack>
-                        <XStack alignItems="center">
-                          <Select
-                            label="Defender"
-                            items={proxy.tiles.map((t) => ({
-                              key: t.name,
-                              value: t.id,
-                            }))}
-                          />
-                        </XStack>
+                        {AttackDialog && <AttackDialog />}
                       </YStack>
                     );
                   case 'reenforce':
@@ -261,6 +252,8 @@ export function GameTabs({
                         </XStack>
                       </YStack>
                     );
+                  default:
+                    return null;
                 }
               })()}
             </TabsContent>
