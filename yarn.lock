@@ -2127,6 +2127,7 @@ __metadata:
     "@nx/node": "npm:^17.2.7"
     "@nx/playwright": "npm:17.2.7"
     "@nx/react": "npm:17.2.7"
+    "@nx/web": "npm:17.2.7"
     "@nx/webpack": "npm:17.2.7"
     "@nx/workspace": "npm:17.2.7"
     "@playwright/test": "npm:^1.36.0"
@@ -2142,6 +2143,7 @@ __metadata:
     "@swc/cli": "npm:~0.1.62"
     "@swc/core": "npm:~1.3.85"
     "@swc/helpers": "npm:~0.5.2"
+    "@swc/jest": "npm:0.2.20"
     "@tamagui/animations-react-native": "npm:1.80.4"
     "@tamagui/config": "npm:1.80.4"
     "@tamagui/lucide-icons": "npm:1.80.4"
@@ -2231,6 +2233,7 @@ __metadata:
     sass-loader: "npm:^13.3.3"
     socket.io-client: "npm:^4.7.5"
     style-loader: "npm:^3.3.3"
+    swc-loader: "npm:0.1.15"
     tamagui: "npm:^1.80.4"
     tamagui-loader: "npm:^1.80.4"
     text-encoding-polyfill: "npm:^0.6.7"
@@ -3422,6 +3425,15 @@ __metadata:
     node-notifier:
       optional: true
   checksum: 934f7bf73190f029ac0f96662c85cd276ec460d407baf6b0dbaec2872e157db4d55a7ee0b1c43b18874602f662b37cb973dda469a4e6d88b4e4845b521adeeb2
+  languageName: node
+  linkType: hard
+
+"@jest/create-cache-key-function@npm:^27.4.2":
+  version: 27.5.1
+  resolution: "@jest/create-cache-key-function@npm:27.5.1"
+  dependencies:
+    "@jest/types": "npm:^27.5.1"
+  checksum: 1890ac93fad852e0a98c31de1e5f2c548974aefd36e838d27b70834dda1654a153ed6a52258447ebacfd47463e9bdb83750631bee827797c7b9973c083998a96
   languageName: node
   linkType: hard
 
@@ -5871,6 +5883,17 @@ __metadata:
   dependencies:
     tslib: "npm:^2.4.0"
   checksum: 7003b9dafad38e27a4474a3dcf78d2aee85ce4bb7ee171ecc2d5b533768fb4f8fc9dbd6a1c3a9df5f8001e61ff416b93681e0a7dcbdc0df109b3e09c50cd4615
+  languageName: node
+  linkType: hard
+
+"@swc/jest@npm:0.2.20":
+  version: 0.2.20
+  resolution: "@swc/jest@npm:0.2.20"
+  dependencies:
+    "@jest/create-cache-key-function": "npm:^27.4.2"
+  peerDependencies:
+    "@swc/core": "*"
+  checksum: 3271372cc9af9ac990f38083cf3a698dece7869c5b3af3863496541debdfb511887238f659da02488f875b0a568eeefa1794763fa82a05f81290b49f7b6ffd00
   languageName: node
   linkType: hard
 
@@ -23824,6 +23847,18 @@ __metadata:
   bin:
     svgo: ./bin/svgo
   checksum: b3f00b3319dee6ddc53f8b8ac5acef581860e1708c98b492169e096621edc1bdf46e3778099e3dffb5116bf0d4c074a686099843dbc020c73b3ccfae7b6a88f0
+  languageName: node
+  linkType: hard
+
+"swc-loader@npm:0.1.15":
+  version: 0.1.15
+  resolution: "swc-loader@npm:0.1.15"
+  dependencies:
+    loader-utils: "npm:^2.0.0"
+  peerDependencies:
+    "@swc/core": ^1.2.52
+    webpack: ">=2"
+  checksum: 99879dda256bc408dc98a8c94ca36c6c97684e68046b0153a7ed987225b973b4606ff4f27d88908598daa84155659be9790d78f183220a2db864d8ac24ea6343
   languageName: node
   linkType: hard
 

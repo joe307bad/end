@@ -83,9 +83,18 @@ const initialEdges = [
 
 function AttackDialog() {
   return (
-    <div style={{ width: '100vw', height: '100vh', padding: 10 }}>
+    <View
+      style={{
+        height: 160,
+        padding: 10
+      }}
+    >
       <ReactFlow
-        style={{ backgroundColor: 'transparent', padding: 10, top: 10 }}
+        style={{
+          backgroundColor: 'transparent',
+          padding: 10,
+          top: 10
+        }}
         fitViewOptions={{ padding: 10 }}
         viewport={{ zoom: 1, y: 2, x: 2 }}
         autoPanOnNodeDrag={false}
@@ -104,7 +113,7 @@ function AttackDialog() {
         nodes={initialNodes}
         edges={initialEdges}
       />
-    </div>
+    </View>
   );
 }
 

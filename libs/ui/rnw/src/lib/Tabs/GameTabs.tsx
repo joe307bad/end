@@ -2,7 +2,6 @@ import {
   Section,
   Separator,
   SizableText,
-  View,
   Tabs,
   ListItem,
   ScrollView,
@@ -22,7 +21,7 @@ import React, {
   useCallback,
   useEffect,
   useRef,
-  useState
+  useState,
 } from 'react';
 import { useResponsive } from '../Layout';
 import { derivedDefault, hexasphereProxy } from '@end/hexasphere';
@@ -30,6 +29,7 @@ import Select from '../Select/Select';
 import { subscribeKey } from 'valtio/utils';
 import { useEndApi } from '@end/data/web';
 import { execute } from '@end/data/core';
+import { View } from 'react-native';
 
 type TurnAction = 'portal' | 'deploy' | 'attack' | 'reenforce' | null | string;
 
@@ -116,7 +116,13 @@ export function GameTabs({
               </Tabs.Tab>
             </Tabs.List>
             <Separator />
-            <TabsContent value="tab1" style={{ justifyContent: 'start' }}>
+            <TabsContent
+              padding={0}
+              value="tab1"
+              style={{
+                justifyContent: 'start',
+              }}
+            >
               <View style={{ width: '100%' }}>
                 <RadioGroup
                   aria-labelledby="Select one item"
@@ -124,22 +130,31 @@ export function GameTabs({
                   name="form"
                   onValueChange={setTurnAction}
                 >
-                  <XStack space="$0.5">
+                  <XStack space="$0.5" paddingLeft="$1">
                     <XStack alignItems="center">
                       <RadioGroup.Item value={'portal'} id={'1'} size={'$3'}>
                         <RadioGroup.Indicator />
                       </RadioGroup.Item>
-
-                      <Label size={'$3'} htmlFor={'1'} padding="$1">
+                      <Label
+                        size={'$3'}
+                        htmlFor={'1'}
+                        paddingLeft="$0.5"
+                        paddingRight="$0.5"
+                      >
                         Portal
                       </Label>
                     </XStack>
-                    <XStack alignItems="center">
+                    <XStack alignItems="center" >
                       <RadioGroup.Item value={'deploy'} id={'2'} size={'$3'}>
                         <RadioGroup.Indicator />
                       </RadioGroup.Item>
 
-                      <Label size={'$3'} htmlFor={'2'} padding="$1">
+                      <Label
+                        size={'$3'}
+                        htmlFor={'2'}
+                        paddingLeft="$0.5"
+                        paddingRight="$0.5"
+                      >
                         Deploy
                       </Label>
                     </XStack>
@@ -148,7 +163,12 @@ export function GameTabs({
                         <RadioGroup.Indicator />
                       </RadioGroup.Item>
 
-                      <Label size={'$3'} htmlFor={'3'} padding="$1">
+                      <Label
+                        size={'$3'}
+                        htmlFor={'3'}
+                        paddingLeft="$0.5"
+                        paddingRight="$0.5"
+                      >
                         Attack
                       </Label>
                     </XStack>
@@ -157,7 +177,12 @@ export function GameTabs({
                         <RadioGroup.Indicator />
                       </RadioGroup.Item>
 
-                      <Label size={'$3'} htmlFor={'4'} padding="$1">
+                      <Label
+                        size={'$3'}
+                        htmlFor={'4'}
+                        paddingLeft="$0.5"
+                        paddingRight="$0.5"
+                      >
                         Reenforce
                       </Label>
                     </XStack>
@@ -219,13 +244,19 @@ export function GameTabs({
                     );
                   case 'attack':
                     return (
-                      <YStack
-                        style={{ display: 'flex', width: '100%' }}
-                        space="$1"
+                      <View
+                        style={{
+                          display: 'flex',
+                          width: '100%',
+                          overflow: 'scroll',
+                          flex: 1,
+                        }}
                       >
-                        <H3>Attack a territory</H3>
-                        {AttackDialog && <AttackDialog />}
-                      </YStack>
+                        <YStack space="$1" height="100%">
+                          <H3>Attack a territory</H3>
+                          {AttackDialog && <AttackDialog />}
+                        </YStack>
+                      </View>
                     );
                   case 'reenforce':
                     return (
@@ -265,7 +296,7 @@ export function GameTabs({
         <PrimaryButton onPress={newPlanet}>New Planet</PrimaryButton>
         <PrimaryButton onPress={onSync}>Sync</PrimaryButton>
       </View>
-      <View onPress={() => {}}>
+      <View>
         <CircleDot
           color="white"
           size="$2"
@@ -295,7 +326,7 @@ const TileListItem = React.memo(function ({
       padding="$1"
       hoverTheme
       icon={Hexagon}
-      title={<View style={{ cursor: 'pointer' }}>{name}</View>}
+      title={<View>{name}</View>}
       pressTheme
       onPress={() => selectTile(id)}
       iconAfter={selected ? Crosshair : null}
