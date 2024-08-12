@@ -36,7 +36,6 @@ import { buildCameraPath } from './build-camera-path';
 import { Edges } from '@react-three/drei';
 // @ts-ignore
 import v from 'voca';
-import { PortalPath } from '@end/components';
 
 function getPointInBetweenByPerc(
   pointA: THREE.Vector3,
@@ -918,10 +917,6 @@ export const Hexasphere = React.memo(
               owner={t.owner}
             />
           ))}
-          <PortalPath
-            from={{ x: 0, y: 50, z: 0 }}
-            to={{ x: 0, y: 0, z: 50 }}
-          />
           <points>
             <bufferGeometry>
               <bufferAttribute

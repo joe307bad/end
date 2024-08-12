@@ -5,8 +5,13 @@
   "sourceRoot": "apps/haskell/src",
   "tags": [],
   "targets": {
-    "build": { },
-    "lint": { },
-    "test": { }
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ghc apps/haskell/src/Main.hs"
+      }
+    },
+    "lint": {},
+    "test": {}
   }
 }
