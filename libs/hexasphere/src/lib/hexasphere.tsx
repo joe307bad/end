@@ -829,7 +829,7 @@ export const Hexasphere = React.memo(
         return new Array(stars).fill(undefined).flatMap(createStar);
       };
 
-      return new Float32Array(createStars(50));
+      return new Float32Array(createStars(2000));
     }, []);
 
     const { camera } = useThree();

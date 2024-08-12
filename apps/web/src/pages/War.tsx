@@ -1,4 +1,4 @@
-import { H2 } from 'tamagui';
+import { H2, H3, H4 } from 'tamagui';
 import React, {
   ComponentType,
   useCallback,
@@ -23,7 +23,7 @@ import {
 import { Database } from '@nozbe/watermelondb';
 import { Observable } from 'rxjs';
 import { Planet, War } from '@end/wm/core';
-import { Position, ReactFlow } from '@xyflow/react';
+import { MarkerType, Position, ReactFlow } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
 
@@ -65,19 +65,36 @@ const initialEdges = [
     target: '2',
     color: 'white',
     type: 'smoothstep',
+    markerEnd: {
+      type: MarkerType.Arrow,
+    },
   },
-  { id: 'e1-3', source: '1', target: '3', type: 'smoothstep' },
+  {
+    id: 'e1-3',
+    source: '1',
+    target: '3',
+    type: 'smoothstep',
+    markerEnd: {
+      type: MarkerType.Arrow,
+    },
+  },
   {
     id: 'e1-4',
     source: '1',
     target: '4',
     type: 'smoothstep',
+    markerEnd: {
+      type: MarkerType.Arrow,
+    },
   },
   {
     id: 'e1-5',
     source: '1',
     target: '5',
     type: 'smoothstep',
+    markerEnd: {
+      type: MarkerType.Arrow,
+    },
   },
 ];
 
@@ -86,14 +103,14 @@ function AttackDialog() {
     <View
       style={{
         height: 160,
-        padding: 10
+        padding: 10,
       }}
     >
       <ReactFlow
         style={{
           backgroundColor: 'transparent',
           padding: 10,
-          top: 10
+          top: 10,
         }}
         fitViewOptions={{ padding: 10 }}
         viewport={{ zoom: 1, y: 2, x: 2 }}
@@ -223,13 +240,13 @@ function WarComponent({ war }: { war: War }) {
     <View style={{ overflow: 'hidden', height: '100%', width: '100%' }}>
       <View
         style={{
+          paddingLeft: 10,
           display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
+          alignItems: 'flex-start',
         }}
       >
-        <H2 paddingLeft="$1">{title}</H2>
-        <Badge styles="pl-10" title={params.id} />
+        <H4>{title}</H4>
+        <Badge title={params.id} />
       </View>
       <Canvas
         style={{
