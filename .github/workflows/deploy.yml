@@ -17,7 +17,6 @@ jobs:
       API_BASE_URL: ${{ secrets.API_BASE_URL }}
       NEST_JWT_SECRET: ${{ secrets.NEST_JWT_SECRET }}
     steps:
-      - uses: haskell-actions/setup@v2
       - name: Checkout
         uses: actions/checkout@v3
 

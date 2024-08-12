@@ -6,7 +6,6 @@ jobs:
     name: Compile all apps
     runs-on: ubuntu-latest
     steps:
-      - uses: haskell-actions/setup@v2
       - uses: actions/checkout@v3
 
       - name: Set Node.js 18.x
