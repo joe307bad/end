@@ -171,9 +171,9 @@
     "webpack-merge": "^5.10.0"
   },
   "scripts": {
-    "tsc": "nx run-many -t tsc",
+    "tsc": "nx run-many -t tsc --parallel",
     "deploy": "nx affected -t deploy",
-    "build": "nx run-many -t build --exclude mobile",
+    "build": "nx run-many -t build --exclude mobile --parallel",
     "nest:dev": "nx serve nest"
   },
   "packageManager": "yarn@4.0.2",
