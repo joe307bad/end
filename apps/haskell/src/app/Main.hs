@@ -1,6 +1,6 @@
 module Main (main) where
 
-import Lib
+import Conquest
 
 main :: IO ()
-main = someFunc
+main = executeAction

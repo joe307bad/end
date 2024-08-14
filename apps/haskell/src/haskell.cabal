@@ -25,7 +25,8 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
+      Conquest
+      Libss
   other-modules:
       Paths_haskell
   autogen-modules:

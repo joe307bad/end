@@ -3,10 +3,12 @@ on: [pull_request]
 
 jobs:
   build:
-    name: Compile all apps
+    name: Type-check and build all apps
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - uses: haskell-actions/setup@v2
 
       - name: Set Node.js 18.x
         uses: actions/setup-node@v3
@@ -18,7 +20,7 @@ jobs:
         with:
           cmd: install
 
-      - name: Compile all apps
+      - name: Type-check all apps
         uses: borales/actions-yarn@v4
         with:
           cmd: tsc
