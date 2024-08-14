@@ -23,13 +23,13 @@ jobs:
       - name: Type-check all apps
         uses: borales/actions-yarn@v5
         env:
-          NODE_OPTIONS: "--max_old_space_size=4096"
+          NODE_OPTIONS: "--max-old-space-size=4096"
         with:
           cmd: tsc
 
       - name: Build all apps
         uses: borales/actions-yarn@v5
         env:
-          NODE_OPTIONS: "--max_old_space_size=4096"
+          NODE_OPTIONS: "--max-old-space-size=4096"
         with:
           cmd: build
