@@ -1,6 +1,6 @@
 module Main (main) where
 
-import Conquest
+import Conquestdd
 
 main :: IO ()
 main = executeAction
