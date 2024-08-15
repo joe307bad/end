@@ -38,7 +38,6 @@ export class ConquestGateway {
   }
 
   handleConnection(client: Socket) {
-    // console.log(`Client connected: ${client.id}`);
     this.clients.add(client);
   }
 

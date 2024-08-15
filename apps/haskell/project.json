@@ -1,0 +1,18 @@
+{
+  "name": "haskell",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/haskell/src",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/haskell/src",
+        "command": "stack build"
+      }
+    },
+    "lint": {},
+    "test": {}
+  }
+}
