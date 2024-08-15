@@ -10,10 +10,10 @@ jobs:
 
 #      - uses: haskell-actions/setup@v2
 
-      - name: Set Node.js 18.x
+      - name: Set Node.js 20.x
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: 20.x
 
       - name: Run install
         uses: borales/actions-yarn@v4
