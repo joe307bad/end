@@ -8,7 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-#      - uses: haskell-actions/setup@v2
+      - uses: haskell-actions/setup@v2
 
       - name: Set Node.js 20.x
         uses: actions/setup-node@v3
@@ -22,14 +22,10 @@ jobs:
 
       - name: Type-check all apps
         uses: borales/actions-yarn@v5
-#        env:
-#          NODE_OPTIONS: "--max-old-space-size=4096"
         with:
           cmd: tsc
 
       - name: Build all apps
         uses: borales/actions-yarn@v5
-#        env:
-#          NODE_OPTIONS: "--max-old-space-size=4096"
         with:
           cmd: build
