@@ -27,6 +27,10 @@ interface Conquest {
     tile2: string;
     warId: string;
   }) => Effect.Effect<Response, Error>;
+  readonly selectFirstTerritory: (payload: {
+    id: string;
+    warId: string;
+  }) => Effect.Effect<Response, Error>;
 }
 
 const ConquestService = Context.GenericTag<Conquest>('conquest-api');
@@ -136,6 +140,18 @@ const ConquestLive = Layer.effect(
           getToken(),
           Effect.flatMap((token) =>
             fetch.post('/conquest', { type: 'attack', ...event }, token)
+          )
+        );
+      },
+      selectFirstTerritory: (event: { id: string; warId: string }) => {
+        return pipe(
+          getToken(),
+          Effect.flatMap((token) =>
+            fetch.post(
+              '/conquest',
+              { type: 'select-first-territory', ...event },
+              token
+            )
           )
         );
       },

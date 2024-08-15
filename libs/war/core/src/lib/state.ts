@@ -13,6 +13,8 @@ interface Context {
   players: string[];
   turn: number;
   tiles: Record<string, Tile>;
+  selectedTerritory1?: string;
+  selectedTerritory2?: string;
 }
 
 export type Event =
@@ -22,7 +24,9 @@ export type Event =
       tiles: Record<string, Tile>;
       warId: string;
     }
-  | { type: 'attack'; tile1: string; tile2: string; warId: string };
+  | { type: 'attack'; tile1: string; tile2: string; warId: string }
+  | { type: 'select-first-territory'; id: string; warId: string }
+  | { type: 'select-second-territory'; id: string };
 
 export const warMachine = (
   warId: string,
@@ -76,6 +80,20 @@ export const warMachine = (
       'war-complete': {},
       'war-in-progress': {
         on: {
+          'select-first-territory': {
+            actions: assign({
+              selectedTerritory1: ({ context, event }) => {
+                return event.id;
+              },
+            }),
+          },
+          'select-second-territory': {
+            actions: assign({
+              selectedTerritory2: ({ context, event }) => {
+                return event.id;
+              },
+            }),
+          },
           attack: {
             actions: assign({
               tiles: ({ context, event }) => {

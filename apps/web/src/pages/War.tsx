@@ -1,4 +1,4 @@
-import { H2, H3, H4 } from 'tamagui';
+import { H4 } from 'tamagui';
 import React, {
   ComponentType,
   useCallback,
@@ -11,7 +11,7 @@ import { execute } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
 import { Badge, GameTabs } from '@end/components';
 import { Canvas } from '@react-three/fiber';
-import { Hexasphere } from '@end/hexasphere';
+import { hexasphere, Hexasphere } from '@end/hexasphere';
 import { OrbitControls } from '@react-three/drei';
 import { useWindowDimensions, View } from 'react-native';
 import * as THREE from 'three';
@@ -26,6 +26,7 @@ import { Planet, War } from '@end/wm/core';
 import { MarkerType, Position, ReactFlow } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
+import { subscribeKey } from 'valtio/utils';
 
 const initialNodes = [
   {
@@ -153,8 +154,36 @@ function WarComponent({ war }: { war: War }) {
     );
   }, []);
 
+  const selectFirstTerritory = useCallback((id: string) => {
+    if (!params.id) {
+      return;
+    }
+
+    return execute(services.conquestService.selectFirstTerritory({ id, warId: params.id }));
+  }, []);
+
   const [raisedTiles, setRaisedTiles] = useState<Set<string>>(new Set());
   const [tileOwners, setTileOwners] = useState<Map<string, number>>(new Map());
+
+  useEffect(() => {
+    const unsubscribe = subscribeKey(
+      getDerived(),
+      'selectedTileIndex',
+      (selectedTileIndex) => {
+        const territory = Object.values(hexasphere.tileLookup)[
+          selectedTileIndex
+        ];
+
+        if (territory?.centerPoint) {
+          const { x, y, z } = territory.centerPoint;
+          const id = `${x},${y},${z}`;
+          selectFirstTerritory(id);
+        }
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     war.planet.fetch().then((planet: Planet) => {
@@ -185,6 +214,7 @@ function WarComponent({ war }: { war: War }) {
           setTileOwners(owners);
         });
       services.conquestService.connectToWarLog(params.id).subscribe((r) => {
+        console.log({ r });
         try {
           if (r) {
             const s = JSON.parse(
@@ -271,7 +301,10 @@ function WarComponent({ war }: { war: War }) {
       <GameTabs
         menuOpen={true}
         proxy={getProxy()}
-        selectTile={setSelectedTile}
+        selectTile={(tile) => {
+          setSelectedTile(tile);
+          selectFirstTerritory(tile);
+        }}
         newPlanet={() => {}}
         startGame={() => {}}
         attackDialog={AttackDialog}

@@ -42,6 +42,7 @@ export class ConquestController {
           });
 
         return { state, warId: event.warId };
+      case 'select-first-territory':
       case 'attack':
         try {
           const war = await this.warModel
