@@ -1,9 +1,10 @@
 import React, {
+  ElementType,
   startTransition,
   useCallback,
   useEffect,
   useMemo,
-  useRef,
+  useRef
 } from 'react';
 import '@react-three/fiber';
 import { faker } from '@faker-js/faker';
@@ -36,7 +37,6 @@ import { buildCameraPath } from './build-camera-path';
 import { Edges } from '@react-three/drei';
 // @ts-ignore
 import v from 'voca';
-import { PortalPath } from '@end/components';
 
 function getPointInBetweenByPerc(
   pointA: THREE.Vector3,
@@ -790,6 +790,7 @@ export const Hexasphere = React.memo(
     tileOwners,
     portalCoords,
     onTileSelection,
+    portalPath: PortalPath
   }: {
     selectedTile?: string;
     proxy?: typeof hexasphereProxy;
@@ -805,6 +806,7 @@ export const Hexasphere = React.memo(
     tileOwners?: Map<string, number>;
     portalCoords?: [Coords?, Coords?];
     onTileSelection?: (tile: Coords) => void;
+    portalPath?: ElementType
   }) => {
 
     const proxy = p ?? hexasphereProxy;
@@ -935,7 +937,7 @@ export const Hexasphere = React.memo(
               owner={t.owner}
             />
           ))}
-          {portalCoords && (
+          {portalCoords && PortalPath && (
             <PortalPath from={portalCoords[0]} to={portalCoords[1]} />
           )}
           <points>

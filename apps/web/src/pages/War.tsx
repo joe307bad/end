@@ -9,7 +9,7 @@ import React, {
 import { useParams } from 'react-router-dom';
 import { execute } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
-import { Badge, GameTabs } from '@end/components';
+import { Badge, GameTabs, PortalPath } from '@end/components';
 import { Canvas } from '@react-three/fiber';
 import { Coords, hexasphere, Hexasphere } from '@end/hexasphere';
 import { OrbitControls } from '@react-three/drei';
@@ -255,7 +255,6 @@ function WarComponent({ war }: { war: War }) {
     'first' | 'second' | undefined
   >('first');
 
-
   const onTileSelection = useCallback(
     (tile: Coords) => {
       debugger;
@@ -305,6 +304,7 @@ function WarComponent({ war }: { war: War }) {
           showAttackArrows={true}
           tileOwners={tileOwners}
           portalCoords={portalCoords}
+          portalPath={PortalPath}
         />
         <OrbitControls />
       </Canvas>
