@@ -136,23 +136,12 @@ function AttackDialog() {
 }
 
 const tile1 = '0,50,0';
-const tile2 = '0,-50,0';
 
 function WarComponent({ war }: { war: War }) {
   const [title, setTitle] = useState('');
   let params = useParams();
   const { services } = useEndApi();
   const { getProxy, getDerived, getColors } = services.hexaService;
-
-  const attack = useCallback(() => {
-    if (!params.id) {
-      return;
-    }
-
-    return execute(
-      services.conquestService.attack({ tile1, tile2, warId: params.id })
-    );
-  }, []);
 
   const selectFirstTerritory = useCallback((id: string) => {
     if (!params.id) {
@@ -230,12 +219,6 @@ function WarComponent({ war }: { war: War }) {
         } catch (e) {}
       });
     }
-
-    // setInterval(() => {
-    //   if (params.id) {
-    //     services.conquestService.createWarLogEvent(params.id);
-    //   }
-    // }, 1000);
   }, []);
   const cam = useMemo(() => {
     const cam = new THREE.PerspectiveCamera(45);
@@ -265,6 +248,7 @@ function WarComponent({ war }: { war: War }) {
   }, [width]);
 
   const [selectedTile, setSelectedTile] = useState(tile1);
+  const [menuOpen, setMenuOpen] = useState(true);
 
   return (
     <View style={{ overflow: 'hidden', height: '100%', width: '100%' }}>
@@ -299,12 +283,13 @@ function WarComponent({ war }: { war: War }) {
         <OrbitControls />
       </Canvas>
       <GameTabs
-        menuOpen={true}
+        menuOpen={menuOpen}
         proxy={getProxy()}
         selectTile={(tile) => {
           setSelectedTile(tile);
           selectFirstTerritory(tile);
         }}
+        setMenuOpen={setMenuOpen}
         newPlanet={() => {}}
         startGame={() => {}}
         attackDialog={AttackDialog}

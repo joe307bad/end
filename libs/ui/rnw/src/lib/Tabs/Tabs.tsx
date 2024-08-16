@@ -55,11 +55,6 @@ export function TabsContainer({
 
   const { services } = useEndApi();
 
-  useEffect(() => {
-    // Effect.runPromise(services.war.create()).then((t) => console.log(t));
-    // Effect.runPromise(services.conquest.log()).then((t) => console.log(t));
-  }, []);
-
   const onSync = useCallback(() => execute(services.syncService.sync()), []);
 
   return (
