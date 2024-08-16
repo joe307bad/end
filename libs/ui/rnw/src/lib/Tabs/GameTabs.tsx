@@ -24,7 +24,7 @@ import React, {
   useState,
 } from 'react';
 import { useResponsive } from '../Layout';
-import { derivedDefault, hexasphereProxy } from '@end/hexasphere';
+import { Coords, derivedDefault, hexasphereProxy } from '@end/hexasphere';
 import Select, { SelectDemoItem } from '../Select/Select';
 import { subscribeKey } from 'valtio/utils';
 import { Pressable, View } from 'react-native';
@@ -37,6 +37,9 @@ export function GameTabs({
   selectTile,
   setMenuOpen,
   attackDialog,
+  portalCoords,
+  setPortalCoords,
+  setSelectingPortalEntry,
 }: {
   proxy: typeof hexasphereProxy;
   newPlanet: () => void;
@@ -45,6 +48,11 @@ export function GameTabs({
   selectTile: (id: string, tileList?: { scrollTo(): void }) => void;
   startGame: () => void;
   attackDialog?: ElementType;
+  portalCoords?: [Coords?, Coords?];
+  setPortalCoords?: Dispatch<SetStateAction<[Coords?, Coords?] | undefined>>;
+  setSelectingPortalEntry?: Dispatch<
+    SetStateAction<'first' | 'second' | undefined>
+  >;
 }) {
   const { bp } = useResponsive(menuOpen, 1297);
   const sv = useRef<ScrollView | any>(null);
@@ -193,10 +201,13 @@ export function GameTabs({
                 }}
               >
                 <TurnActionComponent
+                  setSelectingPortalEntry={setSelectingPortalEntry}
                   setSelectedTile={setSelectedTile}
                   attackDialog={attackDialog}
                   proxy={proxy}
                   turnAction={turnAction}
+                  portalCoords={portalCoords}
+                  setPortalCoords={setPortalCoords}
                 />
               </ScrollView>
             </TabsContent>
@@ -208,7 +219,6 @@ export function GameTabs({
         <Pressable
           onPress={() =>
             setMenuOpen((prev) => {
-              console.log(prev);
               return !prev;
             })
           }
@@ -226,25 +236,53 @@ function TurnActionComponent({
   proxy,
   attackDialog: AttackDialog,
   setSelectedTile,
+  setSelectingPortalEntry,
+  setPortalCoords,
+  portalCoords,
 }: {
   turnAction: TurnAction;
   proxy: typeof hexasphereProxy;
   attackDialog?: ElementType;
   setSelectedTile: (tile: string) => void;
+  setSelectingPortalEntry?: Dispatch<
+    SetStateAction<'first' | 'second' | undefined>
+  >;
+  portalCoords?: [Coords?, Coords?];
+  setPortalCoords?: Dispatch<SetStateAction<[Coords?, Coords?] | undefined>>;
 }) {
   switch (turnAction) {
     case 'portal':
       return (
         <YStack style={{ display: 'flex', width: '100%' }}>
           <H3>Change portal location</H3>
-          <RadioGroup>
+          <RadioGroup
+            defaultValue="first"
+            onValueChange={(value: 'first' | 'second' | any) => {
+              setSelectingPortalEntry?.(value);
+            }}
+          >
             <XStack alignItems="center">
-              <XStack width="30%">
-                <Label htmlFor="select-demo-2">Portal entry #1</Label>
+              <XStack minWidth="$1" paddingHorizontal="$0.75">
+                <Label htmlFor="first">Portal entry #1</Label>
               </XStack>
-              <XStack width="50%" alignItems="center" justifyContent="flex-end">
+              <XStack flex={1} alignItems="center" justifyContent="flex-end">
                 <SelectDemoItem
-                  id="select-demo-2"
+                  value={Object.values(portalCoords?.[0] ?? {}).join(',')}
+                  onValueChange={(value) => {
+                    setPortalCoords?.((prev) => {
+                      const [x, y, z] = value.split(',');
+                      prev = [
+                        {
+                          x: parseFloat(x),
+                          y: parseFloat(y),
+                          z: parseFloat(z),
+                        },
+                        prev?.[1],
+                      ];
+                      return prev;
+                    });
+                  }}
+                  id="first-select"
                   items={proxy.tiles.map((t) => ({
                     key: t.name,
                     value: t.id,
@@ -252,19 +290,34 @@ function TurnActionComponent({
                   native
                 />
               </XStack>
-              <XStack paddingLeft="$1">
-                <RadioGroup.Item value={'selecting-first'} id={'1'} size={'$3'}>
+              <XStack paddingHorizontal="$0.75">
+                <RadioGroup.Item value={'first'} id={'first'} size={'$3'}>
                   <RadioGroup.Indicator />
                 </RadioGroup.Item>
               </XStack>
             </XStack>
             <XStack alignItems="center">
-              <XStack width="30%">
-                <Label htmlFor="select-demo-2">Portal entry #2</Label>
+              <XStack minWidth="$1" paddingHorizontal="$0.75">
+                <Label htmlFor="second">Portal entry #2</Label>
               </XStack>
-              <XStack width="50%" alignItems="center" justifyContent="flex-end">
+              <XStack flex={1} alignItems="center" justifyContent="flex-end">
                 <SelectDemoItem
-                  id="select-demo-2"
+                  id="second-select"
+                  value={Object.values(portalCoords?.[1] ?? {}).join(',')}
+                  onValueChange={(value) => {
+                    setPortalCoords?.((prev) => {
+                      const [x, y, z] = value.split(',');
+                      prev = [
+                        prev?.[0],
+                        {
+                          x: parseFloat(x),
+                          y: parseFloat(y),
+                          z: parseFloat(z),
+                        },
+                      ];
+                      return prev;
+                    });
+                  }}
                   items={proxy.tiles.map((t) => ({
                     key: t.name,
                     value: t.id,
@@ -272,12 +325,8 @@ function TurnActionComponent({
                   native
                 />
               </XStack>
-              <XStack paddingLeft="$1">
-                <RadioGroup.Item
-                  value={'selecting-second'}
-                  id={'2'}
-                  size={'$3'}
-                >
+              <XStack paddingHorizontal="$0.75">
+                <RadioGroup.Item value={'second'} id={'second'} size={'$3'}>
                   <RadioGroup.Indicator />
                 </RadioGroup.Item>
               </XStack>

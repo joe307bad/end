@@ -11,7 +11,7 @@ import { execute } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
 import { Badge, GameTabs } from '@end/components';
 import { Canvas } from '@react-three/fiber';
-import { hexasphere, Hexasphere } from '@end/hexasphere';
+import { Coords, hexasphere, Hexasphere } from '@end/hexasphere';
 import { OrbitControls } from '@react-three/drei';
 import { useWindowDimensions, View } from 'react-native';
 import * as THREE from 'three';
@@ -148,7 +148,9 @@ function WarComponent({ war }: { war: War }) {
       return;
     }
 
-    return execute(services.conquestService.selectFirstTerritory({ id, warId: params.id }));
+    return execute(
+      services.conquestService.selectFirstTerritory({ id, warId: params.id })
+    );
   }, []);
 
   const [raisedTiles, setRaisedTiles] = useState<Set<string>>(new Set());
@@ -203,7 +205,6 @@ function WarComponent({ war }: { war: War }) {
           setTileOwners(owners);
         });
       services.conquestService.connectToWarLog(params.id).subscribe((r) => {
-        console.log({ r });
         try {
           if (r) {
             const s = JSON.parse(
@@ -249,6 +250,29 @@ function WarComponent({ war }: { war: War }) {
 
   const [selectedTile, setSelectedTile] = useState(tile1);
   const [menuOpen, setMenuOpen] = useState(true);
+  const [portalCoords, setPortalCoords] = useState<[Coords?, Coords?]>();
+  const [selectingPortalEntry, setSelectingPortalEntry] = useState<
+    'first' | 'second' | undefined
+  >('first');
+
+
+  const onTileSelection = useCallback(
+    (tile: Coords) => {
+      debugger;
+      if (selectingPortalEntry === 'first') {
+        setPortalCoords((prev) => {
+          prev = [tile, prev?.[1]];
+          return prev;
+        });
+      } else if (selectingPortalEntry === 'second') {
+        setPortalCoords((prev) => {
+          prev = [prev?.[0], tile];
+          return prev;
+        });
+      }
+    },
+    [selectingPortalEntry, setPortalCoords]
+  );
 
   return (
     <View style={{ overflow: 'hidden', height: '100%', width: '100%' }}>
@@ -272,6 +296,7 @@ function WarComponent({ war }: { war: War }) {
         <Hexasphere
           derived={getDerived()}
           proxy={getProxy()}
+          onTileSelection={onTileSelection}
           selectedTile={selectedTile}
           waterColor={getColors().water}
           landColor={getColors().land}
@@ -279,12 +304,14 @@ function WarComponent({ war }: { war: War }) {
           raisedTiles={raisedTiles}
           showAttackArrows={true}
           tileOwners={tileOwners}
+          portalCoords={portalCoords}
         />
         <OrbitControls />
       </Canvas>
       <GameTabs
         menuOpen={menuOpen}
         proxy={getProxy()}
+        setSelectingPortalEntry={setSelectingPortalEntry}
         selectTile={(tile) => {
           setSelectedTile(tile);
           selectFirstTerritory(tile);
@@ -293,6 +320,8 @@ function WarComponent({ war }: { war: War }) {
         newPlanet={() => {}}
         startGame={() => {}}
         attackDialog={AttackDialog}
+        portalCoords={portalCoords}
+        setPortalCoords={setPortalCoords}
       />
     </View>
   );

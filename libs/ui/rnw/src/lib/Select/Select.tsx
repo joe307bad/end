@@ -34,15 +34,8 @@ export default function Select({
 export function SelectDemoItem(
   props: SelectProps & { items: { key: string; value: string }[] }
 ) {
-  const [val, setVal] = useState('apple');
   return (
-    <S
-      value={val}
-      onValueChange={setVal}
-      size={'$1'}
-      disablePreventBodyScroll
-      {...props}
-    >
+    <S size={'$1'} disablePreventBodyScroll {...props}>
       <S.Trigger width={220} iconAfter={ChevronDown}>
         <S.Value placeholder="Something" />
       </S.Trigger>
@@ -58,14 +51,7 @@ export function SelectDemoItem(
             <ChevronUp size={20} />
           </YStack>
         </S.ScrollUpButton>
-        <S.Viewport
-          // to do animations:
-          // animation="quick"
-          // animateOnly={['transform', 'opacity']}
-          // enterStyle={{ o: 0, y: -10 }}
-          // exitStyle={{ o: 0, y: 10 }}
-          minWidth={200}
-        >
+        <S.Viewport style={{ maxWidth: '100%' }}>
           <S.Group>
             <S.Label>Number of players</S.Label>
 

@@ -36,6 +36,7 @@ import { buildCameraPath } from './build-camera-path';
 import { Edges } from '@react-three/drei';
 // @ts-ignore
 import v from 'voca';
+import { PortalPath } from '@end/components';
 
 function getPointInBetweenByPerc(
   pointA: THREE.Vector3,
@@ -699,7 +700,7 @@ const TileMesh = React.memo(
       startTransition(() => {
         selectTile(id, camera.position);
       });
-    }, []);
+    }, [selectTile]);
 
     return (
       <mesh onClick={click}>
@@ -787,6 +788,8 @@ export const Hexasphere = React.memo(
     raisedTiles,
     showAttackArrows,
     tileOwners,
+    portalCoords,
+    onTileSelection,
   }: {
     selectedTile?: string;
     proxy?: typeof hexasphereProxy;
@@ -800,7 +803,10 @@ export const Hexasphere = React.memo(
     raisedTiles?: Set<string>;
     showAttackArrows?: boolean;
     tileOwners?: Map<string, number>;
+    portalCoords?: [Coords?, Coords?];
+    onTileSelection?: (tile: Coords) => void;
   }) => {
+
     const proxy = p ?? hexasphereProxy;
     const derived = d ?? derivedDefault;
 
@@ -889,9 +895,21 @@ export const Hexasphere = React.memo(
     const landColor = lc ?? hexasphereProxy.colors.land;
     const waterColor = wc ?? hexasphereProxy.colors.water;
 
-    const st = useCallback((id: string, position: THREE.Vector3) => {
-      return selectTile(id, position, proxy);
-    }, []);
+    const st = useCallback(
+      (id: string, position: THREE.Vector3) => {
+        const tile = proxy.tiles.find((tile) => tile.id === id);
+        if (tile) {
+          const [x, y, z] = tile.id.split(',');
+          onTileSelection?.({
+            x: parseFloat(x),
+            y: parseFloat(y),
+            z: parseFloat(z),
+          });
+        }
+        return selectTile(id, position, proxy);
+      },
+      [onTileSelection, proxy]
+    );
 
     return (
       <>
@@ -917,6 +935,9 @@ export const Hexasphere = React.memo(
               owner={t.owner}
             />
           ))}
+          {portalCoords && (
+            <PortalPath from={portalCoords[0]} to={portalCoords[1]} />
+          )}
           <points>
             <bufferGeometry>
               <bufferAttribute

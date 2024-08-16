@@ -64,9 +64,14 @@ export function PortalPath({
   to,
 }: {
   radius?: number;
-  from: { x: number; y: number; z: number };
-  to: { x: number; y: number; z: number };
+  from?: { x: number; y: number; z: number };
+  to?: { x: number; y: number; z: number };
 }) {
+
+  if(!from || !to) {
+    return null;
+  }
+
   const portal = useMemo(() => {
     const fromV = new THREE.Vector3(from.x, from.y, from.z);
     const toV = new THREE.Vector3(to.x, to.y, to.z);
@@ -190,7 +195,7 @@ export function PortalPath({
       50,
       false
     );
-  }, []);
+  }, [from, to]);
 
   return portal ? (
     <>
