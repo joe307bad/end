@@ -26,7 +26,9 @@ export default function Select({
   return (
     <XStack gap="$4">
       <Label htmlFor="select-demo-2">{label}</Label>
-      <SelectDemoItem {...props} id="select-demo-2" items={items} native />
+      <XStack flex={1} alignItems="center" justifyContent="flex-end">
+        <SelectDemoItem {...props} id="select-demo-2" items={items} native />
+      </XStack>
     </XStack>
   );
 }

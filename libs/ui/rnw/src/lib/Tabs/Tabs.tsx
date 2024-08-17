@@ -10,6 +10,7 @@ import {
   Spacer,
   ListItem,
   ScrollView,
+  XStack,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
 import { tw } from '../components';

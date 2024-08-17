@@ -104,14 +104,13 @@ function AttackDialog() {
     <View
       style={{
         height: 160,
-        padding: 10,
+        paddingLeft: 10
       }}
     >
       <ReactFlow
         style={{
           backgroundColor: 'transparent',
           padding: 10,
-          top: 10,
         }}
         fitViewOptions={{ padding: 10 }}
         viewport={{ zoom: 1, y: 2, x: 2 }}
