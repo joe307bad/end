@@ -11,10 +11,11 @@ import {
   H3,
   Input,
   H4,
+  ListItem,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
 import { tw } from '../components';
-import { CircleDot } from '@tamagui/lucide-icons';
+import { CircleDot, Crosshair, Hexagon } from '@tamagui/lucide-icons';
 import React, {
   Dispatch,
   ElementType,
@@ -34,6 +35,7 @@ type TurnAction = 'portal' | 'deploy' | 'attack' | 'reenforce' | null | string;
 
 export function GameTabs({
   proxy,
+  derived,
   menuOpen,
   selectTile,
   setMenuOpen,
@@ -41,7 +43,9 @@ export function GameTabs({
   portalCoords,
   setPortalCoords,
   setSelectingPortalEntry,
+  selectedTile,
 }: {
+  derived: typeof derivedDefault;
   proxy: typeof hexasphereProxy;
   newPlanet: () => void;
   menuOpen: boolean;
@@ -54,17 +58,24 @@ export function GameTabs({
   setSelectingPortalEntry?: Dispatch<
     SetStateAction<'first' | 'second' | undefined>
   >;
+  selectedTile?: string;
 }) {
   const { bp } = useResponsive(menuOpen, 1297);
   const sv = useRef<ScrollView | any>(null);
 
   useEffect(() => {
+    console.log(selectedTile);
+
+  }, [selectedTile]);
+
+
+  useEffect(() => {
     const unsubscribe = subscribeKey(
-      derivedDefault,
+      derived,
       'selectedTileIndex',
       (selectedTileIndex) => {
         if (sv.current) {
-          sv.current.scrollTo(selectedTileIndex * 67);
+          sv.current.scrollTo(selectedTileIndex * 44);
         }
       }
     );
@@ -125,6 +136,8 @@ export function GameTabs({
               value="tab1"
               style={{
                 justifyContent: 'start',
+                height: '100%',
+                display: 'flex',
               }}
             >
               <View style={{ width: '100%' }}>
@@ -173,27 +186,59 @@ export function GameTabs({
                   </XStack>
                 </RadioGroup>
               </View>
-              <ScrollView
+              <View
                 style={{
-                  display: 'flex',
                   width: '100%',
-                  flex: 1,
-                  padding: 5,
                 }}
               >
-                <TurnActionComponent
-                  setSelectingPortalEntry={setSelectingPortalEntry}
-                  setSelectedTile={setSelectedTile}
-                  attackDialog={attackDialog}
-                  proxy={proxy}
-                  turnAction={turnAction}
-                  portalCoords={portalCoords}
-                  setPortalCoords={setPortalCoords}
-                />
-              </ScrollView>
-            </TabsContent>
-            <TabsContent value="tab2" style={tw`h-full`}>
-              <View style={tw`h-full overflow-scroll w-full`}></View>
+                <ScrollView
+                  style={{
+                    display: 'flex',
+                    width: '100%',
+                    padding: 5,
+                  }}
+                >
+                  <TurnActionComponent
+                    setSelectingPortalEntry={setSelectingPortalEntry}
+                    setSelectedTile={setSelectedTile}
+                    attackDialog={attackDialog}
+                    proxy={proxy}
+                    turnAction={turnAction}
+                    portalCoords={portalCoords}
+                    setPortalCoords={setPortalCoords}
+                  />
+                </ScrollView>
+              </View>
+              <View
+                style={{
+                  flex: 1,
+                  width: '100%',
+                }}
+              >
+                <ScrollView ref={sv}>
+                  {proxy.tiles.map((t) => (
+                    <ListItem
+                      display={t.raised ? 'flex' : 'none'}
+                      padding="0"
+                      paddingLeft="$1"
+                      paddingRight="$1"
+                      hoverTheme
+                      icon={Hexagon}
+                      title={
+                        /* @ts-ignore */
+                        <View style={{ cursor: 'pointer' }}>
+                          {t.name} + {t.id}
+                        </View>
+                      }
+                      pressTheme
+                      onPress={() => {
+                        selectTile(t.id);
+                      }}
+                      iconAfter={t.id === selectedTile ? Crosshair : null}
+                    />
+                  ))}
+                </ScrollView>
+              </View>
             </TabsContent>
           </Tabs>
         </View>

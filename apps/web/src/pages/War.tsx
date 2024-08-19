@@ -104,7 +104,7 @@ function AttackDialog() {
     <View
       style={{
         height: 160,
-        paddingLeft: 10
+        paddingLeft: 10,
       }}
     >
       <ReactFlow
@@ -142,38 +142,13 @@ function WarComponent({ war }: { war: War }) {
   const { services } = useEndApi();
   const { getProxy, getDerived, getColors } = services.hexaService;
 
-  const selectFirstTerritory = useCallback((id: string) => {
-    if (!params.id) {
-      return;
-    }
-
-    return execute(
-      services.conquestService.selectFirstTerritory({ id, warId: params.id })
-    );
-  }, []);
-
   const [raisedTiles, setRaisedTiles] = useState<Set<string>>(new Set());
   const [tileOwners, setTileOwners] = useState<Map<string, number>>(new Map());
 
-  useEffect(() => {
-    const unsubscribe = subscribeKey(
-      getDerived(),
-      'selectedTileIndex',
-      (selectedTileIndex) => {
-        const territory = Object.values(hexasphere.tileLookup)[
-          selectedTileIndex
-        ];
-
-        if (territory?.centerPoint) {
-          const { x, y, z } = territory.centerPoint;
-          const id = `${x},${y},${z}`;
-          selectFirstTerritory(id);
-        }
-      }
-    );
-
-    return () => unsubscribe();
-  }, []);
+  const [portalCoords, setPortalCoords] = useState<[Coords?, Coords?]>();
+  const [selectingPortalEntry, setSelectingPortalEntry] = useState<
+    'first' | 'second' | undefined
+  >('first');
 
   useEffect(() => {
     war.planet.fetch().then((planet: Planet) => {
@@ -248,15 +223,11 @@ function WarComponent({ war }: { war: War }) {
   }, [width]);
 
   const [selectedTile, setSelectedTile] = useState(tile1);
-  const [menuOpen, setMenuOpen] = useState(true);
-  const [portalCoords, setPortalCoords] = useState<[Coords?, Coords?]>();
-  const [selectingPortalEntry, setSelectingPortalEntry] = useState<
-    'first' | 'second' | undefined
-  >('first');
 
   const onTileSelection = useCallback(
     (tile: Coords) => {
       debugger;
+      setSelectedTile(Object.values(tile).join(','));
       if (selectingPortalEntry === 'first') {
         setPortalCoords((prev) => {
           prev = [tile, prev?.[1]];
@@ -272,6 +243,7 @@ function WarComponent({ war }: { war: War }) {
     [selectingPortalEntry, setPortalCoords]
   );
 
+  const [menuOpen, setMenuOpen] = useState(true);
   return (
     <View style={{ overflow: 'hidden', height: '100%', width: '100%' }}>
       <View
@@ -308,12 +280,13 @@ function WarComponent({ war }: { war: War }) {
         <OrbitControls />
       </Canvas>
       <GameTabs
+        derived={getDerived()}
         menuOpen={menuOpen}
         proxy={getProxy()}
+        selectedTile={selectedTile}
         setSelectingPortalEntry={setSelectingPortalEntry}
         selectTile={(tile) => {
           setSelectedTile(tile);
-          selectFirstTerritory(tile);
         }}
         setMenuOpen={setMenuOpen}
         newPlanet={() => {}}

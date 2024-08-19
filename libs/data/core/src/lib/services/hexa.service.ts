@@ -61,6 +61,7 @@ const derived = derive({
   },
   selectedTileIndex: (get) => {
     const selectedId = get(hexasphereProxy.selection).selectedId;
+    console.log({findIndex:selectedId})
     return hexasphereProxy.tiles
       .filter((t) => t.raised)
       .findIndex((t) => t.id === selectedId);

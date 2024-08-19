@@ -4,7 +4,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
-  useRef
+  useRef,
 } from 'react';
 import '@react-three/fiber';
 import { faker } from '@faker-js/faker';
@@ -695,12 +695,15 @@ const TileMesh = React.memo(
 
     const { camera } = useThree();
 
-    const click = useCallback((e: ThreeEvent<MouseEvent>) => {
-      e.stopPropagation();
-      startTransition(() => {
-        selectTile(id, camera.position);
-      });
-    }, [selectTile]);
+    const click = useCallback(
+      (e: ThreeEvent<MouseEvent>) => {
+        e.stopPropagation();
+        startTransition(() => {
+          selectTile(id, camera.position);
+        });
+      },
+      [selectTile]
+    );
 
     return (
       <mesh onClick={click}>
@@ -742,13 +745,13 @@ export function selectTile(
   proxy: typeof hexasphereProxy
 ) {
   const currentlySelected = proxy.tiles.find((tile) => tile.selected);
-
   if (currentlySelected) {
     currentlySelected.selected = false;
   }
 
   const newSelected = proxy.tiles.find((tile) => tile.id === id);
 
+  console.log({ newSelected });
   if (newSelected) {
     newSelected.selected = true;
     proxy.selection.selectedId = newSelected.id;
@@ -790,7 +793,7 @@ export const Hexasphere = React.memo(
     tileOwners,
     portalCoords,
     onTileSelection,
-    portalPath: PortalPath
+    portalPath: PortalPath,
   }: {
     selectedTile?: string;
     proxy?: typeof hexasphereProxy;
@@ -806,9 +809,8 @@ export const Hexasphere = React.memo(
     tileOwners?: Map<string, number>;
     portalCoords?: [Coords?, Coords?];
     onTileSelection?: (tile: Coords) => void;
-    portalPath?: ElementType
+    portalPath?: ElementType;
   }) => {
-
     const proxy = p ?? hexasphereProxy;
     const derived = d ?? derivedDefault;
 
