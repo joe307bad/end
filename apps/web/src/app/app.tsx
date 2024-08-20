@@ -35,7 +35,7 @@ function WithNavigate({
   return children(navigate);
 }
 
-function Page({ children }: { children: ReactNode }) {
+function Page({ children, title }: { children: ReactNode; title?: string }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { deleteToken } = useAuth();
@@ -50,13 +50,14 @@ function Page({ children }: { children: ReactNode }) {
       navigate={navigate}
       currentRoute={pathname}
       logOut={logOut}
+      title={title}
     >
       {children}
     </ContainerWithNav>
   );
 }
 
-const PrivateRoutes = () => {
+const PrivateRoutes = ({ title }: { title?: string }) => {
   const { getToken } = useAuth();
   const [token, setToken] = useState<string | null | 'LOADING'>('LOADING');
 
@@ -71,7 +72,7 @@ const PrivateRoutes = () => {
   }
 
   return token ? (
-    <Page>
+    <Page title={title}>
       <Outlet />
     </Page>
   ) : (
@@ -81,14 +82,16 @@ const PrivateRoutes = () => {
 
 function AppRoutes() {
   const { services } = useEndApi();
+  const [title, setTitle] = useState<string>();
+
   return (
     <DatabaseProvider database={services.endApi.database}>
       <Router>
         <Routes>
-          <Route element={<PrivateRoutes />}>
+          <Route element={<PrivateRoutes title={title} />}>
             <Route path="/home" element={<Home />} />
             <Route path="/conquest" element={<Conquest />} />
-            <Route path="/war/:id" element={<War />} />
+            <Route path="/war/:id" element={<War setTitle={setTitle} />} />
           </Route>
           <Route
             path="/"
@@ -97,7 +100,10 @@ function AppRoutes() {
                 <WithNavigate>
                   {(n) => (
                     <>
-                      <Landing services={services} goToHome={() => n('/home')} />
+                      <Landing
+                        services={services}
+                        goToHome={() => n('/home')}
+                      />
                       <Link to={'#'}>
                         <Badge title="Download the Android app" />
                       </Link>
@@ -116,7 +122,10 @@ function AppRoutes() {
 export function App() {
   return (
     <Providers>
-      <EndApiProvider baseUrl={process.env.API_BASE_URL} webSocketUrl={process.env.WEBSOCKET_URL}>
+      <EndApiProvider
+        baseUrl={process.env.API_BASE_URL}
+        webSocketUrl={process.env.WEBSOCKET_URL}
+      >
         <AppRoutes />
       </EndApiProvider>
     </Providers>

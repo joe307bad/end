@@ -22,6 +22,7 @@ import React, {
   SetStateAction,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -64,12 +65,6 @@ export function GameTabs({
   const sv = useRef<ScrollView | any>(null);
 
   useEffect(() => {
-    console.log(selectedTile);
-
-  }, [selectedTile]);
-
-
-  useEffect(() => {
     const unsubscribe = subscribeKey(
       derived,
       'selectedTileIndex',
@@ -89,11 +84,13 @@ export function GameTabs({
     selectTile(tile);
   }, []);
 
+  const [sort, setSort] = useState('most-troops');
+
   return (
     <Section
       style={bp([
         'z-10 max-w-full',
-        `relative w-full ${menuOpen ? 'h-[50%]' : ''}`,
+        `relative w-full ${menuOpen ? 'h-[75%]' : ''}`,
         '',
         'absolute w-[500px] pb-5 right-[20px] w-[500px] h-full',
       ])}
@@ -215,28 +212,61 @@ export function GameTabs({
                   width: '100%',
                 }}
               >
+                <YStack>
+                  <View>
+                    <H4 paddingLeft="$0.75">Territories</H4>
+                  </View>
+                  <XStack>
+                    <XStack
+                      flex={1}
+                      alignItems="center"
+                      justifyContent="flex-end"
+                    >
+                      <XStack minWidth="$1" paddingHorizontal="$0.75">
+                        <Label htmlFor="first">Filter</Label>
+                      </XStack>
+                      <SelectDemoItem
+                        id="sort-1"
+                        items={[
+                          { value: 'all', key: 'All territories' },
+                          { value: 'mine', key: 'My territories' },
+                          { value: 'opponents', key: 'Opponents territories' },
+                          {
+                            value: 'bordering',
+                            key: 'Bordering my territories',
+                          },
+                        ]}
+                        native
+                      />
+                    </XStack>
+                    <XStack
+                      flex={1}
+                      alignItems="center"
+                      justifyContent="flex-end"
+                    >
+                      <XStack minWidth="$1" paddingHorizontal="$0.75">
+                        <Label htmlFor="first">Sort</Label>
+                      </XStack>
+                      <SelectDemoItem
+                        onValueChange={setSort}
+                        id="sort-2"
+                        items={[
+                          { value: 'most-troops', key: 'Most troops' },
+                          { value: 'least-troops', key: 'Least troops' },
+                          { value: 'alphabetical', key: 'Alphabetical' },
+                        ]}
+                        native
+                      />
+                    </XStack>
+                  </XStack>
+                </YStack>
                 <ScrollView ref={sv}>
-                  {proxy.tiles.map((t) => (
-                    <ListItem
-                      display={t.raised ? 'flex' : 'none'}
-                      padding="0"
-                      paddingLeft="$1"
-                      paddingRight="$1"
-                      hoverTheme
-                      icon={Hexagon}
-                      title={
-                        /* @ts-ignore */
-                        <View style={{ cursor: 'pointer' }}>
-                          {t.name} + {t.id}
-                        </View>
-                      }
-                      pressTheme
-                      onPress={() => {
-                        selectTile(t.id);
-                      }}
-                      iconAfter={t.id === selectedTile ? Crosshair : null}
-                    />
-                  ))}
+                  <TilesList
+                    proxy={proxy}
+                    selectedTile={selectedTile}
+                    selectTile={selectTile}
+                    sort={sort}
+                  />
                 </ScrollView>
               </View>
             </TabsContent>
@@ -254,6 +284,66 @@ export function GameTabs({
         </Pressable>
       </View>
     </Section>
+  );
+}
+
+function TilesList({
+  proxy,
+  selectedTile,
+  selectTile,
+  sort,
+}: {
+  proxy: typeof hexasphereProxy;
+  selectedTile?: string;
+  selectTile: (id: string) => void;
+  sort: 'most-troops' | 'least-troops' | 'alphabetical' | string;
+}) {
+  const tiles = useMemo(() => {
+    return [...proxy.tiles].sort((a, b) => {
+      switch (sort) {
+        case 'alphabetical':
+          return a.name.localeCompare(b.name);
+        case 'least-troops':
+          return a.troopCount - b.troopCount;
+        case 'most-troops':
+          return b.troopCount - a.troopCount;
+      }
+
+      return 0;
+    });
+  }, [sort]);
+
+  return (
+    <>
+      {tiles.map((t) => (
+        <ListItem
+          display={t.raised ? 'flex' : 'none'}
+          padding="0"
+          paddingLeft="$1"
+          paddingRight="$1"
+          hoverTheme
+          icon={Hexagon}
+          title={
+            <View
+              style={{
+                /* @ts-ignore */
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'row',
+              }}
+            >
+              <View style={{ flex: 1 }}>{t.name}</View>
+              <View>{t.troopCount}</View>
+            </View>
+          }
+          pressTheme
+          onPress={() => {
+            selectTile(t.id);
+          }}
+          iconAfter={t.id === selectedTile ? Crosshair : null}
+        />
+      ))}
+    </>
   );
 }
 

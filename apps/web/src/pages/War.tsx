@@ -9,7 +9,7 @@ import React, {
 import { useParams } from 'react-router-dom';
 import { execute } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
-import { Badge, GameTabs, PortalPath } from '@end/components';
+import { Badge, GameTabs, PortalPath, useResponsive } from '@end/components';
 import { Canvas } from '@react-three/fiber';
 import { Coords, hexasphere, Hexasphere } from '@end/hexasphere';
 import { OrbitControls } from '@react-three/drei';
@@ -24,6 +24,7 @@ import { Database } from '@nozbe/watermelondb';
 import { Observable } from 'rxjs';
 import { Planet, War } from '@end/wm/core';
 import { MarkerType, Position, ReactFlow } from '@xyflow/react';
+import { faker } from '@faker-js/faker';
 
 import '@xyflow/react/dist/style.css';
 import { subscribeKey } from 'valtio/utils';
@@ -136,7 +137,13 @@ function AttackDialog() {
 
 const tile1 = '0,50,0';
 
-function WarComponent({ war }: { war: War }) {
+function WarComponent({
+  war,
+  setTitle: st,
+}: {
+  war: War;
+  setTitle?: (title?: string) => void;
+}) {
   const [title, setTitle] = useState('');
   let params = useParams();
   const { services } = useEndApi();
@@ -152,7 +159,9 @@ function WarComponent({ war }: { war: War }) {
 
   useEffect(() => {
     war.planet.fetch().then((planet: Planet) => {
-      setTitle(`The War of ${planet.name}`);
+      const t = `The War of ${planet.name}`;
+      setTitle(t);
+      st?.(t);
       const raisedTiles = new Set(planet.raised.split('|'));
 
       getProxy().colors.land = planet.landColor;
@@ -194,6 +203,10 @@ function WarComponent({ war }: { war: War }) {
         } catch (e) {}
       });
     }
+
+    return () => {
+      st?.('');
+    };
   }, []);
   const cam = useMemo(() => {
     const cam = new THREE.PerspectiveCamera(45);
@@ -226,7 +239,6 @@ function WarComponent({ war }: { war: War }) {
 
   const onTileSelection = useCallback(
     (tile: Coords) => {
-      debugger;
       setSelectedTile(Object.values(tile).join(','));
       if (selectingPortalEntry === 'first') {
         setPortalCoords((prev) => {
@@ -244,17 +256,12 @@ function WarComponent({ war }: { war: War }) {
   );
 
   const [menuOpen, setMenuOpen] = useState(true);
+  const { bp } = useResponsive(menuOpen, 1297);
   return (
     <View style={{ overflow: 'hidden', height: '100%', width: '100%' }}>
-      <View
-        style={{
-          paddingLeft: 10,
-          display: 'flex',
-          alignItems: 'flex-start',
-        }}
-      >
+      <View style={bp(['pl-10 flex items-start', 'hidden'])}>
         <H4>{title}</H4>
-        <Badge title={params.id} />
+        {/*<Badge title={params.id} />*/}
       </View>
       <Canvas
         style={{
@@ -286,7 +293,8 @@ function WarComponent({ war }: { war: War }) {
         selectedTile={selectedTile}
         setSelectingPortalEntry={setSelectingPortalEntry}
         selectTile={(tile) => {
-          setSelectedTile(tile);
+          const [x, y, z] = tile.split(',').map((x) => parseFloat(x));
+          onTileSelection({ x, y, z });
         }}
         setMenuOpen={setMenuOpen}
         newPlanet={() => {}}
@@ -315,8 +323,12 @@ const EnhancedWarComponent = compose(
   ) as (arg0: unknown) => ComponentType
 )(WarComponent);
 
-export default function WarRouteComponent() {
+export default function WarRouteComponent({
+  setTitle,
+}: {
+  setTitle?: (title?: string) => void;
+}) {
   const params = useParams();
 
-  return <EnhancedWarComponent warId={params.id} />;
+  return <EnhancedWarComponent warId={params.id} setTitle={setTitle} />;
 }

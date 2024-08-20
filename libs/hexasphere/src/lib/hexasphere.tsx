@@ -751,7 +751,6 @@ export function selectTile(
 
   const newSelected = proxy.tiles.find((tile) => tile.id === id);
 
-  console.log({ newSelected });
   if (newSelected) {
     newSelected.selected = true;
     proxy.selection.selectedId = newSelected.id;

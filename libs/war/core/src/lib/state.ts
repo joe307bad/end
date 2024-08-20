@@ -45,7 +45,10 @@ export const warMachine = (
           if (event.type !== 'generate-new-war') return context.tiles;
 
           Object.keys(event.tiles).forEach((tileId) => {
-            event.tiles[tileId].troopCount = 5;
+            event.tiles[tileId].troopCount = faker.number.int({
+              min: 5,
+              max: 99,
+            });
             event.tiles[tileId].owner = faker.datatype.boolean(0.5) ? 1 : 2;
           });
 
