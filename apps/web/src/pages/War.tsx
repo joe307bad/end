@@ -9,9 +9,9 @@ import React, {
 import { useParams } from 'react-router-dom';
 import { execute } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
-import { Badge, GameTabs, PortalPath, useResponsive } from '@end/components';
+import { GameTabs, PortalPath, useResponsive } from '@end/components';
 import { Canvas } from '@react-three/fiber';
-import { Coords, hexasphere, Hexasphere } from '@end/hexasphere';
+import { Coords, Hexasphere } from '@end/hexasphere';
 import { OrbitControls } from '@react-three/drei';
 import { useWindowDimensions, View } from 'react-native';
 import * as THREE from 'three';
@@ -24,10 +24,8 @@ import { Database } from '@nozbe/watermelondb';
 import { Observable } from 'rxjs';
 import { Planet, War } from '@end/wm/core';
 import { MarkerType, Position, ReactFlow } from '@xyflow/react';
-import { faker } from '@faker-js/faker';
 
 import '@xyflow/react/dist/style.css';
-import { subscribeKey } from 'valtio/utils';
 
 const initialNodes = [
   {

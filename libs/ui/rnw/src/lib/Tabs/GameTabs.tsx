@@ -27,10 +27,11 @@ import React, {
   useState,
 } from 'react';
 import { useResponsive } from '../Layout';
-import { Coords, derivedDefault, hexasphereProxy } from '@end/hexasphere';
-import Select, { SelectDemoItem } from '../Select/Select';
+import { Coords } from '@end/hexasphere';
+import { SelectDemoItem } from '../Select/Select';
 import { subscribeKey } from 'valtio/utils';
 import { Pressable, View } from 'react-native';
+import { warProxy, warDerived } from '@end/data/core';
 
 type TurnAction = 'portal' | 'deploy' | 'attack' | 'reenforce' | null | string;
 
@@ -46,8 +47,8 @@ export function GameTabs({
   setSelectingPortalEntry,
   selectedTile,
 }: {
-  derived: typeof derivedDefault;
-  proxy: typeof hexasphereProxy;
+  derived: typeof warDerived;
+  proxy: typeof warProxy;
   newPlanet: () => void;
   menuOpen: boolean;
   setMenuOpen: Dispatch<SetStateAction<boolean>>;
@@ -84,7 +85,18 @@ export function GameTabs({
     selectTile(tile);
   }, []);
 
-  const [sort, setSort] = useState('most-troops');
+  const [sort, setSort] = useState<
+    'most-troops' | 'least-troops' | 'alphabetical' | string
+  >('alphabetical');
+
+  const [filter, setFilter] = useState<
+    'all' | 'mine' | 'opponents' | 'bordering' | string
+  >('all');
+
+  useEffect(() => {
+    proxy.sort = sort;
+    proxy.filter = filter;
+  }, [sort, filter]);
 
   return (
     <Section
@@ -227,6 +239,7 @@ export function GameTabs({
                       </XStack>
                       <SelectDemoItem
                         id="sort-1"
+                        onValueChange={setFilter}
                         items={[
                           { value: 'all', key: 'All territories' },
                           { value: 'mine', key: 'My territories' },
@@ -266,6 +279,7 @@ export function GameTabs({
                     selectedTile={selectedTile}
                     selectTile={selectTile}
                     sort={sort}
+                    filter={filter}
                   />
                 </ScrollView>
               </View>
@@ -292,26 +306,45 @@ function TilesList({
   selectedTile,
   selectTile,
   sort,
+  filter,
 }: {
-  proxy: typeof hexasphereProxy;
+  proxy: typeof warProxy;
   selectedTile?: string;
   selectTile: (id: string) => void;
   sort: 'most-troops' | 'least-troops' | 'alphabetical' | string;
+  filter: 'all' | 'mine' | 'opponents' | 'bordering' | string;
 }) {
   const tiles = useMemo(() => {
-    return [...proxy.tiles].sort((a, b) => {
-      switch (sort) {
-        case 'alphabetical':
-          return a.name.localeCompare(b.name);
-        case 'least-troops':
-          return a.troopCount - b.troopCount;
-        case 'most-troops':
-          return b.troopCount - a.troopCount;
-      }
+    console.log({filter1: filter})
+    return [...proxy.tiles]
+      .sort((a, b) => {
+        switch (sort) {
+          case 'alphabetical':
+            return a.name.localeCompare(b.name);
+          case 'least-troops':
+            return a.troopCount - b.troopCount;
+          case 'most-troops':
+            return b.troopCount - a.troopCount;
+        }
 
-      return 0;
-    });
-  }, [sort]);
+        return 0;
+      })
+      .filter((t) => {
+        if (!t.raised) {
+          return false;
+        }
+
+        switch (filter) {
+          case 'all':
+            console.log('all')
+            return true;
+          case 'mine':
+            return t.owner === 1;
+        }
+
+        return true;
+      });
+  }, [sort, filter]);
 
   return (
     <>
@@ -357,7 +390,7 @@ function TurnActionComponent({
   portalCoords,
 }: {
   turnAction: TurnAction;
-  proxy: typeof hexasphereProxy;
+  proxy: typeof warProxy;
   attackDialog?: ElementType;
   setSelectedTile: (tile: string) => void;
   setSelectingPortalEntry?: Dispatch<
