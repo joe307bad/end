@@ -8,7 +8,6 @@ import {
   RadioGroup,
   XStack,
   YStack,
-  H3,
   Input,
   H4,
   ListItem,
@@ -28,10 +27,11 @@ import React, {
 } from 'react';
 import { useResponsive } from '../Layout';
 import { Coords } from '@end/hexasphere';
-import { SelectDemoItem } from '../Select/Select';
+import { SelectDemoItem } from '../Select';
 import { subscribeKey } from 'valtio/utils';
 import { Pressable, View } from 'react-native';
 import { warProxy, warDerived } from '@end/data/core';
+import { useEndApi } from '@end/data/web';
 
 type TurnAction = 'portal' | 'deploy' | 'attack' | 'reenforce' | null | string;
 
@@ -70,7 +70,7 @@ export function GameTabs({
       derived,
       'selectedTileIndex',
       (selectedTileIndex) => {
-        if (sv.current) {
+        if (sv.current && selectedTileIndex > -1) {
           sv.current.scrollTo(selectedTileIndex * 44);
         }
       }
@@ -243,11 +243,7 @@ export function GameTabs({
                         items={[
                           { value: 'all', key: 'All territories' },
                           { value: 'mine', key: 'My territories' },
-                          { value: 'opponents', key: 'Opponents territories' },
-                          {
-                            value: 'bordering',
-                            key: 'Bordering my territories',
-                          },
+                          { value: 'opponents', key: 'Opponents territories' }
                         ]}
                         native
                       />
@@ -264,9 +260,9 @@ export function GameTabs({
                         onValueChange={setSort}
                         id="sort-2"
                         items={[
+                          { value: 'alphabetical', key: 'Alphabetical' },
                           { value: 'most-troops', key: 'Most troops' },
                           { value: 'least-troops', key: 'Least troops' },
-                          { value: 'alphabetical', key: 'Alphabetical' },
                         ]}
                         native
                       />
@@ -302,7 +298,6 @@ export function GameTabs({
 }
 
 function TilesList({
-  proxy,
   selectedTile,
   selectTile,
   sort,
@@ -314,36 +309,9 @@ function TilesList({
   sort: 'most-troops' | 'least-troops' | 'alphabetical' | string;
   filter: 'all' | 'mine' | 'opponents' | 'bordering' | string;
 }) {
+  const { services } = useEndApi();
   const tiles = useMemo(() => {
-    console.log({filter1: filter})
-    return [...proxy.tiles]
-      .sort((a, b) => {
-        switch (sort) {
-          case 'alphabetical':
-            return a.name.localeCompare(b.name);
-          case 'least-troops':
-            return a.troopCount - b.troopCount;
-          case 'most-troops':
-            return b.troopCount - a.troopCount;
-        }
-
-        return 0;
-      })
-      .filter((t) => {
-        if (!t.raised) {
-          return false;
-        }
-
-        switch (filter) {
-          case 'all':
-            console.log('all')
-            return true;
-          case 'mine':
-            return t.owner === 1;
-        }
-
-        return true;
-      });
+    return services.hexaService.sortedTilesList(sort, filter);
   }, [sort, filter]);
 
   return (
@@ -384,7 +352,6 @@ function TurnActionComponent({
   turnAction,
   proxy,
   attackDialog: AttackDialog,
-  setSelectedTile,
   setSelectingPortalEntry,
   setPortalCoords,
   portalCoords,

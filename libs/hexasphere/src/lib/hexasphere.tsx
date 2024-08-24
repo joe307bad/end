@@ -260,6 +260,7 @@ function getBoundaries(t: Tile, raised: boolean) {
 }
 
 export const hexasphereProxy = proxy<{
+  name: string;
   selection: {
     selectedId: string | null;
     cameraPosition: THREE.Vector3 | null;
@@ -278,6 +279,7 @@ export const hexasphereProxy = proxy<{
     owner: number;
   }[];
 }>({
+  name: getRandomName(),
   selection: {
     selectedId: null,
     cameraPosition: null,

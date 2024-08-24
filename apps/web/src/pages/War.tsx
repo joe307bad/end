@@ -133,8 +133,6 @@ function AttackDialog() {
   );
 }
 
-const tile1 = '0,50,0';
-
 function WarComponent({
   war,
   setTitle: st,
@@ -155,20 +153,33 @@ function WarComponent({
     'first' | 'second' | undefined
   >('first');
 
+  const [loaded, setLoaded] = useState(false);
+
   useEffect(() => {
     war.planet.fetch().then((planet: Planet) => {
       const t = `The War of ${planet.name}`;
       setTitle(t);
       st?.(t);
-      const raisedTiles = new Set(planet.raised.split('|'));
+      const raisedTiles = planet.raised
+        .split('|')
+        .reduce((acc: Record<string, string>, curr) => {
+          const [id, name] = curr.split(":");
+          acc[id] = name;
+          return acc;
+        }, {});
 
       getProxy().colors.land = planet.landColor;
       getProxy().colors.water = planet.waterColor;
+      console.log(planet.raised)
 
       getProxy().tiles.forEach((tile) => {
-        tile.raised = raisedTiles.has(tile.id);
+        if(raisedTiles[tile.id]) {
+          tile.raised = true;
+          tile.name = raisedTiles[tile.id];
+        }
       });
-      setRaisedTiles(raisedTiles);
+      setRaisedTiles(new Set(Object.keys(raisedTiles)));
+      setLoaded(true);
     });
     if (params.id) {
       execute(services.conquestService.getWar(params.id))
@@ -186,19 +197,19 @@ function WarComponent({
           setTileOwners(owners);
         });
       services.conquestService.connectToWarLog(params.id).subscribe((r) => {
-        try {
-          if (r) {
-            const s = JSON.parse(
-              JSON.parse(r).updateDescription.updatedFields.state
-            );
-
-            const tile = getProxy().tiles.find((tile) => tile.id === tile1);
-
-            if (tile) {
-              tile.troopCount = s.context.tiles[tile1].troopCount;
-            }
-          }
-        } catch (e) {}
+        // try {
+        //   if (r) {
+        //     const s = JSON.parse(
+        //       JSON.parse(r).updateDescription.updatedFields.state
+        //     );
+        //
+        //     const tile = getProxy().tiles.find((tile) => tile.id === tile1);
+        //
+        //     if (tile) {
+        //       tile.troopCount = s.context.tiles[tile1].troopCount;
+        //     }
+        //   }
+        // } catch (e) {}
       });
     }
 
@@ -233,7 +244,7 @@ function WarComponent({
     ];
   }, [width]);
 
-  const [selectedTile, setSelectedTile] = useState(tile1);
+  const [selectedTile, setSelectedTile] = useState<string>();
 
   const onTileSelection = useCallback(
     (tile: Coords) => {
@@ -284,23 +295,25 @@ function WarComponent({
         />
         <OrbitControls />
       </Canvas>
-      <GameTabs
-        derived={getDerived()}
-        menuOpen={menuOpen}
-        proxy={getProxy()}
-        selectedTile={selectedTile}
-        setSelectingPortalEntry={setSelectingPortalEntry}
-        selectTile={(tile) => {
-          const [x, y, z] = tile.split(',').map((x) => parseFloat(x));
-          onTileSelection({ x, y, z });
-        }}
-        setMenuOpen={setMenuOpen}
-        newPlanet={() => {}}
-        startGame={() => {}}
-        attackDialog={AttackDialog}
-        portalCoords={portalCoords}
-        setPortalCoords={setPortalCoords}
-      />
+      {loaded && (
+        <GameTabs
+          derived={getDerived()}
+          menuOpen={menuOpen}
+          proxy={getProxy()}
+          selectedTile={selectedTile}
+          setSelectingPortalEntry={setSelectingPortalEntry}
+          selectTile={(tile) => {
+            const [x, y, z] = tile.split(',').map((x) => parseFloat(x));
+            onTileSelection({ x, y, z });
+          }}
+          setMenuOpen={setMenuOpen}
+          newPlanet={() => {}}
+          startGame={() => {}}
+          attackDialog={AttackDialog}
+          portalCoords={portalCoords}
+          setPortalCoords={setPortalCoords}
+        />
+      )}
     </View>
   );
 }

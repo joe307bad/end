@@ -7,6 +7,7 @@ export interface Tile {
   id: string;
   troopCount: number;
   owner: number;
+  name: string
 }
 
 interface Context {

@@ -108,12 +108,14 @@ const ConquestLive = Layer.effect(
                 tiles: planet.raised
                   .split('|')
                   .reduce<Record<string, Tile>>((acc, cur) => {
+                    const [id, name] = cur.split(":");
                     acc[cur] = {
                       id: '',
                       owner: 0,
                       troopCount: 0,
                       habitable: true,
-                      neighborIds: hexasphere.tileLookup[cur].neighborIds,
+                      name,
+                      neighborIds: hexasphere.tileLookup[id].neighborIds,
                     };
 
                     return acc;

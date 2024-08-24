@@ -16,6 +16,7 @@ type Tile = {
 };
 
 export const warProxy = proxy<{
+  name: string,
   selection: {
     selectedId: string | null;
     cameraPosition: THREE.Vector3 | null;
@@ -28,6 +29,7 @@ export const warProxy = proxy<{
   sort: 'most-troops' | 'least-troops' | 'alphabetical' | string;
   filter: 'all' | 'mine' | 'opponents' | 'bordering' | string;
 }>({
+  name: '',
   sort: 'alphabetical',
   filter: 'all',
   selection: {
@@ -52,6 +54,41 @@ export const warProxy = proxy<{
   }),
 });
 
+function sortedTilesList(
+  sort: 'most-troops' | 'least-troops' | 'alphabetical' | string,
+  filter: 'all' | 'mine' | 'opponents' | 'bordering' | string
+) {
+  return [...warProxy.tiles]
+    .sort((a, b) => {
+      switch (sort) {
+        case 'alphabetical':
+          return a.name.localeCompare(b.name);
+        case 'least-troops':
+          return a.troopCount - b.troopCount;
+        case 'most-troops':
+          return b.troopCount - a.troopCount;
+      }
+
+      return 0;
+    })
+    .filter((t) => {
+      if (!t.raised) {
+        return false;
+      }
+
+      switch (filter) {
+        case 'all':
+          return true;
+        case 'mine':
+          return t.owner === 1;
+        case 'opponents':
+          return t.owner === 2;
+      }
+
+      return true;
+    });
+}
+
 export const warDerived = derive({
   cameraPath: (get) => {
     const selectedId = get(warProxy.selection).selectedId;
@@ -67,35 +104,7 @@ export const warDerived = derive({
     const selectedId = get(warProxy.selection).selectedId;
     const sort = get(warProxy).sort;
     const filter = get(warProxy).filter;
-    console.log({filter})
-    return [...warProxy.tiles]
-      .sort((a, b) => {
-        switch (sort) {
-          case 'alphabetical':
-            return a.name.localeCompare(b.name);
-          case 'least-troops':
-            return a.troopCount - b.troopCount;
-          case 'most-troops':
-            return b.troopCount - a.troopCount;
-        }
-
-        return 0;
-      })
-      .filter((t) => {
-        if (!t.raised) {
-          return false;
-        }
-
-        switch (filter) {
-          case 'all':
-            return true;
-          case 'mine':
-            return t.owner === 1;
-        }
-
-        return true;
-      })
-      .findIndex((t) => t.id === selectedId);
+    return sortedTilesList(sort, filter).findIndex((t) => t.id === selectedId);
   },
 });
 
@@ -107,6 +116,7 @@ interface Hexa {
   ) => Tile | undefined;
   readonly getDerived: () => typeof warDerived;
   readonly getColors: () => { water: string; land: string };
+  readonly sortedTilesList: typeof sortedTilesList;
 }
 
 const HexaService = Context.GenericTag<Hexa>('hexa-service');
@@ -158,6 +168,7 @@ const HexaLive = Layer.effect(
         return currentlySelected;
       },
       getDerived: () => warDerived,
+      sortedTilesList,
       getColors: () => {
         return {
           land: warProxy.colors.land,
