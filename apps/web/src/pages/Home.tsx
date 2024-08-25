@@ -50,10 +50,10 @@ export default function Home() {
   const startGame = useCallback(async function () {
     const raised = hexasphereProxy.tiles
       .filter((tile) => tile.raised)
-      .map((tile) => {
-        return `${tile.id}:${tile.name}`;
-      })
-      .join('|');
+      .reduce((acc: Record<string, string>, curr) => {
+        acc[curr.id] = curr.name;
+        return acc;
+      }, {});
 
     await execute(
       pipe(
@@ -61,7 +61,7 @@ export default function Home() {
           {
             landColor: hexasphereProxy.colors.land,
             waterColor: hexasphereProxy.colors.water,
-            raised,
+            raised: JSON.stringify(raised),
             name: hexasphereProxy.name,
           },
           5

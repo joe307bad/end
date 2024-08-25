@@ -32,6 +32,7 @@ import { subscribeKey } from 'valtio/utils';
 import { Pressable, View } from 'react-native';
 import { warProxy, warDerived } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
+import { useSnapshot } from 'valtio';
 
 type TurnAction = 'portal' | 'deploy' | 'attack' | 'reenforce' | null | string;
 
@@ -64,14 +65,19 @@ export function GameTabs({
 }) {
   const { bp } = useResponsive(menuOpen, 1297);
   const sv = useRef<ScrollView | any>(null);
+  const disableListMovement = useRef(false);
 
   useEffect(() => {
     const unsubscribe = subscribeKey(
       derived,
       'selectedTileIndex',
       (selectedTileIndex) => {
-        if (sv.current && selectedTileIndex > -1) {
+        if (sv.current && selectedTileIndex > -1 && !disableListMovement.current) {
           sv.current.scrollTo(selectedTileIndex * 44);
+        }
+
+        if(disableListMovement.current) {
+          disableListMovement.current = false;
         }
       }
     );
@@ -82,6 +88,7 @@ export function GameTabs({
   const [turnAction, setTurnAction] = useState<TurnAction>('deploy');
 
   const setSelectedTile = useCallback((tile: string) => {
+    disableListMovement.current = true;
     selectTile(tile);
   }, []);
 
@@ -273,7 +280,7 @@ export function GameTabs({
                   <TilesList
                     proxy={proxy}
                     selectedTile={selectedTile}
-                    selectTile={selectTile}
+                    selectTile={setSelectedTile}
                     sort={sort}
                     filter={filter}
                   />
@@ -366,6 +373,8 @@ function TurnActionComponent({
   portalCoords?: [Coords?, Coords?];
   setPortalCoords?: Dispatch<SetStateAction<[Coords?, Coords?] | undefined>>;
 }) {
+  const tiles = useSnapshot(warDerived.raisedTiles)
+
   switch (turnAction) {
     case 'portal':
       return (
@@ -399,7 +408,7 @@ function TurnActionComponent({
                     });
                   }}
                   id="first-select"
-                  items={proxy.tiles.map((t) => ({
+                  items={tiles.map((t) => ({
                     key: t.name,
                     value: t.id,
                   }))}
@@ -434,7 +443,7 @@ function TurnActionComponent({
                       return prev;
                     });
                   }}
-                  items={proxy.tiles.map((t) => ({
+                  items={tiles.map((t) => ({
                     key: t.name,
                     value: t.id,
                   }))}

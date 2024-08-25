@@ -37,6 +37,7 @@ import { buildCameraPath } from './build-camera-path';
 import { Edges } from '@react-three/drei';
 // @ts-ignore
 import v from 'voca';
+import { warDerived } from '@end/data/core';
 
 function getPointInBetweenByPerc(
   pointA: THREE.Vector3,
@@ -530,16 +531,20 @@ const AttackArrow = React.memo(
     centerPoint,
     neighbor,
     raisedTiles,
-    tileOwners,
     owner,
+    derived,
   }: {
     neighbor: Tile;
     showAttackArrows?: boolean;
     centerPoint: Coords;
     raisedTiles?: Set<string>;
-    tileOwners?: Map<string, number>;
     owner?: number;
+    derived?: typeof warDerived;
   }) => {
+    if (!derived) {
+      return null;
+    }
+
     const coneInner: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
     const coneRef = useRef<Group<Object3DEventMap>>(null);
 
@@ -599,21 +604,19 @@ const AttackArrow = React.memo(
       }
     });
 
+    const tileOwners = useSnapshot(derived.selectedNeighborsOwners);
+
     const visible = useMemo(() => {
       if (!showAttackArrows) {
         return false;
       }
 
-      const isNotOwner = (() => {
-        if (!tileOwners?.get(id)) {
-          return false;
-        }
+      if (!tileOwners?.[id]) {
+        return false;
+      }
 
-        return tileOwners.get(id) !== owner;
-      })();
-
-      return raisedTiles?.has(id) && raisedTiles?.has(id1) && isNotOwner;
-    }, [tileOwners, raisedTiles, id, id1, showAttackArrows]);
+      return tileOwners[id] !== owner;
+    }, [tileOwners, id, id1, showAttackArrows]);
 
     return (
       <group visible={visible} ref={coneRef}>
@@ -629,27 +632,29 @@ const AttackArrow = React.memo(
 
 const AttackArrows = React.memo(
   ({
-    neighbors,
+    id,
     showAttackArrows,
     centerPoint,
     raisedTiles,
-    tileOwners,
     owner,
+    derived,
   }: {
+    id: string;
     neighbors: Tile[];
     showAttackArrows?: boolean;
     centerPoint: Coords;
     raisedTiles?: Set<string>;
-    tileOwners?: Map<string, number>;
     owner?: number;
+    derived?: typeof warDerived;
   }) => {
+    const neighbors = hexasphere.tileLookup[id].neighbors;
     return neighbors.map((neighbor) => (
       <AttackArrow
+        derived={derived}
         neighbor={neighbor}
         centerPoint={centerPoint}
         showAttackArrows={showAttackArrows}
         raisedTiles={raisedTiles}
-        tileOwners={tileOwners}
         owner={owner}
       />
     ));
@@ -670,9 +675,10 @@ const TileMesh = React.memo(
     ringColor,
     raisedTiles,
     showAttackArrows,
-    tileOwners,
     owner,
+    derived,
   }: {
+    derived?: typeof warDerived;
     id: string;
     selected: boolean;
     defending: boolean;
@@ -685,13 +691,12 @@ const TileMesh = React.memo(
     ringColor: string;
     raisedTiles?: Set<string>;
     showAttackArrows?: boolean;
-    tileOwners?: Map<string, number>;
     owner?: number;
   }) => {
     const { land, neighbors, water, centerPoint } = useMemo(() => {
       return {
         ...geometries[id],
-        centerPoint: hexasphere.tileLookup[id].centerPoint,
+        centerPoint: hexasphere.tileLookup[id]?.centerPoint,
       };
     }, []);
 
@@ -709,27 +714,34 @@ const TileMesh = React.memo(
 
     return (
       <mesh onClick={click}>
-        <AttackArrows
-          neighbors={neighbors}
-          showAttackArrows={showAttackArrows}
-          centerPoint={centerPoint}
-          raisedTiles={raisedTiles}
-          tileOwners={tileOwners}
-          owner={owner}
-        />
+        {neighbors && (
+          <AttackArrows
+            id={id}
+            neighbors={neighbors}
+            showAttackArrows={showAttackArrows}
+            centerPoint={centerPoint}
+            raisedTiles={raisedTiles}
+            owner={owner}
+            derived={derived}
+          />
+        )}
         <mesh visible={raised} geometry={land}>
           <meshStandardMaterial color={landColor} />
-          <Edges color={selected ? 'yellow' : 'black'} threshold={50} />
-          <TroopCount
-            x={centerPoint.x}
-            y={centerPoint.y}
-            z={centerPoint.z}
-            selected={false}
-            defending={false}
-            troopCount={troopCount}
-            showTroopCount={showTroopCount}
-            ringColor={ringColor}
-          />
+          {centerPoint && (
+            <Edges color={selected ? 'yellow' : 'black'} threshold={50} />
+          )}
+          {centerPoint && (
+            <TroopCount
+              x={centerPoint.x}
+              y={centerPoint.y}
+              z={centerPoint.z}
+              selected={false}
+              defending={false}
+              troopCount={troopCount}
+              showTroopCount={showTroopCount}
+              ringColor={ringColor}
+            />
+          )}
         </mesh>
         <mesh visible={!raised} geometry={water}>
           <meshStandardMaterial color={waterColor} />
@@ -800,7 +812,7 @@ export const Hexasphere = React.memo(
     proxy?: typeof hexasphereProxy;
     landColor?: string;
     waterColor?: string;
-    derived?: typeof derivedDefault;
+    derived?: typeof derivedDefault | typeof warDerived;
     showTroopCount?: boolean;
     cameraPath?: {
       current: { points: THREE.Vector3[]; tangents: THREE.Vector3[] };
@@ -936,8 +948,8 @@ export const Hexasphere = React.memo(
               ringColor={t.owner === 1 ? 'green' : 'blue'}
               raisedTiles={raisedTiles}
               showAttackArrows={showAttackArrows && t.selected}
-              tileOwners={tileOwners}
               owner={t.owner}
+              derived={derived as typeof warDerived}
             />
           ))}
           {portalCoords && PortalPath && (

@@ -26,6 +26,7 @@ import { Planet, War } from '@end/wm/core';
 import { MarkerType, Position, ReactFlow } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
+import { Tile } from '@end/war/core';
 
 const initialNodes = [
   {
@@ -156,67 +157,59 @@ function WarComponent({
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    war.planet.fetch().then((planet: Planet) => {
-      const t = `The War of ${planet.name}`;
-      setTitle(t);
-      st?.(t);
-      const raisedTiles = planet.raised
-        .split('|')
-        .reduce((acc: Record<string, string>, curr) => {
-          const [id, name] = curr.split(":");
-          acc[id] = name;
-          return acc;
-        }, {});
+    if (!params.id) {
+      return () => {};
+    }
 
-      getProxy().colors.land = planet.landColor;
-      getProxy().colors.water = planet.waterColor;
-      console.log(planet.raised)
-
+    Promise.all([
+      war.planet.fetch(),
+      execute(services.conquestService.getWar(params.id)).then((r) => r.json()),
+    ]).then(([local, remote]) => {
+      const tiles: Record<string, Tile> = JSON.parse(remote.war.state).context
+        .tiles;
+      const raised: Record<string, string> = JSON.parse(local.raised);
+      const owners = new Map();
+      getProxy().colors.land = local.landColor;
+      getProxy().colors.water = local.waterColor;
       getProxy().tiles.forEach((tile) => {
-        if(raisedTiles[tile.id]) {
+        if (raised[tile.id]) {
+          const name = raised[tile.id];
+          const { troopCount, owner } = tiles[tile.id];
+          tile.name = name;
+          tile.troopCount = troopCount;
+          tile.owner = owner;
           tile.raised = true;
-          tile.name = raisedTiles[tile.id];
+          owners.set(tile.id, tile.owner);
         }
       });
-      setRaisedTiles(new Set(Object.keys(raisedTiles)));
       setLoaded(true);
+      // setTileOwners(owners);
+
+      const title = `The War of ${local.name}`;
+      setTitle(title);
+      st?.(title);
     });
-    if (params.id) {
-      execute(services.conquestService.getWar(params.id))
-        .then((r) => r.json())
-        .then((res) => {
-          const tiles = JSON.parse(res.war.state).context.tiles;
-          const owners = new Map();
-          getProxy().tiles.forEach((tile) => {
-            if (tiles[tile.id]) {
-              tile.troopCount = tiles[tile.id].troopCount;
-              tile.owner = parseInt(tiles[tile.id].owner);
-              owners.set(tile.id, tiles[tile.id].owner);
-            }
-          });
-          setTileOwners(owners);
-        });
-      services.conquestService.connectToWarLog(params.id).subscribe((r) => {
-        // try {
-        //   if (r) {
-        //     const s = JSON.parse(
-        //       JSON.parse(r).updateDescription.updatedFields.state
-        //     );
-        //
-        //     const tile = getProxy().tiles.find((tile) => tile.id === tile1);
-        //
-        //     if (tile) {
-        //       tile.troopCount = s.context.tiles[tile1].troopCount;
-        //     }
-        //   }
-        // } catch (e) {}
-      });
-    }
+
+    services.conquestService.connectToWarLog(params.id).subscribe((r) => {
+      // try {
+      //   if (r) {
+      //     const s = JSON.parse(
+      //       JSON.parse(r).updateDescription.updatedFields.state
+      //     );
+      //
+      //     const tile = getProxy().tiles.find((tile) => tile.id === tile1);
+      //
+      //     if (tile) {
+      //       tile.troopCount = s.context.tiles[tile1].troopCount;
+      //     }
+      //   }
+      // } catch (e) {}
+    });
 
     return () => {
       st?.('');
     };
-  }, []);
+  });
   const cam = useMemo(() => {
     const cam = new THREE.PerspectiveCamera(45);
     cam.position.set(0, 0, 160);
@@ -265,10 +258,15 @@ function WarComponent({
   );
 
   const [menuOpen, setMenuOpen] = useState(true);
-  const { bp } = useResponsive(menuOpen, 1297);
+  const { bp } = useResponsive(menuOpen);
+
+  if (!loaded) {
+    return null;
+  }
+
   return (
     <View style={{ overflow: 'hidden', height: '100%', width: '100%' }}>
-      <View style={bp(['pl-10 flex items-start', 'hidden'])}>
+      <View style={bp(['pl-10 flex items-start', 'hidden', 'block'])}>
         <H4>{title}</H4>
         {/*<Badge title={params.id} />*/}
       </View>
@@ -295,25 +293,23 @@ function WarComponent({
         />
         <OrbitControls />
       </Canvas>
-      {loaded && (
-        <GameTabs
-          derived={getDerived()}
-          menuOpen={menuOpen}
-          proxy={getProxy()}
-          selectedTile={selectedTile}
-          setSelectingPortalEntry={setSelectingPortalEntry}
-          selectTile={(tile) => {
-            const [x, y, z] = tile.split(',').map((x) => parseFloat(x));
-            onTileSelection({ x, y, z });
-          }}
-          setMenuOpen={setMenuOpen}
-          newPlanet={() => {}}
-          startGame={() => {}}
-          attackDialog={AttackDialog}
-          portalCoords={portalCoords}
-          setPortalCoords={setPortalCoords}
-        />
-      )}
+      <GameTabs
+        derived={getDerived()}
+        menuOpen={menuOpen}
+        proxy={getProxy()}
+        selectedTile={selectedTile}
+        setSelectingPortalEntry={setSelectingPortalEntry}
+        selectTile={(tile) => {
+          const [x, y, z] = tile.split(',').map((x) => parseFloat(x));
+          onTileSelection({ x, y, z });
+        }}
+        setMenuOpen={setMenuOpen}
+        newPlanet={() => {}}
+        startGame={() => {}}
+        attackDialog={AttackDialog}
+        portalCoords={portalCoords}
+        setPortalCoords={setPortalCoords}
+      />
     </View>
   );
 }

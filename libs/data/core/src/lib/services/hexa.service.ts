@@ -16,7 +16,7 @@ type Tile = {
 };
 
 export const warProxy = proxy<{
-  name: string,
+  name: string;
   selection: {
     selectedId: string | null;
     cameraPosition: THREE.Vector3 | null;
@@ -40,15 +40,15 @@ export const warProxy = proxy<{
     land: faker.color.rgb({ format: 'hex' }),
     water: faker.color.rgb({ format: 'hex' }),
   },
-  tiles: Object.keys(hexasphere.tileLookup).map((tileId: string) => {
-    const perctRaised = faker.number.float({ min: 0.1, max: 0.9 });
+  tiles: Object.values(hexasphere.tileLookup).map((tile) => {
+    const { x, y, z } = tile.centerPoint;
     return {
-      id: tileId,
+      id: `${x},${y},${z}`,
       selected: false,
       defending: false,
-      raised: faker.datatype.boolean(perctRaised),
-      name: getRandomName(),
-      troopCount: 4,
+      name: '',
+      troopCount: 0,
+      raised: false,
       owner: 0,
     };
   }),
@@ -105,6 +105,30 @@ export const warDerived = derive({
     const sort = get(warProxy).sort;
     const filter = get(warProxy).filter;
     return sortedTilesList(sort, filter).findIndex((t) => t.id === selectedId);
+  },
+  selectedNeighborsOwners: (get) => {
+    const selectedId = get(warProxy.selection).selectedId;
+    if (!selectedId || !hexasphere) {
+      return {};
+    }
+    const tiles = get(warProxy).tiles;
+    const neighbors = hexasphere.tileLookup[selectedId].neighbors;
+    return neighbors.reduce((acc: Record<string, number>, tile) => {
+      const { x, y, z } = tile.centerPoint;
+      const id = `${x},${y},${z}`;
+      const t = tiles.find((t) => t.id === id);
+
+      if(!t) {
+        return acc;
+      }
+
+      acc[id] = t.raised && typeof t.owner !== 'undefined' ? t.owner : 0;
+      return acc;
+    }, {});
+  },
+  raisedTiles: (get) => {
+    const tiles = get(warProxy).tiles;
+    return tiles.filter((t) => t.raised);
   },
 });
 

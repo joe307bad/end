@@ -99,27 +99,28 @@ const ConquestLive = Layer.effect(
             return getToken().pipe(Effect.map((token) => ({ war, token })));
           }),
           Effect.flatMap(({ war, token }) => {
+            const raised: Record<string, string> = JSON.parse(planet.raised);
             return fetch.post<{ warId: string }>(
               '/conquest',
               {
                 type: 'generate-new-war',
                 warId: war,
                 players: [],
-                tiles: planet.raised
-                  .split('|')
-                  .reduce<Record<string, Tile>>((acc, cur) => {
-                    const [id, name] = cur.split(":");
-                    acc[cur] = {
-                      id: '',
+                tiles: Object.keys(raised).reduce<Record<string, Tile>>(
+                  (acc, id: string) => {
+                    acc[id] = {
+                      id: id,
                       owner: 0,
                       troopCount: 0,
                       habitable: true,
-                      name,
+                      name: raised[id],
                       neighborIds: hexasphere.tileLookup[id].neighborIds,
                     };
 
                     return acc;
-                  }, {}),
+                  },
+                  {}
+                ),
               },
               token
             );
