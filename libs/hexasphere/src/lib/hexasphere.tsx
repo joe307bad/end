@@ -328,6 +328,9 @@ export const derivedDefault = derive({
       .filter((t) => t.raised)
       .findIndex((t) => t.id === selectedId);
   },
+  selectedNeighborsOwners: () => {
+    return {};
+  },
 });
 
 const TroopCount = React.memo(
