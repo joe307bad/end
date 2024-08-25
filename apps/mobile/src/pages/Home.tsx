@@ -19,7 +19,7 @@ export default function Home({ navigation }: { navigation: any }) {
   const np = useCallback(
     () =>
       startTransition(() => {
-        newPlanet(setReset);
+        newPlanet();
       }),
     []
   );
