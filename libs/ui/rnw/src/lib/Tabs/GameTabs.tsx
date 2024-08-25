@@ -323,7 +323,7 @@ function TilesList({
 
   return (
     <>
-      {tiles.map((t) => (
+      {tiles.map((t: any) => (
         <ListItem
           display={t.raised ? 'flex' : 'none'}
           padding="0"
