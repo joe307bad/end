@@ -37,7 +37,6 @@ import { buildCameraPath } from './build-camera-path';
 import { Edges } from '@react-three/drei';
 // @ts-ignore
 import v from 'voca';
-import { warDerived } from '@end/data/core';
 
 function getPointInBetweenByPerc(
   pointA: THREE.Vector3,
@@ -542,7 +541,7 @@ const AttackArrow = React.memo(
     centerPoint: Coords;
     raisedTiles?: Set<string>;
     owner?: number;
-    derived?: typeof warDerived;
+    derived?: any;
   }) => {
     if (!derived) {
       return null;
@@ -648,7 +647,7 @@ const AttackArrows = React.memo(
     centerPoint: Coords;
     raisedTiles?: Set<string>;
     owner?: number;
-    derived?: typeof warDerived;
+    derived?: any;
   }) => {
     const neighbors = hexasphere.tileLookup[id].neighbors;
     return neighbors.map((neighbor) => (
@@ -681,7 +680,7 @@ const TileMesh = React.memo(
     owner,
     derived,
   }: {
-    derived?: typeof warDerived;
+    derived?: any;
     id: string;
     selected: boolean;
     defending: boolean;
@@ -815,7 +814,7 @@ export const Hexasphere = React.memo(
     proxy?: typeof hexasphereProxy;
     landColor?: string;
     waterColor?: string;
-    derived?: typeof derivedDefault | typeof warDerived;
+    derived?: typeof derivedDefault;
     showTroopCount?: boolean;
     cameraPath?: {
       current: { points: THREE.Vector3[]; tangents: THREE.Vector3[] };
@@ -952,7 +951,7 @@ export const Hexasphere = React.memo(
               raisedTiles={raisedTiles}
               showAttackArrows={showAttackArrows && t.selected}
               owner={t.owner}
-              derived={derived as typeof warDerived}
+              derived={derived as any}
             />
           ))}
           {portalCoords && PortalPath && (
