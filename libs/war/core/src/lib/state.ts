@@ -7,12 +7,15 @@ export interface Tile {
   id: string;
   troopCount: number;
   owner: number;
+  name: string
 }
 
 interface Context {
   players: string[];
   turn: number;
   tiles: Record<string, Tile>;
+  selectedTerritory1?: string;
+  selectedTerritory2?: string;
 }
 
 export type Event =
@@ -22,7 +25,9 @@ export type Event =
       tiles: Record<string, Tile>;
       warId: string;
     }
-  | { type: 'attack'; tile1: string; tile2: string; warId: string };
+  | { type: 'attack'; tile1: string; tile2: string; warId: string }
+  | { type: 'select-first-territory'; id: string; warId: string }
+  | { type: 'select-second-territory'; id: string };
 
 export const warMachine = (
   warId: string,
@@ -41,7 +46,10 @@ export const warMachine = (
           if (event.type !== 'generate-new-war') return context.tiles;
 
           Object.keys(event.tiles).forEach((tileId) => {
-            event.tiles[tileId].troopCount = 5;
+            event.tiles[tileId].troopCount = faker.number.int({
+              min: 5,
+              max: 99,
+            });
             event.tiles[tileId].owner = faker.datatype.boolean(0.5) ? 1 : 2;
           });
 
@@ -76,6 +84,20 @@ export const warMachine = (
       'war-complete': {},
       'war-in-progress': {
         on: {
+          'select-first-territory': {
+            actions: assign({
+              selectedTerritory1: ({ context, event }) => {
+                return event.id;
+              },
+            }),
+          },
+          'select-second-territory': {
+            actions: assign({
+              selectedTerritory2: ({ context, event }) => {
+                return event.id;
+              },
+            }),
+          },
           attack: {
             actions: assign({
               tiles: ({ context, event }) => {

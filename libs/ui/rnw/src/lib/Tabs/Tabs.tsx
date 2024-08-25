@@ -10,6 +10,7 @@ import {
   Spacer,
   ListItem,
   ScrollView,
+  XStack,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
 import { tw } from '../components';
@@ -54,11 +55,6 @@ export function TabsContainer({
   }, []);
 
   const { services } = useEndApi();
-
-  useEffect(() => {
-    // Effect.runPromise(services.war.create()).then((t) => console.log(t));
-    // Effect.runPromise(services.conquest.log()).then((t) => console.log(t));
-  }, []);
 
   const onSync = useCallback(() => execute(services.syncService.sync()), []);
 

@@ -1,6 +1,6 @@
 import React, { ReactNode, useCallback, useState } from 'react';
 import { MenuSquare } from '@tamagui/lucide-icons';
-import { Button, Header, View, XStack } from 'tamagui';
+import { Button, H4, Header, View, XStack } from 'tamagui';
 import { tw } from '../components';
 import { useWindowDimensions } from 'react-native';
 import * as R from 'remeda';
@@ -81,20 +81,25 @@ export function ContainerWithNav({
   navigate,
   currentRoute,
   logOut,
+  title
 }: {
   children: ReactNode;
   currentRoute: string;
   navigate?: (route: string, options?: { replace?: boolean }) => void;
   logOut?: () => void;
+  title?: string;
 }) {
   const [menuOpen, toggleMenu] = useState<boolean>(false);
   const { bp } = useResponsive(menuOpen);
 
   return (
     <View style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-      <View style={bp(['w-full items-end'])}>
+      <View style={bp(['flex flex-row w-full p-2', 'block', 'hidden'])}>
+        <View style={bp(['flex-1', 'block', 'hidden'])}>
+          <H4>{title}</H4>
+        </View>
         <View onPress={() => toggleMenu((prevState) => !prevState)}>
-          <MenuSquare size="$2" style={bp(['block p-2 ', '', 'hidden'])} />
+          <MenuSquare size="$2" />
         </View>
       </View>
       <View

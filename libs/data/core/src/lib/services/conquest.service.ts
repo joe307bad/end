@@ -27,6 +27,10 @@ interface Conquest {
     tile2: string;
     warId: string;
   }) => Effect.Effect<Response, Error>;
+  readonly selectFirstTerritory: (payload: {
+    id: string;
+    warId: string;
+  }) => Effect.Effect<Response, Error>;
 }
 
 const ConquestService = Context.GenericTag<Conquest>('conquest-api');
@@ -95,25 +99,28 @@ const ConquestLive = Layer.effect(
             return getToken().pipe(Effect.map((token) => ({ war, token })));
           }),
           Effect.flatMap(({ war, token }) => {
+            const raised: Record<string, string> = JSON.parse(planet.raised);
             return fetch.post<{ warId: string }>(
               '/conquest',
               {
                 type: 'generate-new-war',
                 warId: war,
                 players: [],
-                tiles: planet.raised
-                  .split('|')
-                  .reduce<Record<string, Tile>>((acc, cur) => {
-                    acc[cur] = {
-                      id: '',
+                tiles: Object.keys(raised).reduce<Record<string, Tile>>(
+                  (acc, id: string) => {
+                    acc[id] = {
+                      id: id,
                       owner: 0,
                       troopCount: 0,
                       habitable: true,
-                      neighborIds: hexasphere.tileLookup[cur].neighborIds,
+                      name: raised[id],
+                      neighborIds: hexasphere.tileLookup[id].neighborIds,
                     };
 
                     return acc;
-                  }, {}),
+                  },
+                  {}
+                ),
               },
               token
             );
@@ -136,6 +143,18 @@ const ConquestLive = Layer.effect(
           getToken(),
           Effect.flatMap((token) =>
             fetch.post('/conquest', { type: 'attack', ...event }, token)
+          )
+        );
+      },
+      selectFirstTerritory: (event: { id: string; warId: string }) => {
+        return pipe(
+          getToken(),
+          Effect.flatMap((token) =>
+            fetch.post(
+              '/conquest',
+              { type: 'select-first-territory', ...event },
+              token
+            )
           )
         );
       },

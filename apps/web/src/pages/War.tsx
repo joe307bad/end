@@ -1,4 +1,4 @@
-import { H2, H3, H4 } from 'tamagui';
+import { H4 } from 'tamagui';
 import React, {
   ComponentType,
   useCallback,
@@ -9,9 +9,9 @@ import React, {
 import { useParams } from 'react-router-dom';
 import { execute } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
-import { Badge, GameTabs } from '@end/components';
+import { GameTabs, PortalPath, useResponsive } from '@end/components';
 import { Canvas } from '@react-three/fiber';
-import { Hexasphere } from '@end/hexasphere';
+import { Coords, Hexasphere } from '@end/hexasphere';
 import { OrbitControls } from '@react-three/drei';
 import { useWindowDimensions, View } from 'react-native';
 import * as THREE from 'three';
@@ -26,6 +26,7 @@ import { Planet, War } from '@end/wm/core';
 import { MarkerType, Position, ReactFlow } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
+import { Tile } from '@end/war/core';
 
 const initialNodes = [
   {
@@ -103,14 +104,13 @@ function AttackDialog() {
     <View
       style={{
         height: 160,
-        padding: 10,
+        paddingLeft: 10,
       }}
     >
       <ReactFlow
         style={{
           backgroundColor: 'transparent',
           padding: 10,
-          top: 10,
         }}
         fitViewOptions={{ padding: 10 }}
         viewport={{ zoom: 1, y: 2, x: 2 }}
@@ -134,79 +134,82 @@ function AttackDialog() {
   );
 }
 
-const tile1 = '0,50,0';
-const tile2 = '0,-50,0';
-
-function WarComponent({ war }: { war: War }) {
+function WarComponent({
+  war,
+  setTitle: st,
+}: {
+  war: War;
+  setTitle?: (title?: string) => void;
+}) {
   const [title, setTitle] = useState('');
   let params = useParams();
   const { services } = useEndApi();
   const { getProxy, getDerived, getColors } = services.hexaService;
 
-  const attack = useCallback(() => {
-    if (!params.id) {
-      return;
-    }
-
-    return execute(
-      services.conquestService.attack({ tile1, tile2, warId: params.id })
-    );
-  }, []);
-
   const [raisedTiles, setRaisedTiles] = useState<Set<string>>(new Set());
   const [tileOwners, setTileOwners] = useState<Map<string, number>>(new Map());
 
+  const [portalCoords, setPortalCoords] = useState<[Coords?, Coords?]>();
+  const [selectingPortalEntry, setSelectingPortalEntry] = useState<
+    'first' | 'second' | undefined
+  >('first');
+
+  const [loaded, setLoaded] = useState(false);
+
   useEffect(() => {
-    war.planet.fetch().then((planet: Planet) => {
-      setTitle(`The War of ${planet.name}`);
-      const raisedTiles = new Set(planet.raised.split('|'));
-
-      getProxy().colors.land = planet.landColor;
-      getProxy().colors.water = planet.waterColor;
-
-      getProxy().tiles.forEach((tile) => {
-        tile.raised = raisedTiles.has(tile.id);
-      });
-      setRaisedTiles(raisedTiles);
-    });
-    if (params.id) {
-      execute(services.conquestService.getWar(params.id))
-        .then((r) => r.json())
-        .then((res) => {
-          const tiles = JSON.parse(res.war.state).context.tiles;
-          const owners = new Map();
-          getProxy().tiles.forEach((tile) => {
-            if (tiles[tile.id]) {
-              tile.troopCount = tiles[tile.id].troopCount;
-              tile.owner = parseInt(tiles[tile.id].owner);
-              owners.set(tile.id, tiles[tile.id].owner);
-            }
-          });
-          setTileOwners(owners);
-        });
-      services.conquestService.connectToWarLog(params.id).subscribe((r) => {
-        try {
-          if (r) {
-            const s = JSON.parse(
-              JSON.parse(r).updateDescription.updatedFields.state
-            );
-
-            const tile = getProxy().tiles.find((tile) => tile.id === tile1);
-
-            if (tile) {
-              tile.troopCount = s.context.tiles[tile1].troopCount;
-            }
-          }
-        } catch (e) {}
-      });
+    if (!params.id) {
+      return () => {};
     }
 
-    // setInterval(() => {
-    //   if (params.id) {
-    //     services.conquestService.createWarLogEvent(params.id);
-    //   }
-    // }, 1000);
-  }, []);
+    Promise.all([
+      war.planet.fetch(),
+      execute(services.conquestService.getWar(params.id)).then((r) => r.json()),
+    ]).then(([local, remote]) => {
+      const tiles: Record<string, Tile> = JSON.parse(remote.war.state).context
+        .tiles;
+      const raised: Record<string, string> = JSON.parse(local.raised);
+      const owners = new Map();
+      getProxy().colors.land = local.landColor;
+      getProxy().colors.water = local.waterColor;
+      getProxy().tiles.forEach((tile) => {
+        if (raised[tile.id]) {
+          const name = raised[tile.id];
+          const { troopCount, owner } = tiles[tile.id];
+          tile.name = name;
+          tile.troopCount = troopCount;
+          tile.owner = owner;
+          tile.raised = true;
+          owners.set(tile.id, tile.owner);
+        }
+      });
+      setLoaded(true);
+      // setTileOwners(owners);
+
+      const title = `The War of ${local.name}`;
+      setTitle(title);
+      st?.(title);
+    });
+
+    services.conquestService.connectToWarLog(params.id).subscribe((r) => {
+      // try {
+      //   if (r) {
+      //     const s = JSON.parse(
+      //       JSON.parse(r).updateDescription.updatedFields.state
+      //     );
+      //
+      //     const tile = getProxy().tiles.find((tile) => tile.id === tile1);
+      //
+      //     if (tile) {
+      //       tile.troopCount = s.context.tiles[tile1].troopCount;
+      //     }
+      //   }
+      // } catch (e) {}
+    });
+
+    return () => {
+      st?.('');
+    };
+  });
   const cam = useMemo(() => {
     const cam = new THREE.PerspectiveCamera(45);
     cam.position.set(0, 0, 160);
@@ -234,19 +237,38 @@ function WarComponent({ war }: { war: War }) {
     ];
   }, [width]);
 
-  const [selectedTile, setSelectedTile] = useState(tile1);
+  const [selectedTile, setSelectedTile] = useState<string>();
+
+  const onTileSelection = useCallback(
+    (tile: Coords) => {
+      setSelectedTile(Object.values(tile).join(','));
+      if (selectingPortalEntry === 'first') {
+        setPortalCoords((prev) => {
+          prev = [tile, prev?.[1]];
+          return prev;
+        });
+      } else if (selectingPortalEntry === 'second') {
+        setPortalCoords((prev) => {
+          prev = [prev?.[0], tile];
+          return prev;
+        });
+      }
+    },
+    [selectingPortalEntry, setPortalCoords]
+  );
+
+  const [menuOpen, setMenuOpen] = useState(true);
+  const { bp } = useResponsive(menuOpen);
+
+  if (!loaded) {
+    return null;
+  }
 
   return (
     <View style={{ overflow: 'hidden', height: '100%', width: '100%' }}>
-      <View
-        style={{
-          paddingLeft: 10,
-          display: 'flex',
-          alignItems: 'flex-start',
-        }}
-      >
+      <View style={bp(['pl-10 flex items-start', 'hidden', 'block'])}>
         <H4>{title}</H4>
-        <Badge title={params.id} />
+        {/*<Badge title={params.id} />*/}
       </View>
       <Canvas
         style={{
@@ -258,6 +280,7 @@ function WarComponent({ war }: { war: War }) {
         <Hexasphere
           derived={getDerived()}
           proxy={getProxy()}
+          onTileSelection={onTileSelection}
           selectedTile={selectedTile}
           waterColor={getColors().water}
           landColor={getColors().land}
@@ -265,16 +288,27 @@ function WarComponent({ war }: { war: War }) {
           raisedTiles={raisedTiles}
           showAttackArrows={true}
           tileOwners={tileOwners}
+          portalCoords={portalCoords}
+          portalPath={PortalPath}
         />
         <OrbitControls />
       </Canvas>
       <GameTabs
-        menuOpen={true}
+        derived={getDerived()}
+        menuOpen={menuOpen}
         proxy={getProxy()}
-        selectTile={setSelectedTile}
+        selectedTile={selectedTile}
+        setSelectingPortalEntry={setSelectingPortalEntry}
+        selectTile={(tile) => {
+          const [x, y, z] = tile.split(',').map((x) => parseFloat(x));
+          onTileSelection({ x, y, z });
+        }}
+        setMenuOpen={setMenuOpen}
         newPlanet={() => {}}
         startGame={() => {}}
         attackDialog={AttackDialog}
+        portalCoords={portalCoords}
+        setPortalCoords={setPortalCoords}
       />
     </View>
   );
@@ -296,8 +330,12 @@ const EnhancedWarComponent = compose(
   ) as (arg0: unknown) => ComponentType
 )(WarComponent);
 
-export default function WarRouteComponent() {
+export default function WarRouteComponent({
+  setTitle,
+}: {
+  setTitle?: (title?: string) => void;
+}) {
   const params = useParams();
 
-  return <EnhancedWarComponent warId={params.id} />;
+  return <EnhancedWarComponent warId={params.id} setTitle={setTitle} />;
 }

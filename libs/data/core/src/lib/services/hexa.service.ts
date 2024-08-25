@@ -15,7 +15,8 @@ type Tile = {
   owner: number;
 };
 
-const hexasphereProxy = proxy<{
+export const warProxy = proxy<{
+  name: string;
   selection: {
     selectedId: string | null;
     cameraPosition: THREE.Vector3 | null;
@@ -25,7 +26,12 @@ const hexasphereProxy = proxy<{
     water: string;
   };
   tiles: Tile[];
+  sort: 'most-troops' | 'least-troops' | 'alphabetical' | string;
+  filter: 'all' | 'mine' | 'opponents' | 'bordering' | string;
 }>({
+  name: '',
+  sort: 'alphabetical',
+  filter: 'all',
   selection: {
     selectedId: null,
     cameraPosition: null,
@@ -34,24 +40,59 @@ const hexasphereProxy = proxy<{
     land: faker.color.rgb({ format: 'hex' }),
     water: faker.color.rgb({ format: 'hex' }),
   },
-  tiles: Object.keys(hexasphere.tileLookup).map((tileId: string) => {
-    const perctRaised = faker.number.float({ min: 0.1, max: 0.9 });
+  tiles: Object.values(hexasphere.tileLookup).map((tile) => {
+    const { x, y, z } = tile.centerPoint;
     return {
-      id: tileId,
+      id: `${x},${y},${z}`,
       selected: false,
       defending: false,
-      raised: faker.datatype.boolean(perctRaised),
-      name: getRandomName(),
-      troopCount: 4,
-      owner: 0
+      name: '',
+      troopCount: 0,
+      raised: false,
+      owner: 0,
     };
   }),
 });
 
-const derived = derive({
+function sortedTilesList(
+  sort: 'most-troops' | 'least-troops' | 'alphabetical' | string,
+  filter: 'all' | 'mine' | 'opponents' | 'bordering' | string
+) {
+  return [...warProxy.tiles]
+    .sort((a, b) => {
+      switch (sort) {
+        case 'alphabetical':
+          return a.name.localeCompare(b.name);
+        case 'least-troops':
+          return a.troopCount - b.troopCount;
+        case 'most-troops':
+          return b.troopCount - a.troopCount;
+      }
+
+      return 0;
+    })
+    .filter((t) => {
+      if (!t.raised) {
+        return false;
+      }
+
+      switch (filter) {
+        case 'all':
+          return true;
+        case 'mine':
+          return t.owner === 1;
+        case 'opponents':
+          return t.owner === 2;
+      }
+
+      return true;
+    });
+}
+
+export const warDerived = derive({
   cameraPath: (get) => {
-    const selectedId = get(hexasphereProxy.selection).selectedId;
-    const cameraPosition = get(hexasphereProxy.selection).cameraPosition;
+    const selectedId = get(warProxy.selection).selectedId;
+    const cameraPosition = get(warProxy.selection).cameraPosition;
     if (selectedId && cameraPosition) {
       const { x, y, z } = hexasphere.tileLookup[selectedId].centerPoint;
       return buildCameraPath(cameraPosition, new THREE.Vector3(x, y, z));
@@ -60,21 +101,46 @@ const derived = derive({
     return undefined;
   },
   selectedTileIndex: (get) => {
-    const selectedId = get(hexasphereProxy.selection).selectedId;
-    return hexasphereProxy.tiles
-      .filter((t) => t.raised)
-      .findIndex((t) => t.id === selectedId);
+    const selectedId = get(warProxy.selection).selectedId;
+    const sort = get(warProxy).sort;
+    const filter = get(warProxy).filter;
+    return sortedTilesList(sort, filter).findIndex((t) => t.id === selectedId);
+  },
+  selectedNeighborsOwners: (get) => {
+    const selectedId = get(warProxy.selection).selectedId;
+    if (!selectedId || !hexasphere) {
+      return {};
+    }
+    const tiles = get(warProxy).tiles;
+    const neighbors = hexasphere.tileLookup[selectedId].neighbors;
+    return neighbors.reduce((acc: Record<string, number>, tile) => {
+      const { x, y, z } = tile.centerPoint;
+      const id = `${x},${y},${z}`;
+      const t = tiles.find((t) => t.id === id);
+
+      if(!t) {
+        return acc;
+      }
+
+      acc[id] = t.raised && typeof t.owner !== 'undefined' ? t.owner : 0;
+      return acc;
+    }, {});
+  },
+  raisedTiles: (get) => {
+    const tiles = get(warProxy).tiles;
+    return tiles.filter((t) => t.raised);
   },
 });
 
 interface Hexa {
-  readonly getProxy: () => typeof hexasphereProxy;
+  readonly getProxy: () => typeof warProxy;
   readonly selectTile: (
     id: string,
     cameraPosition: THREE.Vector3
   ) => Tile | undefined;
-  readonly getDerived: () => typeof derived;
+  readonly getDerived: () => typeof warDerived;
   readonly getColors: () => { water: string; land: string };
+  readonly sortedTilesList: typeof sortedTilesList;
 }
 
 const HexaService = Context.GenericTag<Hexa>('hexa-service');
@@ -84,27 +150,23 @@ const HexaLive = Layer.effect(
   Effect.gen(function* () {
     return HexaService.of({
       getProxy: () => {
-        return hexasphereProxy;
+        return warProxy;
       },
       selectTile: (id: string, cameraPosition: THREE.Vector3) => {
-        const currentlySelected = hexasphereProxy.tiles.find(
-          (tile) => tile.selected
-        );
+        const currentlySelected = warProxy.tiles.find((tile) => tile.selected);
 
         if (currentlySelected) {
           currentlySelected.selected = false;
         }
 
-        const newSelected = hexasphereProxy.tiles.find(
-          (tile) => tile.id === id
-        );
+        const newSelected = warProxy.tiles.find((tile) => tile.id === id);
 
         if (newSelected) {
           newSelected.selected = true;
-          hexasphereProxy.selection.selectedId = newSelected.id;
-          hexasphereProxy.selection.cameraPosition = cameraPosition;
+          warProxy.selection.selectedId = newSelected.id;
+          warProxy.selection.cameraPosition = cameraPosition;
 
-          const currentlyDefending = hexasphereProxy.tiles.filter(
+          const currentlyDefending = warProxy.tiles.filter(
             (tile) => tile.defending
           );
 
@@ -118,7 +180,7 @@ const HexaLive = Layer.effect(
 
           newSelected.raised &&
             neighbors.forEach((neighborTileId) => {
-              const neighbor = hexasphereProxy.tiles.find(
+              const neighbor = warProxy.tiles.find(
                 (tile) => tile.id === neighborTileId
               );
               if (neighbor) {
@@ -129,11 +191,12 @@ const HexaLive = Layer.effect(
 
         return currentlySelected;
       },
-      getDerived: () => derived,
+      getDerived: () => warDerived,
+      sortedTilesList,
       getColors: () => {
         return {
-          land: hexasphereProxy.colors.land,
-          water: hexasphereProxy.colors.water,
+          land: warProxy.colors.land,
+          water: warProxy.colors.water,
         };
       },
     });

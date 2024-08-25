@@ -13,7 +13,7 @@ export const tw = t as any;
 
 export const tamaguiTokens = tokens;
 
-export function newPlanet(setReset: (r: number) => void) {
+export function newPlanet() {
   hexasphereProxy.tiles.forEach((tile) => {
     const raisedness = faker.number.float({ min: 0.1, max: 0.9 });
 
@@ -22,11 +22,11 @@ export function newPlanet(setReset: (r: number) => void) {
     tile.selected = false;
     tile.defending = false;
   });
+  hexasphereProxy.name = getRandomName();
   hexasphereProxy.selection.selectedId = null;
   hexasphereProxy.selection.cameraPosition = null;
   hexasphereProxy.colors.land = faker.color.rgb({ format: 'hex' });
   hexasphereProxy.colors.water = faker.color.rgb({ format: 'hex' });
-  // setReset(Math.random());
 };
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -64,9 +64,14 @@ export function PortalPath({
   to,
 }: {
   radius?: number;
-  from: { x: number; y: number; z: number };
-  to: { x: number; y: number; z: number };
+  from?: { x: number; y: number; z: number };
+  to?: { x: number; y: number; z: number };
 }) {
+
+  if(!from || !to) {
+    return null;
+  }
+
   const portal = useMemo(() => {
     const fromV = new THREE.Vector3(from.x, from.y, from.z);
     const toV = new THREE.Vector3(to.x, to.y, to.z);
@@ -190,7 +195,7 @@ export function PortalPath({
       50,
       false
     );
-  }, []);
+  }, [from, to]);
 
   return portal ? (
     <>

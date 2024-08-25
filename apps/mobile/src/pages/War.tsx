@@ -29,7 +29,7 @@ export default function War() {
   const np = useCallback(
     () =>
       startTransition(() => {
-        newPlanet(setReset);
+        newPlanet();
       }),
     []
   );
