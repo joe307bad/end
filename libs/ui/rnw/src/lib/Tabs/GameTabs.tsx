@@ -90,7 +90,7 @@ export function GameTabs({
   const setSelectedTile = useCallback((tile: string) => {
     disableListMovement.current = true;
     selectTile(tile);
-  }, []);
+  }, [selectTile]);
 
   const [sort, setSort] = useState<
     'most-troops' | 'least-troops' | 'alphabetical' | string
@@ -159,7 +159,7 @@ export function GameTabs({
               <View style={{ width: '100%' }}>
                 <RadioGroup
                   aria-labelledby="Select one item"
-                  defaultValue="deploy"
+                  defaultValue="portal"
                   name="form"
                   onValueChange={setTurnAction}
                 >

@@ -1,4 +1,10 @@
-import React, { ReactNode, useCallback, useEffect, useState } from 'react';
+import React, {
+  ComponentType,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import {
   Badge,
   Container,
@@ -18,13 +24,22 @@ import {
   Route,
   Outlet,
   Navigate,
+  useParams,
 } from 'react-router-dom';
 import Home from '../pages/Home';
 import { useAuth } from '@end/auth';
-import { DatabaseProvider } from '@nozbe/watermelondb/react';
+import {
+  compose,
+  DatabaseProvider,
+  withDatabase,
+  withObservables,
+} from '@nozbe/watermelondb/react';
 import Conquest from '../pages/Conquest';
 import War from '../pages/War';
 import { EndApiProvider, useEndApi } from '@end/data/web';
+import { War as TWar } from '@end/wm/core';
+import { Database } from '@nozbe/watermelondb';
+import { Observable } from 'rxjs';
 
 function WithNavigate({
   children,
@@ -35,7 +50,7 @@ function WithNavigate({
   return children(navigate);
 }
 
-function Page({ children, title }: { children: ReactNode; title?: string }) {
+function Page({ war, children }: { war?: TWar; children: ReactNode }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { deleteToken } = useAuth();
@@ -43,6 +58,14 @@ function Page({ children, title }: { children: ReactNode; title?: string }) {
   const logOut = useCallback(async () => {
     await deleteToken();
     navigate('/', { replace: true });
+  }, []);
+
+  const [title, setTitle] = useState<string>();
+
+  useEffect(() => {
+    war?.planet.fetch().then((planet) => {
+      setTitle(`The War of ${planet.name}`);
+    });
   }, []);
 
   return (
@@ -57,7 +80,33 @@ function Page({ children, title }: { children: ReactNode; title?: string }) {
   );
 }
 
-const PrivateRoutes = ({ title }: { title?: string }) => {
+const EnhancedPage = compose(
+  withDatabase,
+  withObservables(
+    ['warId'],
+    ({
+      database,
+      warId,
+    }: {
+      database: Database;
+      warId: string;
+    }): { war: Observable<TWar> } => ({
+      war: database.get<TWar>('wars').findAndObserve(warId),
+    })
+  ) as (arg0: unknown) => ComponentType
+)(Page);
+
+function PageRouteComponent({ children }: { children: ReactNode }) {
+  const params = useParams();
+
+  if (!params.id) {
+    return <Page>{children}</Page>;
+  }
+
+  return <EnhancedPage warId={params.id}>{children}</EnhancedPage>;
+}
+
+const PrivateRoutes = () => {
   const { getToken } = useAuth();
   const [token, setToken] = useState<string | null | 'LOADING'>('LOADING');
 
@@ -72,9 +121,9 @@ const PrivateRoutes = ({ title }: { title?: string }) => {
   }
 
   return token ? (
-    <Page title={title}>
+    <PageRouteComponent>
       <Outlet />
-    </Page>
+    </PageRouteComponent>
   ) : (
     <Navigate to="/" />
   );
@@ -82,16 +131,15 @@ const PrivateRoutes = ({ title }: { title?: string }) => {
 
 function AppRoutes() {
   const { services } = useEndApi();
-  const [title, setTitle] = useState<string>();
 
   return (
     <DatabaseProvider database={services.endApi.database}>
       <Router>
         <Routes>
-          <Route element={<PrivateRoutes title={title} />}>
+          <Route element={<PrivateRoutes />}>
             <Route path="/home" element={<Home />} />
             <Route path="/conquest" element={<Conquest />} />
-            <Route path="/war/:id" element={<War setTitle={setTitle} />} />
+            <Route path="/war/:id" element={<War />} />
           </Route>
           <Route
             path="/"

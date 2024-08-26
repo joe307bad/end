@@ -532,16 +532,16 @@ const AttackArrow = React.memo(
     showAttackArrows,
     centerPoint,
     neighbor,
-    raisedTiles,
     owner,
     derived,
+    raised
   }: {
     neighbor: Tile;
     showAttackArrows?: boolean;
     centerPoint: Coords;
-    raisedTiles?: Set<string>;
     owner?: number;
     derived?: any;
+    raised?: boolean
   }) => {
     if (!derived) {
       return null;
@@ -617,7 +617,7 @@ const AttackArrow = React.memo(
         return false;
       }
 
-      return tileOwners[id] !== owner;
+      return tileOwners[id] !== owner && raised;
     }, [tileOwners, id, id1, showAttackArrows]);
 
     return (
@@ -637,7 +637,7 @@ const AttackArrows = React.memo(
     id,
     showAttackArrows,
     centerPoint,
-    raisedTiles,
+    raised,
     owner,
     derived,
   }: {
@@ -645,9 +645,9 @@ const AttackArrows = React.memo(
     neighbors: Tile[];
     showAttackArrows?: boolean;
     centerPoint: Coords;
-    raisedTiles?: Set<string>;
     owner?: number;
     derived?: any;
+    raised?: boolean;
   }) => {
     const neighbors = hexasphere.tileLookup[id].neighbors;
     return neighbors.map((neighbor) => (
@@ -656,7 +656,7 @@ const AttackArrows = React.memo(
         neighbor={neighbor}
         centerPoint={centerPoint}
         showAttackArrows={showAttackArrows}
-        raisedTiles={raisedTiles}
+        raised={raised}
         owner={owner}
       />
     ));
@@ -722,7 +722,7 @@ const TileMesh = React.memo(
             neighbors={neighbors}
             showAttackArrows={showAttackArrows}
             centerPoint={centerPoint}
-            raisedTiles={raisedTiles}
+            raised={raised}
             owner={owner}
             derived={derived}
           />
