@@ -99,6 +99,10 @@ const EnhancedPage = compose(
 function PageRouteComponent({ children }: { children: ReactNode }) {
   const params = useParams();
 
+  if (!params.id) {
+    return <Page>{children}</Page>;
+  }
+
   return <EnhancedPage warId={params.id}>{children}</EnhancedPage>;
 }
 

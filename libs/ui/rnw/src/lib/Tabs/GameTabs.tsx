@@ -159,7 +159,7 @@ export function GameTabs({
               <View style={{ width: '100%' }}>
                 <RadioGroup
                   aria-labelledby="Select one item"
-                  defaultValue="deploy"
+                  defaultValue="portal"
                   name="form"
                   onValueChange={setTurnAction}
                 >
