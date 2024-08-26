@@ -90,7 +90,7 @@ export function GameTabs({
   const setSelectedTile = useCallback((tile: string) => {
     disableListMovement.current = true;
     selectTile(tile);
-  }, []);
+  }, [selectTile]);
 
   const [sort, setSort] = useState<
     'most-troops' | 'least-troops' | 'alphabetical' | string

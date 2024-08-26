@@ -330,12 +330,8 @@ const EnhancedWarComponent = compose(
   ) as (arg0: unknown) => ComponentType
 )(WarComponent);
 
-export default function WarRouteComponent({
-  setTitle,
-}: {
-  setTitle?: (title?: string) => void;
-}) {
+export default function WarRouteComponent() {
   const params = useParams();
 
-  return <EnhancedWarComponent warId={params.id} setTitle={setTitle} />;
+  return <EnhancedWarComponent warId={params.id} />;
 }
