@@ -11,10 +11,20 @@ import {
   Input,
   H4,
   ListItem,
+  Spinner,
+  Tooltip,
+  Text,
+  Paragraph,
+  Popover,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
 import { tw } from '../components';
-import { CircleDot, Crosshair, Hexagon } from '@tamagui/lucide-icons';
+import {
+  CircleDot,
+  Crosshair,
+  Hexagon,
+  ArrowRight,
+} from '@tamagui/lucide-icons';
 import React, {
   Dispatch,
   ElementType,
@@ -33,6 +43,8 @@ import { Pressable, View } from 'react-native';
 import { warProxy, warDerived } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
 import { useSnapshot } from 'valtio';
+import { faker } from '@faker-js/faker';
+import { PrimaryButton } from '../Display';
 
 type TurnAction = 'portal' | 'deploy' | 'attack' | 'reenforce' | null | string;
 
@@ -72,11 +84,15 @@ export function GameTabs({
       derived,
       'selectedTileIndex',
       (selectedTileIndex) => {
-        if (sv.current && selectedTileIndex > -1 && !disableListMovement.current) {
+        if (
+          sv.current &&
+          selectedTileIndex > -1 &&
+          !disableListMovement.current
+        ) {
           sv.current.scrollTo(selectedTileIndex * 44);
         }
 
-        if(disableListMovement.current) {
+        if (disableListMovement.current) {
           disableListMovement.current = false;
         }
       }
@@ -85,12 +101,15 @@ export function GameTabs({
     return () => unsubscribe();
   }, []);
 
-  const [turnAction, setTurnAction] = useState<TurnAction>('deploy');
+  const [turnAction, setTurnAction] = useState<TurnAction>('portal');
 
-  const setSelectedTile = useCallback((tile: string) => {
-    disableListMovement.current = true;
-    selectTile(tile);
-  }, [selectTile]);
+  const setSelectedTile = useCallback(
+    (tile: string) => {
+      disableListMovement.current = true;
+      selectTile(tile);
+    },
+    [selectTile]
+  );
 
   const [sort, setSort] = useState<
     'most-troops' | 'least-troops' | 'alphabetical' | string
@@ -104,6 +123,15 @@ export function GameTabs({
     proxy.sort = sort;
     proxy.filter = filter;
   }, [sort, filter]);
+
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+  }, [loading]);
 
   return (
     <Section
@@ -199,6 +227,67 @@ export function GameTabs({
                         Reenforce
                       </Label>
                     </XStack>
+                    <View
+                      style={{
+                        flex: 1,
+                        alignItems: 'flex-end',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <XStack alignItems="center" paddingRight="$0.75">
+                        <Popover size="$5" allowFlip open={open} onOpenChange={setOpen}>
+                          <Popover.Trigger asChild>
+                            {loading ? (
+                              <Spinner size="small" />
+                            ) : (
+                              <Pressable onPress={() => setLoading(true)}>
+                                <ArrowRight color="white" size="$1" />
+                              </Pressable>
+                            )}
+                          </Popover.Trigger>
+
+                          <Popover.Content
+                            borderWidth={1}
+                            borderColor="red"
+                            enterStyle={{ y: -10, opacity: 0 }}
+                            exitStyle={{ y: -10, opacity: 0 }}
+                            elevate
+                            padding="$0.75"
+                            animation={[
+                              'fast',
+                              {
+                                opacity: {
+                                  overshootClamping: true,
+                                },
+                              },
+                            ]}
+                          >
+                            <Popover.Arrow
+                              size="$1.5"
+                              borderWidth={1}
+                              borderColor="red"
+                            />
+
+                            <YStack gap="$3">
+                              <XStack gap="$3">
+                                <Text fontSize={13} maxWidth={500}>
+                                  You're fucking clapped
+                                </Text>
+                              </XStack>
+                              {/*<Popover.Close asChild>*/}
+                              {/*  <PrimaryButton*/}
+                              {/*    onPress={() => {*/}
+                              {/*      /* Custom code goes here, does not interfere with popover closure */}
+                              {/*    }}*/}
+                              {/*  >*/}
+                              {/*    Submit*/}
+                              {/*  </PrimaryButton>*/}
+                              {/*</Popover.Close>*/}
+                            </YStack>
+                          </Popover.Content>
+                        </Popover>
+                      </XStack>
+                    </View>
                   </XStack>
                 </RadioGroup>
               </View>
@@ -250,7 +339,7 @@ export function GameTabs({
                         items={[
                           { value: 'all', key: 'All territories' },
                           { value: 'mine', key: 'My territories' },
-                          { value: 'opponents', key: 'Opponents territories' }
+                          { value: 'opponents', key: 'Opponents territories' },
                         ]}
                         native
                       />
@@ -373,7 +462,7 @@ function TurnActionComponent({
   portalCoords?: [Coords?, Coords?];
   setPortalCoords?: Dispatch<SetStateAction<[Coords?, Coords?] | undefined>>;
 }) {
-  const tiles = useSnapshot(warDerived.raisedTiles)
+  const tiles = useSnapshot(warDerived.raisedTiles);
 
   switch (turnAction) {
     case 'portal':
