@@ -68,9 +68,8 @@ export const config = createTamagui({
       speed: 1000,
     },
     medium: {
-      damping: 0,
-      mass: 0,
-      stiffness: 1,
+      bounciness: 0,
+      speed: 1000,
     },
     slow: {
       damping: 20,

@@ -43,10 +43,8 @@ import { Pressable, View } from 'react-native';
 import { warProxy, warDerived } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
 import { useSnapshot } from 'valtio';
-import { faker } from '@faker-js/faker';
-import { PrimaryButton } from '../Display';
 
-type TurnAction = 'portal' | 'deploy' | 'attack' | 'reenforce' | null | string;
+type TurnAction = 'portal' | 'deploy' | 'attack' | 'reenforce' | undefined | string;
 
 export function GameTabs({
   proxy,
@@ -126,6 +124,24 @@ export function GameTabs({
 
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
+  const advanceTurn = useCallback(() => {
+    switch (turnAction) {
+      case 'portal':
+        setTurnAction('deploy');
+        break;
+      case 'deploy':
+        setTurnAction('attack');
+        break;
+      case 'attack':
+        setTurnAction('reenforce');
+        break;
+      case 'reenforce':
+        setTurnAction('portal');
+        break;
+    }
+  }, [turnAction]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -187,9 +203,9 @@ export function GameTabs({
               <View style={{ width: '100%' }}>
                 <RadioGroup
                   aria-labelledby="Select one item"
-                  defaultValue="portal"
                   name="form"
                   onValueChange={setTurnAction}
+                  value={turnAction}
                 >
                   <XStack paddingLeft="$0.75" space="$1">
                     <XStack alignItems="center">
@@ -235,12 +251,16 @@ export function GameTabs({
                       }}
                     >
                       <XStack alignItems="center" paddingRight="$0.75">
-                        <Popover size="$5" allowFlip open={open} onOpenChange={setOpen}>
+                        <Popover
+                          size="$5"
+                          allowFlip
+                          open={open}
+                        >
                           <Popover.Trigger asChild>
                             {loading ? (
                               <Spinner size="small" />
                             ) : (
-                              <Pressable onPress={() => setLoading(true)}>
+                              <Pressable onPress={advanceTurn}>
                                 <ArrowRight color="white" size="$1" />
                               </Pressable>
                             )}
@@ -271,7 +291,7 @@ export function GameTabs({
                             <YStack gap="$3">
                               <XStack gap="$3">
                                 <Text fontSize={13} maxWidth={500}>
-                                  You're fucking clapped
+                                  {errorMessage}
                                 </Text>
                               </XStack>
                               {/*<Popover.Close asChild>*/}
