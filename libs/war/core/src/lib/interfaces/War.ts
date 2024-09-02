@@ -6,3 +6,10 @@ export interface IWar {
   planet: Relation<Model & IPlanet>;
 }
 
+export type TurnAction =
+  | 'portal'
+  | 'deploy'
+  | 'attack'
+  | 'reenforce'
+  | undefined
+  | string;

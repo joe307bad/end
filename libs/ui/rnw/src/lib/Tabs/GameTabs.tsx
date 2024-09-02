@@ -16,6 +16,7 @@ import {
   Text,
   Paragraph,
   Popover,
+  View as V
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
 import { tw } from '../components';
@@ -43,8 +44,8 @@ import { Pressable, View } from 'react-native';
 import { warProxy, warDerived } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
 import { useSnapshot } from 'valtio';
-
-type TurnAction = 'portal' | 'deploy' | 'attack' | 'reenforce' | undefined | string;
+import { TurnAction } from '@end/war/core';
+import { ActivityArrow } from '../ActivityArrow';
 
 export function GameTabs({
   proxy,
@@ -57,6 +58,10 @@ export function GameTabs({
   setPortalCoords,
   setSelectingPortalEntry,
   selectedTile,
+  deployCoords,
+  setDeployCoords,
+  turnAction,
+  setTurnAction,
 }: {
   derived: typeof warDerived;
   proxy: typeof warProxy;
@@ -68,10 +73,14 @@ export function GameTabs({
   attackDialog?: ElementType;
   portalCoords?: [Coords?, Coords?];
   setPortalCoords?: Dispatch<SetStateAction<[Coords?, Coords?] | undefined>>;
+  deployCoords?: Coords;
+  setDeployCoords?: Dispatch<SetStateAction<Coords | undefined>>;
   setSelectingPortalEntry?: Dispatch<
     SetStateAction<'first' | 'second' | undefined>
   >;
   selectedTile?: string;
+  turnAction?: TurnAction;
+  setTurnAction?: Dispatch<SetStateAction<TurnAction>>;
 }) {
   const { bp } = useResponsive(menuOpen, 1297);
   const sv = useRef<ScrollView | any>(null);
@@ -99,8 +108,6 @@ export function GameTabs({
     return () => unsubscribe();
   }, []);
 
-  const [turnAction, setTurnAction] = useState<TurnAction>('portal');
-
   const setSelectedTile = useCallback(
     (tile: string) => {
       disableListMovement.current = true;
@@ -127,6 +134,10 @@ export function GameTabs({
   const [errorMessage, setErrorMessage] = useState<string>('');
 
   const advanceTurn = useCallback(() => {
+    if (!setTurnAction) {
+      return;
+    }
+
     switch (turnAction) {
       case 'portal':
         setTurnAction('deploy');
@@ -243,71 +254,14 @@ export function GameTabs({
                         Reenforce
                       </Label>
                     </XStack>
-                    <View
-                      style={{
-                        flex: 1,
-                        alignItems: 'flex-end',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <XStack alignItems="center" paddingRight="$0.75">
-                        <Popover
-                          size="$5"
-                          allowFlip
-                          open={open}
-                        >
-                          <Popover.Trigger asChild>
-                            {loading ? (
-                              <Spinner size="small" />
-                            ) : (
-                              <Pressable onPress={advanceTurn}>
-                                <ArrowRight color="white" size="$1" />
-                              </Pressable>
-                            )}
-                          </Popover.Trigger>
-
-                          <Popover.Content
-                            borderWidth={1}
-                            borderColor="red"
-                            enterStyle={{ y: -10, opacity: 0 }}
-                            exitStyle={{ y: -10, opacity: 0 }}
-                            elevate
-                            padding="$0.75"
-                            animation={[
-                              'fast',
-                              {
-                                opacity: {
-                                  overshootClamping: true,
-                                },
-                              },
-                            ]}
-                          >
-                            <Popover.Arrow
-                              size="$1.5"
-                              borderWidth={1}
-                              borderColor="red"
-                            />
-
-                            <YStack gap="$3">
-                              <XStack gap="$3">
-                                <Text fontSize={13} maxWidth={500}>
-                                  {errorMessage}
-                                </Text>
-                              </XStack>
-                              {/*<Popover.Close asChild>*/}
-                              {/*  <PrimaryButton*/}
-                              {/*    onPress={() => {*/}
-                              {/*      /* Custom code goes here, does not interfere with popover closure */}
-                              {/*    }}*/}
-                              {/*  >*/}
-                              {/*    Submit*/}
-                              {/*  </PrimaryButton>*/}
-                              {/*</Popover.Close>*/}
-                            </YStack>
-                          </Popover.Content>
-                        </Popover>
-                      </XStack>
-                    </View>
+                    <V paddingRight="$0.5" flex={1}>
+                      <ActivityArrow
+                        loading={loading}
+                        onPress={advanceTurn}
+                        open={open}
+                        message={errorMessage}
+                      />
+                    </V>
                   </XStack>
                 </RadioGroup>
               </View>
@@ -331,6 +285,8 @@ export function GameTabs({
                     turnAction={turnAction}
                     portalCoords={portalCoords}
                     setPortalCoords={setPortalCoords}
+                    deployCoords={deployCoords}
+                    setDeployCoords={setDeployCoords}
                   />
                 </ScrollView>
               </View>
@@ -471,6 +427,8 @@ function TurnActionComponent({
   setSelectingPortalEntry,
   setPortalCoords,
   portalCoords,
+  setDeployCoords,
+  deployCoords,
 }: {
   turnAction: TurnAction;
   proxy: typeof warProxy;
@@ -481,6 +439,8 @@ function TurnActionComponent({
   >;
   portalCoords?: [Coords?, Coords?];
   setPortalCoords?: Dispatch<SetStateAction<[Coords?, Coords?] | undefined>>;
+  deployCoords?: Coords;
+  setDeployCoords?: Dispatch<SetStateAction<Coords | undefined>>;
 }) {
   const tiles = useSnapshot(warDerived.raisedTiles);
 
@@ -566,17 +526,6 @@ function TurnActionComponent({
               </XStack>
             </XStack>
           </RadioGroup>
-          {/*<XStack alignItems="center">*/}
-          {/*  <Select*/}
-          {/*    label="Portal entry #1"*/}
-          {/*  />*/}
-          {/*</XStack>*/}
-          {/*<XStack alignItems="center">*/}
-          {/*  <Select*/}
-          {/*    label="Portal entry #2"*/}
-
-          {/*  />*/}
-          {/*</XStack>*/}
         </YStack>
       );
     case 'deploy':
@@ -590,7 +539,16 @@ function TurnActionComponent({
             <XStack flex={1} alignItems="center" justifyContent="flex-end">
               <SelectDemoItem
                 id="deploy-select"
-                items={proxy.tiles.map((t) => ({
+                value={Object.values(deployCoords ?? {}).join(',')}
+                onValueChange={(value) => {
+                  const [x, y, z] = value.split(',');
+                  setDeployCoords?.({
+                    x: parseFloat(x),
+                    y: parseFloat(y),
+                    z: parseFloat(z),
+                  });
+                }}
+                items={tiles.map((t) => ({
                   key: t.name,
                   value: t.id,
                 }))}
@@ -603,7 +561,17 @@ function TurnActionComponent({
               <Label htmlFor="deploy-change">Troop change +/-</Label>
             </XStack>
             <XStack flex={1} alignItems="center" justifyContent="flex-end">
-              <Input padding="$0.5" />
+              <View style={{ flex: 1 }}>
+                <Input padding="$0.5" />
+              </View>
+              <View style={{ paddingLeft: 5 }}>
+                <ActivityArrow
+                  loading={false}
+                  onPress={() => {}}
+                  open={false}
+                  message={''}
+                />
+              </View>
             </XStack>
           </XStack>
         </YStack>
@@ -621,7 +589,7 @@ function TurnActionComponent({
           <H4>Reenforce a territory</H4>
           <XStack alignItems="center">
             <XStack minWidth="25%" paddingHorizontal="$0.75">
-              <Label htmlFor="deploy-select">Territory</Label>
+              <Label htmlFor="reenforce-select">Territory</Label>
             </XStack>
             <XStack flex={1} alignItems="center" justifyContent="flex-end">
               <SelectDemoItem
@@ -636,7 +604,7 @@ function TurnActionComponent({
           </XStack>
           <XStack alignItems="center">
             <XStack minWidth="$1" paddingHorizontal="$0.75">
-              <Label htmlFor="deploy-change">Troop change +/-</Label>
+              <Label htmlFor="reenforce-change">Troop change +/-</Label>
             </XStack>
             <XStack flex={1} alignItems="center" justifyContent="flex-end">
               <Input padding="$0.5" />

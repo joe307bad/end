@@ -26,7 +26,7 @@ import { Planet, War } from '@end/wm/core';
 import { MarkerType, Position, ReactFlow } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
-import { Tile } from '@end/war/core';
+import { Tile, TurnAction } from '@end/war/core';
 
 const initialNodes = [
   {
@@ -150,6 +150,7 @@ function WarComponent({
   const [tileOwners, setTileOwners] = useState<Map<string, number>>(new Map());
 
   const [portalCoords, setPortalCoords] = useState<[Coords?, Coords?]>();
+  const [deployCoords, setDeployCoords] = useState<Coords | undefined>();
   const [selectingPortalEntry, setSelectingPortalEntry] = useState<
     'first' | 'second' | undefined
   >('first');
@@ -183,7 +184,6 @@ function WarComponent({
         }
       });
       setLoaded(true);
-      // setTileOwners(owners);
 
       const title = `The War of ${local.name}`;
       setTitle(title);
@@ -238,23 +238,32 @@ function WarComponent({
   }, [width]);
 
   const [selectedTile, setSelectedTile] = useState<string>();
+  const [turnAction, setTurnAction] = useState<TurnAction>('portal');
 
   const onTileSelection = useCallback(
     (tile: Coords) => {
       setSelectedTile(Object.values(tile).join(','));
-      if (selectingPortalEntry === 'first') {
-        setPortalCoords((prev) => {
-          prev = [tile, prev?.[1]];
-          return prev;
-        });
-      } else if (selectingPortalEntry === 'second') {
-        setPortalCoords((prev) => {
-          prev = [prev?.[0], tile];
-          return prev;
-        });
+
+      switch (turnAction) {
+        case 'portal':
+          if (selectingPortalEntry === 'first') {
+            setPortalCoords((prev) => {
+              prev = [tile, prev?.[1]];
+              return prev;
+            });
+          } else if (selectingPortalEntry === 'second') {
+            setPortalCoords((prev) => {
+              prev = [prev?.[0], tile];
+              return prev;
+            });
+          }
+          break;
+        case 'deploy':
+          setDeployCoords(tile);
+          break;
       }
     },
-    [selectingPortalEntry, setPortalCoords]
+    [selectingPortalEntry, setPortalCoords, setDeployCoords, turnAction]
   );
 
   const [menuOpen, setMenuOpen] = useState(true);
@@ -309,6 +318,10 @@ function WarComponent({
         attackDialog={AttackDialog}
         portalCoords={portalCoords}
         setPortalCoords={setPortalCoords}
+        deployCoords={deployCoords}
+        setDeployCoords={setDeployCoords}
+        turnAction={turnAction}
+        setTurnAction={setTurnAction}
       />
     </View>
   );
