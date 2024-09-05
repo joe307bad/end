@@ -11,12 +11,8 @@ import {
   Input,
   H4,
   ListItem,
-  Spinner,
-  Tooltip,
   Text,
-  Paragraph,
-  Popover,
-  View as V
+  View as V,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
 import { tw } from '../components';
@@ -62,6 +58,11 @@ export function GameTabs({
   setDeployCoords,
   turnAction,
   setTurnAction,
+  availableTroops,
+  setAvailableTroops,
+  troopChange,
+  setTroopChange,
+  attackTerritories,
 }: {
   derived: typeof warDerived;
   proxy: typeof warProxy;
@@ -81,6 +82,11 @@ export function GameTabs({
   selectedTile?: string;
   turnAction?: TurnAction;
   setTurnAction?: Dispatch<SetStateAction<TurnAction>>;
+  availableTroops: number;
+  setAvailableTroops?: Dispatch<SetStateAction<number>>;
+  troopChange: number;
+  setTroopChange?: Dispatch<SetStateAction<number>>;
+  attackTerritories: string[];
 }) {
   const { bp } = useResponsive(menuOpen, 1297);
   const sv = useRef<ScrollView | any>(null);
@@ -266,9 +272,10 @@ export function GameTabs({
                 </RadioGroup>
               </View>
               <View
-                style={{
-                  width: '100%',
-                }}
+                style={bp([
+                  'w-full',
+                  `${turnAction === 'attack' ? 'max-h-[40%]' : ''}`,
+                ])}
               >
                 <ScrollView
                   style={{
@@ -287,6 +294,11 @@ export function GameTabs({
                     setPortalCoords={setPortalCoords}
                     deployCoords={deployCoords}
                     setDeployCoords={setDeployCoords}
+                    availableTroops={availableTroops}
+                    setAvailableTroops={setAvailableTroops}
+                    troopChange={troopChange}
+                    setTroopChange={setTroopChange}
+                    attackTerritories={attackTerritories}
                   />
                 </ScrollView>
               </View>
@@ -429,6 +441,11 @@ function TurnActionComponent({
   portalCoords,
   setDeployCoords,
   deployCoords,
+  availableTroops,
+  setAvailableTroops,
+  troopChange,
+  setTroopChange,
+  attackTerritories,
 }: {
   turnAction: TurnAction;
   proxy: typeof warProxy;
@@ -441,6 +458,11 @@ function TurnActionComponent({
   setPortalCoords?: Dispatch<SetStateAction<[Coords?, Coords?] | undefined>>;
   deployCoords?: Coords;
   setDeployCoords?: Dispatch<SetStateAction<Coords | undefined>>;
+  availableTroops: number;
+  setAvailableTroops?: Dispatch<SetStateAction<number>>;
+  troopChange: number;
+  setTroopChange?: Dispatch<SetStateAction<number>>;
+  attackTerritories: string[];
 }) {
   const tiles = useSnapshot(warDerived.raisedTiles);
 
@@ -558,29 +580,52 @@ function TurnActionComponent({
           </XStack>
           <XStack alignItems="center">
             <XStack minWidth="$1" paddingHorizontal="$0.75">
-              <Label htmlFor="deploy-change">Troop change +/-</Label>
+              <Label htmlFor="deploy-change">Troop change</Label>
             </XStack>
-            <XStack flex={1} alignItems="center" justifyContent="flex-end">
-              <View style={{ flex: 1 }}>
-                <Input padding="$0.5" />
-              </View>
-              <View style={{ paddingLeft: 5 }}>
+            <XStack
+              flex={1}
+              alignItems="center"
+              space="$0.75"
+              justifyContent="flex-end"
+            >
+              <V flex={1}>
+                <Input
+                  onChange={(e) => {
+                    const v = !e.nativeEvent.text
+                      ? 0
+                      : parseInt(e.nativeEvent.text);
+                    setTroopChange?.(v);
+                  }}
+                  value={(troopChange ?? 0).toString()}
+                  padding="$0.5"
+                />
+              </V>
+              <V>
+                <Text>{availableTroops}</Text>
+              </V>
+              <V>
                 <ActivityArrow
                   loading={false}
-                  onPress={() => {}}
+                  onPress={() => {
+                    setAvailableTroops?.((prev) => {
+                      return prev - troopChange;
+                    });
+                  }}
                   open={false}
                   message={''}
                 />
-              </View>
+              </V>
             </XStack>
           </XStack>
         </YStack>
       );
     case 'attack':
       return (
-        <YStack height="100%">
+        <YStack id="where-is-this" height="50%">
           <H4>Attack a territory</H4>
-          {AttackDialog && <AttackDialog />}
+          {AttackDialog && (
+            <AttackDialog attackTerritories={attackTerritories} />
+          )}
         </YStack>
       );
     case 'reenforce':
@@ -604,7 +649,7 @@ function TurnActionComponent({
           </XStack>
           <XStack alignItems="center">
             <XStack minWidth="$1" paddingHorizontal="$0.75">
-              <Label htmlFor="reenforce-change">Troop change +/-</Label>
+              <Label htmlFor="reenforce-change">Troop change</Label>
             </XStack>
             <XStack flex={1} alignItems="center" justifyContent="flex-end">
               <Input padding="$0.5" />

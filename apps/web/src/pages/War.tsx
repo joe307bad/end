@@ -7,11 +7,11 @@ import React, {
   useState,
 } from 'react';
 import { useParams } from 'react-router-dom';
-import { execute } from '@end/data/core';
+import { execute, warProxy } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
 import { GameTabs, PortalPath, useResponsive } from '@end/components';
 import { Canvas } from '@react-three/fiber';
-import { Coords, Hexasphere } from '@end/hexasphere';
+import { Coords, hexasphere, Hexasphere } from '@end/hexasphere';
 import { OrbitControls } from '@react-three/drei';
 import { useWindowDimensions, View } from 'react-native';
 import * as THREE from 'three';
@@ -22,7 +22,7 @@ import {
 } from '@nozbe/watermelondb/react';
 import { Database } from '@nozbe/watermelondb';
 import { Observable } from 'rxjs';
-import { Planet, War } from '@end/wm/core';
+import { War } from '@end/wm/core';
 import { MarkerType, Position, ReactFlow } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
@@ -57,6 +57,24 @@ const initialNodes = [
     position: { x: 200, y: 90 },
     data: { label: '5' },
     targetPosition: Position.Left,
+  },
+  {
+    id: '6',
+    position: { x: 0, y: 135 },
+    data: { label: '6' },
+    targetPosition: Position.Right,
+  },
+  {
+    id: '7',
+    position: { x: 200, y: 135 },
+    data: { label: '7' },
+    targetPosition: Position.Left,
+  },
+  {
+    id: '8',
+    position: { x: 0, y: 180 },
+    data: { label: '8' },
+    targetPosition: Position.Right,
   },
 ];
 const initialEdges = [
@@ -97,13 +115,41 @@ const initialEdges = [
       type: MarkerType.Arrow,
     },
   },
+  {
+    id: 'e1-6',
+    source: '1',
+    target: '6',
+    type: 'smoothstep',
+    markerEnd: {
+      type: MarkerType.Arrow,
+    },
+  },
+  {
+    id: 'e1-7',
+    source: '1',
+    target: '7',
+    type: 'smoothstep',
+    markerEnd: {
+      type: MarkerType.Arrow,
+    },
+  },
+  {
+    id: 'e1-8',
+    source: '1',
+    target: '8',
+    type: 'smoothstep',
+    markerEnd: {
+      type: MarkerType.Arrow,
+    },
+  },
 ];
 
-function AttackDialog() {
+function AttackDialog({ attackTerritories }: { attackTerritories: string[] }) {
+  console.log({ attackTerritories });
   return (
     <View
       style={{
-        height: 160,
+        height: 220,
         paddingLeft: 10,
       }}
     >
@@ -129,6 +175,18 @@ function AttackDialog() {
         colorMode="dark"
         nodes={initialNodes}
         edges={initialEdges}
+        multiSelectionKeyCode="Meta"
+        onNodeClick={(e, node) => {
+          const selectedId = node.id;
+          if (selectedId !== '1') {
+            document.querySelectorAll('.node-selected').forEach((el) => {
+              el.classList.remove('node-selected');
+            });
+            document
+              .querySelectorAll(`[data-id='${node.id}']`)[0]
+              .classList.add('node-selected');
+          }
+        }}
       />
     </View>
   );
@@ -209,7 +267,7 @@ function WarComponent({
     return () => {
       st?.('');
     };
-  });
+  }, []);
   const cam = useMemo(() => {
     const cam = new THREE.PerspectiveCamera(45);
     cam.position.set(0, 0, 160);
@@ -238,7 +296,20 @@ function WarComponent({
   }, [width]);
 
   const [selectedTile, setSelectedTile] = useState<string>();
-  const [turnAction, setTurnAction] = useState<TurnAction>('portal');
+  const [turnAction, setTurnAction] = useState<TurnAction>('attack');
+  const [availableTroops, setAvailableTroopsState] = useState(100);
+  const [troopChange, setTroopChange] = useState(0);
+
+  const setAvailableTroops = useCallback(
+    (args: any) => {
+      const tile = warProxy.tiles.find((tile) => tile.id === selectedTile);
+      if (tile) {
+        tile.troopCount = tile.troopCount + troopChange;
+      }
+      return setAvailableTroopsState(args);
+    },
+    [setAvailableTroopsState, troopChange, selectedTile]
+  );
 
   const onTileSelection = useCallback(
     (tile: Coords) => {
@@ -268,6 +339,16 @@ function WarComponent({
 
   const [menuOpen, setMenuOpen] = useState(true);
   const { bp } = useResponsive(menuOpen);
+
+  const attackTerritories = useMemo(() => {
+    if (!selectedTile) {
+      return [];
+    }
+    return hexasphere.tileLookup[selectedTile].neighbors.map((tile) => {
+      const { x, y, z } = tile.centerPoint;
+      return [x, y, z].join(',');
+    });
+  }, [selectedTile]);
 
   if (!loaded) {
     return null;
@@ -322,6 +403,11 @@ function WarComponent({
         setDeployCoords={setDeployCoords}
         turnAction={turnAction}
         setTurnAction={setTurnAction}
+        availableTroops={availableTroops}
+        setAvailableTroops={setAvailableTroops}
+        troopChange={troopChange}
+        setTroopChange={setTroopChange}
+        attackTerritories={attackTerritories}
       />
     </View>
   );
