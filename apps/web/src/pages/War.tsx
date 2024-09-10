@@ -1,4 +1,4 @@
-import { H4 } from 'tamagui';
+import { H4, View, XStack, YStack } from 'tamagui';
 import React, {
   ComponentType,
   useCallback,
@@ -7,13 +7,18 @@ import React, {
   useState,
 } from 'react';
 import { useParams } from 'react-router-dom';
-import { execute, warProxy } from '@end/data/core';
+import { execute, warDerived, warProxy } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
 import { GameTabs, PortalPath, useResponsive } from '@end/components';
 import { Canvas } from '@react-three/fiber';
-import { Coords, hexasphere, Hexasphere } from '@end/hexasphere';
+import {
+  Coords,
+  derivedDefault,
+  hexasphere,
+  Hexasphere,
+} from '@end/hexasphere';
 import { OrbitControls } from '@react-three/drei';
-import { useWindowDimensions, View } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 import * as THREE from 'three';
 import {
   compose,
@@ -23,10 +28,11 @@ import {
 import { Database } from '@nozbe/watermelondb';
 import { Observable } from 'rxjs';
 import { War } from '@end/wm/core';
-import { MarkerType, Position, ReactFlow } from '@xyflow/react';
+import { MarkerType, Position, ReactFlow, Node } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
 import { Tile, TurnAction } from '@end/war/core';
+import { useSnapshot } from 'valtio';
 
 const initialNodes = [
   {
@@ -144,8 +150,80 @@ const initialEdges = [
   },
 ];
 
-function AttackDialog({ attackTerritories }: { attackTerritories: string[] }) {
-  console.log({ attackTerritories });
+function AttackDialog({
+  owner,
+}: {
+  derived: typeof derivedDefault;
+  owner: number;
+}) {
+  const tileOwners = useSnapshot(warDerived.selectedNeighborsOwners);
+
+  const nodes = useMemo(() => {
+    let nodeId = 1;
+    const selectedTile = warProxy.tiles.find(
+      (t) => t.id == warProxy.selection.selectedId
+    ) ?? { name: '', troopCount: 0 };
+    const n: Record<number, Node> = {
+      1: {
+        ...initialNodes[0],
+        // @ts-ignore
+        data: {
+          label: (
+            <XStack>
+              <View
+                flex={1}
+                style={{
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  marginRight: 10,
+                }}
+              >
+                {selectedTile.name}
+              </View>
+              <View> / {selectedTile.troopCount}</View>
+            </XStack>
+          ),
+        },
+      },
+    };
+
+    for (let i = 1; i < 7; i++) {
+      const tiles = Object.keys(tileOwners);
+      const tile = warProxy.tiles.find((t) => t.id == tiles[i - 1]);
+
+      if (!tile || tile.owner === owner) {
+        continue;
+      }
+      const base = initialNodes[nodeId];
+      nodeId++;
+
+      n[nodeId + 1] = {
+        ...base,
+        data: {
+          label: (
+            <XStack>
+              <View
+                flex={1}
+                style={{
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  marginRight: 10,
+                }}
+              >
+                {tile.name}
+              </View>
+              <View> / {tile.troopCount}</View>
+            </XStack>
+          ),
+        },
+      };
+    }
+
+    return n;
+  }, [tileOwners, warProxy.selection.selectedId]);
+
   return (
     <View
       style={{
@@ -173,7 +251,7 @@ function AttackDialog({ attackTerritories }: { attackTerritories: string[] }) {
         draggable={false}
         elementsSelectable={true}
         colorMode="dark"
-        nodes={initialNodes}
+        nodes={Object.values(nodes)}
         edges={initialEdges}
         multiSelectionKeyCode="Meta"
         onNodeClick={(e, node) => {

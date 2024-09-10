@@ -623,9 +623,7 @@ function TurnActionComponent({
       return (
         <YStack id="where-is-this" height="50%">
           <H4>Attack a territory</H4>
-          {AttackDialog && (
-            <AttackDialog attackTerritories={attackTerritories} />
-          )}
+          {AttackDialog && <AttackDialog owner={1} />}
         </YStack>
       );
     case 'reenforce':

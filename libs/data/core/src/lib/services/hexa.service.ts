@@ -122,7 +122,11 @@ export const warDerived = derive({
         return acc;
       }
 
-      acc[id] = t.raised && typeof t.owner !== 'undefined' ? t.owner : 0;
+      if(!t.raised) {
+        return acc;
+      }
+
+      acc[id] = typeof t.owner !== 'undefined' ? t.owner : 0;
       return acc;
     }, {});
   },
