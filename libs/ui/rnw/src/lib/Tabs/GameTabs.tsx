@@ -66,6 +66,7 @@ export function GameTabs({
   attackTerritories,
   attackTerritory,
   setTerritoryToAttack,
+                           territoryToAttack
 }: {
   derived: typeof warDerived;
   proxy: typeof warProxy;
@@ -92,6 +93,7 @@ export function GameTabs({
   attackTerritories: string[];
   attackTerritory: () => void;
   setTerritoryToAttack?: Dispatch<SetStateAction<string | undefined>>;
+  territoryToAttack?: string;
 }) {
   const { bp } = useResponsive(menuOpen, 1297);
   const sv = useRef<ScrollView | any>(null);
@@ -157,10 +159,10 @@ export function GameTabs({
         setTurnAction('attack');
         break;
       case 'attack':
-        setTurnAction('reenforce');
-        break;
-      case 'reenforce':
         setTurnAction('portal');
+        break;
+      // case 'reenforce':
+      //   setTurnAction('portal');
         break;
     }
   }, [turnAction]);
@@ -256,15 +258,15 @@ export function GameTabs({
                         Attack
                       </Label>
                     </XStack>
-                    <XStack alignItems="center">
-                      <RadioGroup.Item value={'reenforce'} id={'4'} size={'$3'}>
-                        <RadioGroup.Indicator />
-                      </RadioGroup.Item>
+                    {/*<XStack alignItems="center">*/}
+                    {/*  <RadioGroup.Item value={'reenforce'} id={'4'} size={'$3'}>*/}
+                    {/*    <RadioGroup.Indicator />*/}
+                    {/*  </RadioGroup.Item>*/}
 
-                      <Label paddingLeft="$0.5" size={'$3'} htmlFor={'4'}>
-                        Reenforce
-                      </Label>
-                    </XStack>
+                    {/*  <Label paddingLeft="$0.5" size={'$3'} htmlFor={'4'}>*/}
+                    {/*    Reenforce*/}
+                    {/*  </Label>*/}
+                    {/*</XStack>*/}
                     <V paddingRight="$0.5" flex={1}>
                       <ActivityArrow
                         loading={loading}
@@ -306,6 +308,7 @@ export function GameTabs({
                     attackTerritories={attackTerritories}
                     attackTerritory={attackTerritory}
                     setTerritoryToAttack={setTerritoryToAttack}
+                    territoryToAttack={territoryToAttack}
                   />
                 </ScrollView>
               </View>
@@ -455,6 +458,7 @@ function TurnActionComponent({
   attackTerritories,
   attackTerritory,
   setTerritoryToAttack,
+                               territoryToAttack
 }: {
   turnAction: TurnAction;
   proxy: typeof warProxy;
@@ -474,6 +478,7 @@ function TurnActionComponent({
   attackTerritories: string[];
   attackTerritory: () => void;
   setTerritoryToAttack?: Dispatch<SetStateAction<string | undefined>>;
+  territoryToAttack?: string;
 }) {
   const tiles = useSnapshot(warDerived.raisedTiles);
 
@@ -645,6 +650,7 @@ function TurnActionComponent({
           </XStack>
           {AttackDialog && (
             <AttackDialog
+              territoryToAttack={territoryToAttack}
               portalCoords={portalCoords}
               owner={1}
               setTerritoryToAttack={setTerritoryToAttack}

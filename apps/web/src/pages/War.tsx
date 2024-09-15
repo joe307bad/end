@@ -151,10 +151,12 @@ function AttackDialog({
   owner,
   portalCoords,
   setTerritoryToAttack,
+  territoryToAttack,
 }: {
   portalCoords?: [Coords?, Coords?];
   owner: number;
   setTerritoryToAttack?: Dispatch<SetStateAction<string | undefined>>;
+  territoryToAttack?: string;
 }) {
   const tileOwners = useSnapshot(warDerived.selectedNeighborsOwners);
 
@@ -278,7 +280,16 @@ function AttackDialog({
     return n;
   }, [tileOwners, warProxy.selection.selectedId]);
 
-  console.log(nodes)
+  const tile = Object.values(nodes).find((n) => n.tileId === territoryToAttack);
+  console.log({ tile, territoryToAttack });
+  // TODO after selecting attack button, the highlighted node from ReactFlow becomes unhighlighted
+  if (tile) {
+    setTimeout(() => {
+      document
+        .querySelectorAll(`[data-id='${tile.id}']`)[0]
+        .classList.add('node-selected');
+    }, 0);
+  }
 
   return (
     <View
@@ -316,9 +327,11 @@ function AttackDialog({
             document.querySelectorAll('.node-selected').forEach((el) => {
               el.classList.remove('node-selected');
             });
-            document
-              .querySelectorAll(`[data-id='${node.id}']`)[0]
-              .classList.add('node-selected');
+            setTimeout(() => {
+              document
+                .querySelectorAll(`[data-id='${selectedId}']`)[0]
+                .classList.add('node-selected');
+            }, 0);
             const tile = Object.values(nodes).find((n) => n.id === selectedId);
 
             if (tile) {
@@ -375,7 +388,6 @@ function WarComponent({
           const { troopCount, owner } = tiles[tile.id];
           tile.name = name;
           tile.troopCount = troopCount;
-          console.log({owner})
           tile.owner = owner;
           tile.raised = true;
           owners.set(tile.id, tile.owner);
@@ -494,7 +506,13 @@ function WarComponent({
   const attackTerritory = useCallback(() => {
     if (territoryToAttack) {
       const tile = warProxy.tiles.find((n) => n.id === territoryToAttack);
-      // console.log({ tile, territoryToAttack });
+      if (tile) {
+        tile.troopCount = tile.troopCount - 1;
+      }
+      const attackingFrom = warProxy.tiles.find((n) => n.id === selectedTile);
+      if (attackingFrom) {
+        attackingFrom.troopCount = attackingFrom.troopCount - 1;
+      }
     }
   }, [territoryToAttack]);
 
@@ -558,6 +576,7 @@ function WarComponent({
         attackTerritories={attackTerritories}
         attackTerritory={attackTerritory}
         setTerritoryToAttack={setTerritoryToAttack}
+        territoryToAttack={territoryToAttack}
       />
     </View>
   );

@@ -10,6 +10,6 @@ export type TurnAction =
   | 'portal'
   | 'deploy'
   | 'attack'
-  | 'reenforce'
+  // | 'reenforce'
   | undefined
   | string;
