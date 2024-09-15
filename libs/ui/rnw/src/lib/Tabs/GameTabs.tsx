@@ -42,6 +42,7 @@ import { useEndApi } from '@end/data/web';
 import { useSnapshot } from 'valtio';
 import { TurnAction } from '@end/war/core';
 import { ActivityArrow } from '../ActivityArrow';
+import { Swords } from '@tamagui/lucide-icons';
 
 export function GameTabs({
   proxy,
@@ -63,6 +64,8 @@ export function GameTabs({
   troopChange,
   setTroopChange,
   attackTerritories,
+  attackTerritory,
+  setTerritoryToAttack,
 }: {
   derived: typeof warDerived;
   proxy: typeof warProxy;
@@ -87,6 +90,8 @@ export function GameTabs({
   troopChange: number;
   setTroopChange?: Dispatch<SetStateAction<number>>;
   attackTerritories: string[];
+  attackTerritory: () => void;
+  setTerritoryToAttack?: Dispatch<SetStateAction<string | undefined>>;
 }) {
   const { bp } = useResponsive(menuOpen, 1297);
   const sv = useRef<ScrollView | any>(null);
@@ -299,6 +304,8 @@ export function GameTabs({
                     troopChange={troopChange}
                     setTroopChange={setTroopChange}
                     attackTerritories={attackTerritories}
+                    attackTerritory={attackTerritory}
+                    setTerritoryToAttack={setTerritoryToAttack}
                   />
                 </ScrollView>
               </View>
@@ -446,6 +453,8 @@ function TurnActionComponent({
   troopChange,
   setTroopChange,
   attackTerritories,
+  attackTerritory,
+  setTerritoryToAttack,
 }: {
   turnAction: TurnAction;
   proxy: typeof warProxy;
@@ -463,6 +472,8 @@ function TurnActionComponent({
   troopChange: number;
   setTroopChange?: Dispatch<SetStateAction<number>>;
   attackTerritories: string[];
+  attackTerritory: () => void;
+  setTerritoryToAttack?: Dispatch<SetStateAction<string | undefined>>;
 }) {
   const tiles = useSnapshot(warDerived.raisedTiles);
 
@@ -622,8 +633,23 @@ function TurnActionComponent({
     case 'attack':
       return (
         <YStack id="where-is-this" height="50%">
-          <H4>Attack a territory</H4>
-          {AttackDialog && <AttackDialog owner={1} />}
+          <XStack>
+            <V flex={1}>
+              <H4>Attack a territory</H4>
+            </V>
+            <V justifyContent="center">
+              <Pressable onPress={attackTerritory}>
+                <Swords size="$1" />
+              </Pressable>
+            </V>
+          </XStack>
+          {AttackDialog && (
+            <AttackDialog
+              portalCoords={portalCoords}
+              owner={1}
+              setTerritoryToAttack={setTerritoryToAttack}
+            />
+          )}
         </YStack>
       );
     case 'reenforce':

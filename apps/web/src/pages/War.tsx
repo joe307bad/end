@@ -1,6 +1,8 @@
-import { H4, View, XStack, YStack } from 'tamagui';
+import { H4, View, XStack } from 'tamagui';
 import React, {
   ComponentType,
+  Dispatch,
+  SetStateAction,
   useCallback,
   useEffect,
   useMemo,
@@ -11,12 +13,7 @@ import { execute, warDerived, warProxy } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
 import { GameTabs, PortalPath, useResponsive } from '@end/components';
 import { Canvas } from '@react-three/fiber';
-import {
-  Coords,
-  derivedDefault,
-  hexasphere,
-  Hexasphere,
-} from '@end/hexasphere';
+import { Coords, hexasphere, Hexasphere } from '@end/hexasphere';
 import { OrbitControls } from '@react-three/drei';
 import { useWindowDimensions } from 'react-native';
 import * as THREE from 'three';
@@ -152,9 +149,12 @@ const initialEdges = [
 
 function AttackDialog({
   owner,
+  portalCoords,
+  setTerritoryToAttack,
 }: {
-  derived: typeof derivedDefault;
+  portalCoords?: [Coords?, Coords?];
   owner: number;
+  setTerritoryToAttack?: Dispatch<SetStateAction<string | undefined>>;
 }) {
   const tileOwners = useSnapshot(warDerived.selectedNeighborsOwners);
 
@@ -162,11 +162,11 @@ function AttackDialog({
     let nodeId = 1;
     const selectedTile = warProxy.tiles.find(
       (t) => t.id == warProxy.selection.selectedId
-    ) ?? { name: '', troopCount: 0 };
-    const n: Record<number, Node> = {
+    ) ?? { name: '', troopCount: 0, id: '' };
+    const n: Record<number, Node & { tileId: string }> = {
       1: {
         ...initialNodes[0],
-        // @ts-ignore
+        tileId: selectedTile.id,
         data: {
           label: (
             <XStack>
@@ -188,11 +188,12 @@ function AttackDialog({
       },
     };
 
-    for (let i = 1; i < 7; i++) {
+    for (let i = 1; i <= 7; i++) {
       const tiles = Object.keys(tileOwners);
       const tile = warProxy.tiles.find((t) => t.id == tiles[i - 1]);
+      const tileOwner = tileOwners[tile?.id ?? -1];
 
-      if (!tile || tile.owner === owner) {
+      if (!tile || !tileOwner) {
         continue;
       }
       const base = initialNodes[nodeId];
@@ -200,6 +201,59 @@ function AttackDialog({
 
       n[nodeId + 1] = {
         ...base,
+        tileId: tile.id,
+        data: {
+          label: (
+            <XStack>
+              <View
+                flex={1}
+                style={{
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  marginRight: 10,
+                }}
+              >
+                {tile.name}
+              </View>
+              <View> / {tile.troopCount}</View>
+            </XStack>
+          ),
+        },
+      };
+    }
+
+    const portalCoord = (() => {
+      if (!portalCoords) {
+        return undefined;
+      }
+      if (portalCoords[0]) {
+        const { x, y, z } = portalCoords[0];
+        if (`${x},${y},${z}` === selectedTile.id) {
+          const { x: x1, y: y1, z: z1 } = portalCoords[1] ?? {};
+          return `${x1},${y1},${z1}`;
+        }
+      }
+      if (portalCoords[1]) {
+        const { x, y, z } = portalCoords[1];
+        if (`${x},${y},${z}` === selectedTile.id) {
+          const { x: x1, y: y1, z: z1 } = portalCoords[0] ?? {};
+          return `${x1},${y1},${z1}`;
+        }
+      }
+
+      return undefined;
+    })();
+
+    if (portalCoord) {
+      const tile = warProxy.tiles.find((t) => t.id == portalCoord) ?? {
+        name: '',
+        troopCount: 0,
+        id: '',
+      };
+      n[9] = {
+        ...initialNodes[7],
+        tileId: portalCoord,
         data: {
           label: (
             <XStack>
@@ -223,6 +277,8 @@ function AttackDialog({
 
     return n;
   }, [tileOwners, warProxy.selection.selectedId]);
+
+  console.log(nodes)
 
   return (
     <View
@@ -263,6 +319,11 @@ function AttackDialog({
             document
               .querySelectorAll(`[data-id='${node.id}']`)[0]
               .classList.add('node-selected');
+            const tile = Object.values(nodes).find((n) => n.id === selectedId);
+
+            if (tile) {
+              setTerritoryToAttack?.(tile.tileId);
+            }
           }
         }}
       />
@@ -314,6 +375,7 @@ function WarComponent({
           const { troopCount, owner } = tiles[tile.id];
           tile.name = name;
           tile.troopCount = troopCount;
+          console.log({owner})
           tile.owner = owner;
           tile.raised = true;
           owners.set(tile.id, tile.owner);
@@ -377,6 +439,7 @@ function WarComponent({
   const [turnAction, setTurnAction] = useState<TurnAction>('attack');
   const [availableTroops, setAvailableTroopsState] = useState(100);
   const [troopChange, setTroopChange] = useState(0);
+  const [territoryToAttack, setTerritoryToAttack] = useState<string>();
 
   const setAvailableTroops = useCallback(
     (args: any) => {
@@ -427,6 +490,13 @@ function WarComponent({
       return [x, y, z].join(',');
     });
   }, [selectedTile]);
+
+  const attackTerritory = useCallback(() => {
+    if (territoryToAttack) {
+      const tile = warProxy.tiles.find((n) => n.id === territoryToAttack);
+      // console.log({ tile, territoryToAttack });
+    }
+  }, [territoryToAttack]);
 
   if (!loaded) {
     return null;
@@ -486,6 +556,8 @@ function WarComponent({
         troopChange={troopChange}
         setTroopChange={setTroopChange}
         attackTerritories={attackTerritories}
+        attackTerritory={attackTerritory}
+        setTerritoryToAttack={setTerritoryToAttack}
       />
     </View>
   );
