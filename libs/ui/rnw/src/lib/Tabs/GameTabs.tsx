@@ -11,10 +11,17 @@ import {
   Input,
   H4,
   ListItem,
+  Text,
+  View as V,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
 import { tw } from '../components';
-import { CircleDot, Crosshair, Hexagon } from '@tamagui/lucide-icons';
+import {
+  CircleDot,
+  Crosshair,
+  Hexagon,
+  ArrowRight,
+} from '@tamagui/lucide-icons';
 import React, {
   Dispatch,
   ElementType,
@@ -33,8 +40,9 @@ import { Pressable, View } from 'react-native';
 import { warProxy, warDerived } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
 import { useSnapshot } from 'valtio';
-
-type TurnAction = 'portal' | 'deploy' | 'attack' | 'reenforce' | null | string;
+import { TurnAction } from '@end/war/core';
+import { ActivityArrow } from '../ActivityArrow';
+import { Swords } from '@tamagui/lucide-icons';
 
 export function GameTabs({
   proxy,
@@ -47,6 +55,18 @@ export function GameTabs({
   setPortalCoords,
   setSelectingPortalEntry,
   selectedTile,
+  deployCoords,
+  setDeployCoords,
+  turnAction,
+  setTurnAction,
+  availableTroops,
+  setAvailableTroops,
+  troopChange,
+  setTroopChange,
+  attackTerritories,
+  attackTerritory,
+  setTerritoryToAttack,
+                           territoryToAttack
 }: {
   derived: typeof warDerived;
   proxy: typeof warProxy;
@@ -58,10 +78,22 @@ export function GameTabs({
   attackDialog?: ElementType;
   portalCoords?: [Coords?, Coords?];
   setPortalCoords?: Dispatch<SetStateAction<[Coords?, Coords?] | undefined>>;
+  deployCoords?: Coords;
+  setDeployCoords?: Dispatch<SetStateAction<Coords | undefined>>;
   setSelectingPortalEntry?: Dispatch<
     SetStateAction<'first' | 'second' | undefined>
   >;
   selectedTile?: string;
+  turnAction?: TurnAction;
+  setTurnAction?: Dispatch<SetStateAction<TurnAction>>;
+  availableTroops: number;
+  setAvailableTroops?: Dispatch<SetStateAction<number>>;
+  troopChange: number;
+  setTroopChange?: Dispatch<SetStateAction<number>>;
+  attackTerritories: string[];
+  attackTerritory: () => void;
+  setTerritoryToAttack?: Dispatch<SetStateAction<string | undefined>>;
+  territoryToAttack?: string;
 }) {
   const { bp } = useResponsive(menuOpen, 1297);
   const sv = useRef<ScrollView | any>(null);
@@ -72,11 +104,15 @@ export function GameTabs({
       derived,
       'selectedTileIndex',
       (selectedTileIndex) => {
-        if (sv.current && selectedTileIndex > -1 && !disableListMovement.current) {
+        if (
+          sv.current &&
+          selectedTileIndex > -1 &&
+          !disableListMovement.current
+        ) {
           sv.current.scrollTo(selectedTileIndex * 44);
         }
 
-        if(disableListMovement.current) {
+        if (disableListMovement.current) {
           disableListMovement.current = false;
         }
       }
@@ -85,12 +121,13 @@ export function GameTabs({
     return () => unsubscribe();
   }, []);
 
-  const [turnAction, setTurnAction] = useState<TurnAction>('deploy');
-
-  const setSelectedTile = useCallback((tile: string) => {
-    disableListMovement.current = true;
-    selectTile(tile);
-  }, [selectTile]);
+  const setSelectedTile = useCallback(
+    (tile: string) => {
+      disableListMovement.current = true;
+      selectTile(tile);
+    },
+    [selectTile]
+  );
 
   const [sort, setSort] = useState<
     'most-troops' | 'least-troops' | 'alphabetical' | string
@@ -104,6 +141,37 @@ export function GameTabs({
     proxy.sort = sort;
     proxy.filter = filter;
   }, [sort, filter]);
+
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
+  const advanceTurn = useCallback(() => {
+    if (!setTurnAction) {
+      return;
+    }
+
+    switch (turnAction) {
+      case 'portal':
+        setTurnAction('deploy');
+        break;
+      case 'deploy':
+        setTurnAction('attack');
+        break;
+      case 'attack':
+        setTurnAction('portal');
+        break;
+      // case 'reenforce':
+      //   setTurnAction('portal');
+        break;
+    }
+  }, [turnAction]);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+  }, [loading]);
 
   return (
     <Section
@@ -159,9 +227,9 @@ export function GameTabs({
               <View style={{ width: '100%' }}>
                 <RadioGroup
                   aria-labelledby="Select one item"
-                  defaultValue="portal"
                   name="form"
                   onValueChange={setTurnAction}
+                  value={turnAction}
                 >
                   <XStack paddingLeft="$0.75" space="$1">
                     <XStack alignItems="center">
@@ -190,22 +258,31 @@ export function GameTabs({
                         Attack
                       </Label>
                     </XStack>
-                    <XStack alignItems="center">
-                      <RadioGroup.Item value={'reenforce'} id={'4'} size={'$3'}>
-                        <RadioGroup.Indicator />
-                      </RadioGroup.Item>
+                    {/*<XStack alignItems="center">*/}
+                    {/*  <RadioGroup.Item value={'reenforce'} id={'4'} size={'$3'}>*/}
+                    {/*    <RadioGroup.Indicator />*/}
+                    {/*  </RadioGroup.Item>*/}
 
-                      <Label paddingLeft="$0.5" size={'$3'} htmlFor={'4'}>
-                        Reenforce
-                      </Label>
-                    </XStack>
+                    {/*  <Label paddingLeft="$0.5" size={'$3'} htmlFor={'4'}>*/}
+                    {/*    Reenforce*/}
+                    {/*  </Label>*/}
+                    {/*</XStack>*/}
+                    <V paddingRight="$0.5" flex={1}>
+                      <ActivityArrow
+                        loading={loading}
+                        onPress={advanceTurn}
+                        open={open}
+                        message={errorMessage}
+                      />
+                    </V>
                   </XStack>
                 </RadioGroup>
               </View>
               <View
-                style={{
-                  width: '100%',
-                }}
+                style={bp([
+                  'w-full',
+                  `${turnAction === 'attack' ? 'max-h-[40%]' : ''}`,
+                ])}
               >
                 <ScrollView
                   style={{
@@ -222,6 +299,16 @@ export function GameTabs({
                     turnAction={turnAction}
                     portalCoords={portalCoords}
                     setPortalCoords={setPortalCoords}
+                    deployCoords={deployCoords}
+                    setDeployCoords={setDeployCoords}
+                    availableTroops={availableTroops}
+                    setAvailableTroops={setAvailableTroops}
+                    troopChange={troopChange}
+                    setTroopChange={setTroopChange}
+                    attackTerritories={attackTerritories}
+                    attackTerritory={attackTerritory}
+                    setTerritoryToAttack={setTerritoryToAttack}
+                    territoryToAttack={territoryToAttack}
                   />
                 </ScrollView>
               </View>
@@ -250,7 +337,7 @@ export function GameTabs({
                         items={[
                           { value: 'all', key: 'All territories' },
                           { value: 'mine', key: 'My territories' },
-                          { value: 'opponents', key: 'Opponents territories' }
+                          { value: 'opponents', key: 'Opponents territories' },
                         ]}
                         native
                       />
@@ -362,6 +449,16 @@ function TurnActionComponent({
   setSelectingPortalEntry,
   setPortalCoords,
   portalCoords,
+  setDeployCoords,
+  deployCoords,
+  availableTroops,
+  setAvailableTroops,
+  troopChange,
+  setTroopChange,
+  attackTerritories,
+  attackTerritory,
+  setTerritoryToAttack,
+                               territoryToAttack
 }: {
   turnAction: TurnAction;
   proxy: typeof warProxy;
@@ -372,8 +469,18 @@ function TurnActionComponent({
   >;
   portalCoords?: [Coords?, Coords?];
   setPortalCoords?: Dispatch<SetStateAction<[Coords?, Coords?] | undefined>>;
+  deployCoords?: Coords;
+  setDeployCoords?: Dispatch<SetStateAction<Coords | undefined>>;
+  availableTroops: number;
+  setAvailableTroops?: Dispatch<SetStateAction<number>>;
+  troopChange: number;
+  setTroopChange?: Dispatch<SetStateAction<number>>;
+  attackTerritories: string[];
+  attackTerritory: () => void;
+  setTerritoryToAttack?: Dispatch<SetStateAction<string | undefined>>;
+  territoryToAttack?: string;
 }) {
-  const tiles = useSnapshot(warDerived.raisedTiles)
+  const tiles = useSnapshot(warDerived.raisedTiles);
 
   switch (turnAction) {
     case 'portal':
@@ -457,17 +564,6 @@ function TurnActionComponent({
               </XStack>
             </XStack>
           </RadioGroup>
-          {/*<XStack alignItems="center">*/}
-          {/*  <Select*/}
-          {/*    label="Portal entry #1"*/}
-          {/*  />*/}
-          {/*</XStack>*/}
-          {/*<XStack alignItems="center">*/}
-          {/*  <Select*/}
-          {/*    label="Portal entry #2"*/}
-
-          {/*  />*/}
-          {/*</XStack>*/}
         </YStack>
       );
     case 'deploy':
@@ -481,7 +577,16 @@ function TurnActionComponent({
             <XStack flex={1} alignItems="center" justifyContent="flex-end">
               <SelectDemoItem
                 id="deploy-select"
-                items={proxy.tiles.map((t) => ({
+                value={Object.values(deployCoords ?? {}).join(',')}
+                onValueChange={(value) => {
+                  const [x, y, z] = value.split(',');
+                  setDeployCoords?.({
+                    x: parseFloat(x),
+                    y: parseFloat(y),
+                    z: parseFloat(z),
+                  });
+                }}
+                items={tiles.map((t) => ({
                   key: t.name,
                   value: t.id,
                 }))}
@@ -491,19 +596,66 @@ function TurnActionComponent({
           </XStack>
           <XStack alignItems="center">
             <XStack minWidth="$1" paddingHorizontal="$0.75">
-              <Label htmlFor="deploy-change">Troop change +/-</Label>
+              <Label htmlFor="deploy-change">Troop change</Label>
             </XStack>
-            <XStack flex={1} alignItems="center" justifyContent="flex-end">
-              <Input padding="$0.5" />
+            <XStack
+              flex={1}
+              alignItems="center"
+              space="$0.75"
+              justifyContent="flex-end"
+            >
+              <V flex={1}>
+                <Input
+                  onChange={(e) => {
+                    const v = !e.nativeEvent.text
+                      ? 0
+                      : parseInt(e.nativeEvent.text);
+                    setTroopChange?.(v);
+                  }}
+                  value={(troopChange ?? 0).toString()}
+                  padding="$0.5"
+                />
+              </V>
+              <V>
+                <Text>{availableTroops}</Text>
+              </V>
+              <V>
+                <ActivityArrow
+                  loading={false}
+                  onPress={() => {
+                    setAvailableTroops?.((prev) => {
+                      return prev - troopChange;
+                    });
+                  }}
+                  open={false}
+                  message={''}
+                />
+              </V>
             </XStack>
           </XStack>
         </YStack>
       );
     case 'attack':
       return (
-        <YStack height="100%">
-          <H4>Attack a territory</H4>
-          {AttackDialog && <AttackDialog />}
+        <YStack id="where-is-this" height="50%">
+          <XStack>
+            <V flex={1}>
+              <H4>Attack a territory</H4>
+            </V>
+            <V justifyContent="center">
+              <Pressable onPress={attackTerritory}>
+                <Swords size="$1" />
+              </Pressable>
+            </V>
+          </XStack>
+          {AttackDialog && (
+            <AttackDialog
+              territoryToAttack={territoryToAttack}
+              portalCoords={portalCoords}
+              owner={1}
+              setTerritoryToAttack={setTerritoryToAttack}
+            />
+          )}
         </YStack>
       );
     case 'reenforce':
@@ -512,7 +664,7 @@ function TurnActionComponent({
           <H4>Reenforce a territory</H4>
           <XStack alignItems="center">
             <XStack minWidth="25%" paddingHorizontal="$0.75">
-              <Label htmlFor="deploy-select">Territory</Label>
+              <Label htmlFor="reenforce-select">Territory</Label>
             </XStack>
             <XStack flex={1} alignItems="center" justifyContent="flex-end">
               <SelectDemoItem
@@ -527,7 +679,7 @@ function TurnActionComponent({
           </XStack>
           <XStack alignItems="center">
             <XStack minWidth="$1" paddingHorizontal="$0.75">
-              <Label htmlFor="deploy-change">Troop change +/-</Label>
+              <Label htmlFor="reenforce-change">Troop change</Label>
             </XStack>
             <XStack flex={1} alignItems="center" justifyContent="flex-end">
               <Input padding="$0.5" />

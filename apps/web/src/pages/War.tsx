@@ -1,19 +1,21 @@
-import { H4 } from 'tamagui';
+import { H4, View, XStack } from 'tamagui';
 import React, {
   ComponentType,
+  Dispatch,
+  SetStateAction,
   useCallback,
   useEffect,
   useMemo,
   useState,
 } from 'react';
 import { useParams } from 'react-router-dom';
-import { execute } from '@end/data/core';
+import { execute, warDerived, warProxy } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
 import { GameTabs, PortalPath, useResponsive } from '@end/components';
 import { Canvas } from '@react-three/fiber';
-import { Coords, Hexasphere } from '@end/hexasphere';
+import { Coords, hexasphere, Hexasphere } from '@end/hexasphere';
 import { OrbitControls } from '@react-three/drei';
-import { useWindowDimensions, View } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 import * as THREE from 'three';
 import {
   compose,
@@ -22,11 +24,12 @@ import {
 } from '@nozbe/watermelondb/react';
 import { Database } from '@nozbe/watermelondb';
 import { Observable } from 'rxjs';
-import { Planet, War } from '@end/wm/core';
-import { MarkerType, Position, ReactFlow } from '@xyflow/react';
+import { War } from '@end/wm/core';
+import { MarkerType, Position, ReactFlow, Node } from '@xyflow/react';
 
 import '@xyflow/react/dist/style.css';
-import { Tile } from '@end/war/core';
+import { Tile, TurnAction } from '@end/war/core';
+import { useSnapshot } from 'valtio';
 
 const initialNodes = [
   {
@@ -57,6 +60,24 @@ const initialNodes = [
     position: { x: 200, y: 90 },
     data: { label: '5' },
     targetPosition: Position.Left,
+  },
+  {
+    id: '6',
+    position: { x: 0, y: 135 },
+    data: { label: '6' },
+    targetPosition: Position.Right,
+  },
+  {
+    id: '7',
+    position: { x: 200, y: 135 },
+    data: { label: '7' },
+    targetPosition: Position.Left,
+  },
+  {
+    id: '8',
+    position: { x: 0, y: 180 },
+    data: { label: '8' },
+    targetPosition: Position.Right,
   },
 ];
 const initialEdges = [
@@ -97,13 +118,173 @@ const initialEdges = [
       type: MarkerType.Arrow,
     },
   },
+  {
+    id: 'e1-6',
+    source: '1',
+    target: '6',
+    type: 'smoothstep',
+    markerEnd: {
+      type: MarkerType.Arrow,
+    },
+  },
+  {
+    id: 'e1-7',
+    source: '1',
+    target: '7',
+    type: 'smoothstep',
+    markerEnd: {
+      type: MarkerType.Arrow,
+    },
+  },
+  {
+    id: 'e1-8',
+    source: '1',
+    target: '8',
+    type: 'smoothstep',
+    markerEnd: {
+      type: MarkerType.Arrow,
+    },
+  },
 ];
 
-function AttackDialog() {
+function AttackDialog({
+  owner,
+  portalCoords,
+  setTerritoryToAttack,
+  territoryToAttack,
+}: {
+  portalCoords?: [Coords?, Coords?];
+  owner: number;
+  setTerritoryToAttack?: Dispatch<SetStateAction<string | undefined>>;
+  territoryToAttack?: string;
+}) {
+  const tileOwners = useSnapshot(warDerived.selectedNeighborsOwners);
+
+  const nodes = useMemo(() => {
+    let nodeId = 1;
+    const selectedTile = warProxy.tiles.find(
+      (t) => t.id == warProxy.selection.selectedId
+    ) ?? { name: '', troopCount: 0, id: '' };
+    const n: Record<number, Node & { tileId: string }> = {
+      1: {
+        ...initialNodes[0],
+        tileId: selectedTile.id,
+        data: {
+          label: (
+            <XStack>
+              <View
+                flex={1}
+                style={{
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  marginRight: 10,
+                }}
+              >
+                {selectedTile.name}
+              </View>
+              <View> / {selectedTile.troopCount}</View>
+            </XStack>
+          ),
+        },
+      },
+    };
+
+    for (let i = 1; i <= 7; i++) {
+      const tiles = Object.keys(tileOwners);
+      const tile = warProxy.tiles.find((t) => t.id == tiles[i - 1]);
+      const tileOwner = tileOwners[tile?.id ?? -1];
+
+      if (!tile || !tileOwner) {
+        continue;
+      }
+      const base = initialNodes[nodeId];
+      nodeId++;
+
+      n[nodeId + 1] = {
+        ...base,
+        tileId: tile.id,
+        selected: tile.id === territoryToAttack,
+        data: {
+          label: (
+            <XStack>
+              <View
+                flex={1}
+                style={{
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  marginRight: 10,
+                }}
+              >
+                {tile.name}
+              </View>
+              <View> / {tile.troopCount}</View>
+            </XStack>
+          ),
+        },
+      };
+    }
+
+    const portalCoord = (() => {
+      if (!portalCoords) {
+        return undefined;
+      }
+      if (portalCoords[0]) {
+        const { x, y, z } = portalCoords[0];
+        if (`${x},${y},${z}` === selectedTile.id) {
+          const { x: x1, y: y1, z: z1 } = portalCoords[1] ?? {};
+          return `${x1},${y1},${z1}`;
+        }
+      }
+      if (portalCoords[1]) {
+        const { x, y, z } = portalCoords[1];
+        if (`${x},${y},${z}` === selectedTile.id) {
+          const { x: x1, y: y1, z: z1 } = portalCoords[0] ?? {};
+          return `${x1},${y1},${z1}`;
+        }
+      }
+
+      return undefined;
+    })();
+
+    if (portalCoord) {
+      const tile = warProxy.tiles.find((t) => t.id == portalCoord) ?? {
+        name: '',
+        troopCount: 0,
+        id: '',
+      };
+      n[9] = {
+        ...initialNodes[7],
+        tileId: portalCoord,
+        data: {
+          label: (
+            <XStack>
+              <View
+                flex={1}
+                style={{
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  marginRight: 10,
+                }}
+              >
+                {tile.name}
+              </View>
+              <View> / {tile.troopCount}</View>
+            </XStack>
+          ),
+        },
+      };
+    }
+
+    return n;
+  }, [tileOwners, warProxy.selection.selectedId]);
+
   return (
     <View
       style={{
-        height: 160,
+        height: 220,
         paddingLeft: 10,
       }}
     >
@@ -127,8 +308,27 @@ function AttackDialog() {
         draggable={false}
         elementsSelectable={true}
         colorMode="dark"
-        nodes={initialNodes}
+        nodes={Object.values(nodes)}
         edges={initialEdges}
+        multiSelectionKeyCode="Meta"
+        onNodeClick={(e, node) => {
+          const selectedId = node.id;
+          if (selectedId !== '1') {
+            document.querySelectorAll('.node-selected').forEach((el) => {
+              el.classList.remove('node-selected');
+            });
+            setTimeout(() => {
+              document
+                .querySelectorAll(`[data-id='${selectedId}']`)[0]
+                .classList.add('node-selected');
+            }, 0);
+            const tile = Object.values(nodes).find((n) => n.id === selectedId);
+
+            if (tile) {
+              setTerritoryToAttack?.(tile.tileId);
+            }
+          }
+        }}
       />
     </View>
   );
@@ -150,6 +350,7 @@ function WarComponent({
   const [tileOwners, setTileOwners] = useState<Map<string, number>>(new Map());
 
   const [portalCoords, setPortalCoords] = useState<[Coords?, Coords?]>();
+  const [deployCoords, setDeployCoords] = useState<Coords | undefined>();
   const [selectingPortalEntry, setSelectingPortalEntry] = useState<
     'first' | 'second' | undefined
   >('first');
@@ -183,7 +384,6 @@ function WarComponent({
         }
       });
       setLoaded(true);
-      // setTileOwners(owners);
 
       const title = `The War of ${local.name}`;
       setTitle(title);
@@ -209,7 +409,7 @@ function WarComponent({
     return () => {
       st?.('');
     };
-  });
+  }, []);
   const cam = useMemo(() => {
     const cam = new THREE.PerspectiveCamera(45);
     cam.position.set(0, 0, 160);
@@ -238,27 +438,77 @@ function WarComponent({
   }, [width]);
 
   const [selectedTile, setSelectedTile] = useState<string>();
+  const [turnAction, setTurnAction] = useState<TurnAction>('attack');
+  const [availableTroops, setAvailableTroopsState] = useState(100);
+  const [troopChange, setTroopChange] = useState(0);
+  const [territoryToAttack, setTerritoryToAttack] = useState<string>();
+
+  useEffect(() => {
+    setTerritoryToAttack(undefined);
+  }, [selectedTile])
+
+  const setAvailableTroops = useCallback(
+    (args: any) => {
+      const tile = warProxy.tiles.find((tile) => tile.id === selectedTile);
+      if (tile) {
+        tile.troopCount = tile.troopCount + troopChange;
+      }
+      return setAvailableTroopsState(args);
+    },
+    [setAvailableTroopsState, troopChange, selectedTile]
+  );
 
   const onTileSelection = useCallback(
     (tile: Coords) => {
       setSelectedTile(Object.values(tile).join(','));
-      if (selectingPortalEntry === 'first') {
-        setPortalCoords((prev) => {
-          prev = [tile, prev?.[1]];
-          return prev;
-        });
-      } else if (selectingPortalEntry === 'second') {
-        setPortalCoords((prev) => {
-          prev = [prev?.[0], tile];
-          return prev;
-        });
+
+      switch (turnAction) {
+        case 'portal':
+          if (selectingPortalEntry === 'first') {
+            setPortalCoords((prev) => {
+              prev = [tile, prev?.[1]];
+              return prev;
+            });
+          } else if (selectingPortalEntry === 'second') {
+            setPortalCoords((prev) => {
+              prev = [prev?.[0], tile];
+              return prev;
+            });
+          }
+          break;
+        case 'deploy':
+          setDeployCoords(tile);
+          break;
       }
     },
-    [selectingPortalEntry, setPortalCoords]
+    [selectingPortalEntry, setPortalCoords, setDeployCoords, turnAction]
   );
 
   const [menuOpen, setMenuOpen] = useState(true);
   const { bp } = useResponsive(menuOpen);
+
+  const attackTerritories = useMemo(() => {
+    if (!selectedTile) {
+      return [];
+    }
+    return hexasphere.tileLookup[selectedTile].neighbors.map((tile) => {
+      const { x, y, z } = tile.centerPoint;
+      return [x, y, z].join(',');
+    });
+  }, [selectedTile]);
+
+  const attackTerritory = useCallback(() => {
+    if (territoryToAttack) {
+      const tile = warProxy.tiles.find((n) => n.id === territoryToAttack);
+      if (tile) {
+        tile.troopCount = tile.troopCount - 1;
+      }
+      const attackingFrom = warProxy.tiles.find((n) => n.id === selectedTile);
+      if (attackingFrom) {
+        attackingFrom.troopCount = attackingFrom.troopCount - 1;
+      }
+    }
+  }, [territoryToAttack]);
 
   if (!loaded) {
     return null;
@@ -309,6 +559,18 @@ function WarComponent({
         attackDialog={AttackDialog}
         portalCoords={portalCoords}
         setPortalCoords={setPortalCoords}
+        deployCoords={deployCoords}
+        setDeployCoords={setDeployCoords}
+        turnAction={turnAction}
+        setTurnAction={setTurnAction}
+        availableTroops={availableTroops}
+        setAvailableTroops={setAvailableTroops}
+        troopChange={troopChange}
+        setTroopChange={setTroopChange}
+        attackTerritories={attackTerritories}
+        attackTerritory={attackTerritory}
+        setTerritoryToAttack={setTerritoryToAttack}
+        territoryToAttack={territoryToAttack}
       />
     </View>
   );

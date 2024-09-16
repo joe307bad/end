@@ -64,14 +64,12 @@ export const tokens = createTokens({
 export const config = createTamagui({
   animations: createAnimations({
     fast: {
-      damping: 20,
-      mass: 1.2,
-      stiffness: 250,
+      bounciness: 0,
+      speed: 1000,
     },
     medium: {
-      damping: 10,
-      mass: 0.9,
-      stiffness: 100,
+      bounciness: 0,
+      speed: 1000,
     },
     slow: {
       damping: 20,
