@@ -204,6 +204,7 @@ function AttackDialog({
       n[nodeId + 1] = {
         ...base,
         tileId: tile.id,
+        selected: tile.id === territoryToAttack,
         data: {
           label: (
             <XStack>
@@ -279,17 +280,6 @@ function AttackDialog({
 
     return n;
   }, [tileOwners, warProxy.selection.selectedId]);
-
-  const tile = Object.values(nodes).find((n) => n.tileId === territoryToAttack);
-  console.log({ tile, territoryToAttack });
-  // TODO after selecting attack button, the highlighted node from ReactFlow becomes unhighlighted
-  if (tile) {
-    setTimeout(() => {
-      document
-        .querySelectorAll(`[data-id='${tile.id}']`)[0]
-        .classList.add('node-selected');
-    }, 0);
-  }
 
   return (
     <View
@@ -452,6 +442,10 @@ function WarComponent({
   const [availableTroops, setAvailableTroopsState] = useState(100);
   const [troopChange, setTroopChange] = useState(0);
   const [territoryToAttack, setTerritoryToAttack] = useState<string>();
+
+  useEffect(() => {
+    setTerritoryToAttack(undefined);
+  }, [selectedTile])
 
   const setAvailableTroops = useCallback(
     (args: any) => {
