@@ -40,6 +40,7 @@ import { EndApiProvider, useEndApi } from '@end/data/web';
 import { War as TWar } from '@end/wm/core';
 import { Database } from '@nozbe/watermelondb';
 import { Observable } from 'rxjs';
+import { War2 } from '../pages/War2';
 
 function WithNavigate({
   children,
@@ -140,6 +141,7 @@ function AppRoutes() {
             <Route path="/home" element={<Home />} />
             <Route path="/conquest" element={<Conquest />} />
             <Route path="/war/:id" element={<War />} />
+            <Route path="/war2" element={<War2 />} />
           </Route>
           <Route
             path="/"
