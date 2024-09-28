@@ -38,6 +38,7 @@ import { Edges } from '@react-three/drei';
 // @ts-ignore
 import v from 'voca';
 import { useEndApi } from '@end/data/web';
+import { getOrUndefined } from 'effect/Option';
 
 function getPointInBetweenByPerc(
   pointA: THREE.Vector3,
@@ -339,18 +340,14 @@ const TroopCount = React.memo(
     y,
     z,
     selected,
-    defending,
     troopCount,
-    showTroopCount,
     ringColor,
   }: {
     x: number;
     y: number;
     z: number;
     selected: boolean;
-    defending: boolean;
     troopCount: number;
-    showTroopCount: boolean;
     ringColor: string;
   }) => {
     const textPositionX = React.useRef<number>();
@@ -374,7 +371,7 @@ const TroopCount = React.memo(
       if (defendingRing.current) {
         defendingRing.current.rotation.x = MathUtils.degToRad(-90);
       }
-    }, [selected, defending]);
+    }, [selected]);
 
     useEffect(() => {
       if (
@@ -443,7 +440,7 @@ const TroopCount = React.memo(
     });
 
     return (
-      <mesh visible={showTroopCount} ref={text} position={[x, y, z]}>
+      <mesh ref={text} position={[x, y, z]}>
         <mesh ref={cyl}>
           <cylinderGeometry
             ref={countGeo}
@@ -458,16 +455,6 @@ const TroopCount = React.memo(
                 side={THREE.DoubleSide}
                 attach="material"
                 color={'red'}
-              />
-            </mesh>
-          ) : null}
-          {defending ? (
-            <mesh ref={defendingRing} position={[0, 1, 0]}>
-              <ringGeometry args={[2, 2.5, 25]} />
-              <meshBasicMaterial
-                side={THREE.DoubleSide}
-                attach="material"
-                color={'blue'}
               />
             </mesh>
           ) : null}
@@ -668,34 +655,24 @@ const TileMesh = React.memo(
   ({
     id,
     selected,
-    defending,
     raised,
     troopCount,
-    selectTile,
-    landColor,
-    waterColor,
-    showTroopCount,
     ringColor,
-    raisedTiles,
-    showAttackArrows,
     owner,
-    derived,
+    defending,
   }: {
-    derived?: any;
     id: string;
     selected: boolean;
-    defending: boolean;
     raised: boolean;
     troopCount: number;
-    selectTile(id: string, position: THREE.Vector3): any;
-    landColor: string;
-    waterColor: string;
-    showTroopCount: boolean;
     ringColor: string;
-    raisedTiles?: Set<string>;
-    showAttackArrows?: boolean;
-    owner?: number;
+    owner: number;
+    defending: boolean;
   }) => {
+    const { services } = useEndApi();
+    const { warService } = services;
+    const warStore = useSnapshot(warService.store);
+
     const { land, neighbors, water, centerPoint } = useMemo(() => {
       return {
         ...geometries[id],
@@ -704,15 +681,14 @@ const TileMesh = React.memo(
     }, []);
 
     const { camera } = useThree();
-
     const click = useCallback(
       (e: ThreeEvent<MouseEvent>) => {
         e.stopPropagation();
         startTransition(() => {
-          selectTile(id, camera.position);
+          warService.onTileSelection(id, camera.position);
         });
       },
-      [selectTile]
+      []
     );
 
     return (
@@ -721,15 +697,13 @@ const TileMesh = React.memo(
           <AttackArrows
             id={id}
             neighbors={neighbors}
-            showAttackArrows={showAttackArrows}
             centerPoint={centerPoint}
             raised={raised}
             owner={owner}
-            derived={derived}
           />
         )}
         <mesh visible={raised} geometry={land}>
-          <meshStandardMaterial color={landColor} />
+          <meshStandardMaterial color={getOrUndefined(warStore.landColor)} />
           {centerPoint && (
             <Edges color={selected ? 'yellow' : 'black'} threshold={50} />
           )}
@@ -739,15 +713,13 @@ const TileMesh = React.memo(
               y={centerPoint.y}
               z={centerPoint.z}
               selected={false}
-              defending={false}
               troopCount={troopCount}
-              showTroopCount={showTroopCount}
               ringColor={ringColor}
             />
           )}
         </mesh>
         <mesh visible={!raised} geometry={water}>
-          <meshStandardMaterial color={waterColor} />
+          <meshStandardMaterial color={getOrUndefined(warStore.waterColor)} />
         </mesh>
       </mesh>
     );
@@ -755,45 +727,6 @@ const TileMesh = React.memo(
 );
 
 var camPosIndex = 0;
-
-export function selectTile(
-  id: string,
-  cameraPosition: THREE.Vector3,
-  proxy: typeof hexasphereProxy
-) {
-  const currentlySelected = proxy.tiles.find((tile) => tile.selected);
-  if (currentlySelected) {
-    currentlySelected.selected = false;
-  }
-
-  const newSelected = proxy.tiles.find((tile) => tile.id === id);
-
-  if (newSelected) {
-    newSelected.selected = true;
-    proxy.selection.selectedId = newSelected.id;
-    proxy.selection.cameraPosition = cameraPosition;
-
-    const currentlyDefending = proxy.tiles.filter((tile) => tile.defending);
-
-    if (currentlyDefending.length > 0) {
-      currentlyDefending.forEach((tile) => {
-        tile.defending = false;
-      });
-    }
-
-    const neighbors = hexasphere.tileLookup[newSelected.id].neighborIds;
-
-    newSelected.raised &&
-      neighbors.forEach((neighborTileId) => {
-        const neighbor = proxy.tiles.find((tile) => tile.id === neighborTileId);
-        if (neighbor) {
-          neighbor.defending = true;
-        }
-      });
-  }
-
-  return currentlySelected;
-}
 
 export const HexasphereV2 = React.memo(
   ({ portalPath: PortalPath }: { portalPath?: ElementType }) => {
@@ -836,15 +769,19 @@ export const HexasphereV2 = React.memo(
     }>();
 
     useEffect(() => {
-      const unsubscribe = subscribeKey(warService.derived, 'cameraPath', (s) => {
-        cameraPath.current = s;
-      });
+      const unsubscribe = subscribeKey(
+        warService.derived,
+        'cameraPath',
+        (s) => {
+          cameraPath.current = s;
+        }
+      );
 
       return () => unsubscribe();
     }, []);
 
     useFrame(() => {
-      const speed = 10;
+      const speed = 100;
       const path = cameraPath;
       if (path.current) {
         camPosIndex++;
@@ -884,12 +821,11 @@ export const HexasphereV2 = React.memo(
               key={t.id}
               id={t.id}
               selected={t.selected}
-              defending={t.defending}
               raised={t.raised}
               troopCount={t.troopCount}
               ringColor={t.owner === 1 ? 'green' : 'blue'}
-              raisedTiles={raisedTiles}
               owner={t.owner}
+              defending={t.defending}
             />
           ))}
           {warService.hasPortal() && PortalPath && (

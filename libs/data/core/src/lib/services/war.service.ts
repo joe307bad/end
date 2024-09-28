@@ -2,8 +2,14 @@ import { proxy } from 'valtio';
 import { Context, Effect, Layer, pipe, Option as O } from 'effect';
 import type { Option } from 'effect/Option';
 import * as THREE from 'three';
-import { buildCameraPath, Coords, hexasphere } from '@end/hexasphere';
+import {
+  buildCameraPath,
+  Coords,
+  getRandomName,
+  hexasphere,
+} from '@end/hexasphere';
 import { derive } from 'valtio/utils';
+import { faker } from '@faker-js/faker';
 
 type Tile = {
   id: string;
@@ -160,8 +166,10 @@ interface IWarService {
   store: WarStore;
   derived: typeof derived;
   hasPortal: () => boolean;
-  onTileSelection: (tile: Coords) => void;
-  selectTile: (id: string | Coords) => void;
+  onTileSelection: (
+    tile: string | Coords,
+    cameraPosition: THREE.Vector3
+  ) => void;
   setFilter: (filter: WarStore['filter']) => void;
   setLandAndWaterColors: (water: string, land: string) => void;
   setName: (name: string) => void;
@@ -188,9 +196,66 @@ function isCoords(value: string | Coords): value is Coords {
   );
 }
 
+function tileIdAndCoords(tile: string | Coords): [string, Coords] {
+  if (isCoords(tile)) {
+    return [`${tile.x},${tile.y},${tile.z}`, tile];
+  } else {
+    const [x, y, z] = tile.split(',').map((x) => parseFloat(x));
+    return [tile, { x, y, z }];
+  }
+}
+
+function selectTile(id: string, cameraPosition: THREE.Vector3) {
+  const currentlySelected = store.tiles.find((tile) => tile.selected);
+  if (currentlySelected) {
+    currentlySelected.selected = false;
+  }
+
+  const newSelected = store.tiles.find((tile) => tile.id === id);
+
+  if (newSelected) {
+    newSelected.selected = true;
+    store.selectedTileId = O.some(newSelected.id);
+    store.cameraPosition = O.some(cameraPosition);
+
+    const currentlyDefending = store.tiles.filter((tile) => tile.defending);
+
+    if (currentlyDefending.length > 0) {
+      currentlyDefending.forEach((tile) => {
+        tile.defending = false;
+      });
+    }
+
+    const neighbors = hexasphere.tileLookup[newSelected.id].neighborIds;
+
+    newSelected.raised &&
+      neighbors.forEach((neighborTileId) => {
+        const neighbor = store.tiles.find((tile) => tile.id === neighborTileId);
+        if (neighbor) {
+          neighbor.defending = true;
+        }
+      });
+  }
+
+  return currentlySelected;
+}
+
 const WarLive = Layer.effect(
   WarService,
   Effect.gen(function* () {
+    store.tiles = Object.keys(hexasphere.tileLookup).map((tileId: string) => {
+      const perctRaised = faker.number.float({ min: 0.1, max: 0.9 });
+      return {
+        id: tileId,
+        selected: false,
+        defending: false,
+        raised: faker.datatype.boolean(perctRaised),
+        name: getRandomName(),
+        troopCount: 0,
+        owner: 0,
+      };
+    });
+
     return WarService.of({
       store,
       derived,
@@ -199,13 +264,6 @@ const WarLive = Layer.effect(
           typeof store.portal[0] !== 'undefined' &&
           typeof store.portal[1] !== 'undefined'
         );
-      },
-      selectTile(id) {
-        if (isCoords(id)) {
-          store.selectedTileId = O.some(`${id.x},${id.y},${id.z}`);
-        } else {
-          store.selectedTileId = O.some(id);
-        }
       },
       setCameraPosition(v3) {
         store.cameraPosition = O.some(v3);
@@ -229,15 +287,19 @@ const WarLive = Layer.effect(
       setSettingPortalCoords(settingPortalCords) {
         store.settingPortalCoords = settingPortalCords;
       },
-      onTileSelection(tile: Coords) {
-        this.selectTile(tile);
+      onTileSelection(tile: string | Coords, cameraPosition: THREE.Vector3) {
+        const [tileId, coords] = tileIdAndCoords(tile);
+
+        console.log({ tileId, coords });
+
+        selectTile(tileId, cameraPosition);
 
         switch (store.turnAction) {
           case 'portal':
-            this.setPortal(tile);
+            this.setPortal(coords);
             break;
           case 'deploy':
-            this.setDeployTo(tile);
+            this.setDeployTo(coords);
             break;
         }
       },
