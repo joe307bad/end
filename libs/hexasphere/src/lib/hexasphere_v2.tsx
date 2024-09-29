@@ -781,7 +781,7 @@ export const HexasphereV2 = React.memo(
     }, []);
 
     useFrame(() => {
-      const speed = 100;
+      const speed = 50;
       const path = cameraPath;
       if (path.current) {
         camPosIndex++;

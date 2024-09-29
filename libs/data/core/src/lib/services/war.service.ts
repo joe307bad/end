@@ -167,13 +167,16 @@ interface IWarService {
   derived: typeof derived;
   hasPortal: () => boolean;
   onTileSelection: (
-    tile: string | Coords,
-    cameraPosition: THREE.Vector3
+    tile: string | Coords | null,
+    cameraPosition?: THREE.Vector3
   ) => void;
   setFilter: (filter: WarStore['filter']) => void;
   setLandAndWaterColors: (water: string, land: string) => void;
   setName: (name: string) => void;
-  setTiles: (tiles: Tile[]) => void;
+  setTiles: (
+    raisedTiles: Record<string, string>,
+    ownedTiles: Record<string, Tile>
+  ) => void;
   setSort: (sort: WarStore['sort']) => void;
   setSettingPortalCoords: (
     settingPortalCords: WarStore['settingPortalCoords']
@@ -244,13 +247,12 @@ const WarLive = Layer.effect(
   WarService,
   Effect.gen(function* () {
     store.tiles = Object.keys(hexasphere.tileLookup).map((tileId: string) => {
-      const perctRaised = faker.number.float({ min: 0.1, max: 0.9 });
       return {
         id: tileId,
         selected: false,
         defending: false,
-        raised: faker.datatype.boolean(perctRaised),
-        name: getRandomName(),
+        raised: false,
+        name: '',
         troopCount: 0,
         owner: 0,
       };
@@ -278,8 +280,17 @@ const WarLive = Layer.effect(
       setName(name) {
         store.name = O.some(name);
       },
-      setTiles(tiles) {
-        store.tiles = tiles;
+      setTiles(raisedTiles, ownedTiles) {
+        store.tiles.forEach((tile) => {
+          if (raisedTiles[tile.id]) {
+            const name = raisedTiles[tile.id];
+            const { troopCount, owner } = ownedTiles[tile.id];
+            tile.name = name;
+            tile.troopCount = troopCount;
+            tile.owner = owner;
+            tile.raised = true;
+          }
+        });
       },
       setSort(sort) {
         store.sort = sort;
@@ -287,10 +298,17 @@ const WarLive = Layer.effect(
       setSettingPortalCoords(settingPortalCords) {
         store.settingPortalCoords = settingPortalCords;
       },
-      onTileSelection(tile: string | Coords, cameraPosition: THREE.Vector3) {
-        const [tileId, coords] = tileIdAndCoords(tile);
+      onTileSelection(
+        tile: string | Coords | null,
+        cameraPosition?: THREE.Vector3
+      ) {
+        if (!tile || !cameraPosition) {
+          store.selectedTileId = O.none();
+          store.cameraPosition = O.none();
+          return;
+        }
 
-        console.log({ tileId, coords });
+        const [tileId, coords] = tileIdAndCoords(tile);
 
         selectTile(tileId, cameraPosition);
 
