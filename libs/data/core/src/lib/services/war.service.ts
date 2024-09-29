@@ -37,14 +37,15 @@ interface WarStore {
   turnAction: 'portal' | 'deploy' | 'attack';
   availableTroopsToDeploy: number;
   troopsToDeploy: number;
-  attacking: Option<Coords>;
+  territoryToAttack: Option<Coords>;
 }
 
 function sortedTilesList(
+  tiles: Tile[],
   sort: 'most-troops' | 'least-troops' | 'alphabetical' | string,
   filter: 'all' | 'mine' | 'opponents' | 'bordering' | string
 ) {
-  return [...store.tiles]
+  return [...tiles]
     .sort((a, b) => {
       switch (sort) {
         case 'alphabetical':
@@ -91,7 +92,7 @@ const store = proxy<WarStore>({
   turnAction: 'portal',
   availableTroopsToDeploy: 100,
   troopsToDeploy: 0,
-  attacking: O.none(),
+  territoryToAttack: O.none(),
 });
 
 const derived = derive({
@@ -122,19 +123,27 @@ const derived = derive({
     const selectedId = get(store).selectedTileId;
     const sort = get(store).sort;
     const filter = get(store).filter;
+    const tiles = get(store).tiles;
 
     return O.match(selectedId, {
       onNone: () => undefined,
       onSome: (id) =>
-        sortedTilesList(sort, filter).findIndex((t) => t.id === id),
+        sortedTilesList(tiles, sort, filter).findIndex((t) => t.id === id),
     });
+  },
+  sortedTiles: (get) => {
+    const sort = get(store).sort;
+    const filter = get(store).filter;
+    const tiles = get(store).tiles;
+
+    return sortedTilesList(tiles, sort, filter);
   },
   selectedNeighborsOwners: (get) => {
     const selectedId = get(store).selectedTileId;
     const tiles = get(store).tiles;
 
     return O.match(selectedId, {
-      onNone: () => undefined,
+      onNone: () => ({} as Record<string, number>),
       onSome: (id) => {
         const neighbors = hexasphere.tileLookup[id].neighbors;
         return neighbors.reduce((acc: Record<string, number>, tile) => {
@@ -181,11 +190,13 @@ interface IWarService {
   setSettingPortalCoords: (
     settingPortalCords: WarStore['settingPortalCoords']
   ) => void;
-  setPortal: (coords: Coords) => void;
-  setDeployTo: (coords: Coords) => void;
-  setTurnAction: (action: WarStore['turnAction']) => void;
-  setAvailableTroopsToDeploy: (numberOfTroops: number) => void;
-  setAttacking: (coords: Coords) => void;
+  setPortal: (coords: string | Coords) => void;
+  setDeployTo: (coords: string | Coords) => void;
+  setTurnAction: () => void;
+  setAvailableTroopsToDeploy: () => void;
+  setTroopsToDeploy: (troopsToDeploy: number) => void;
+  setTerritoryToAttack: (coords: Coords) => void;
+  attackTerritory: () => void;
   setCameraPosition: (v3: THREE.Vector3) => void;
 }
 
@@ -199,7 +210,13 @@ function isCoords(value: string | Coords): value is Coords {
   );
 }
 
-function tileIdAndCoords(tile: string | Coords): [string, Coords] {
+export function tileIdAndCoords(
+  tile: string | Coords | undefined
+): [string, Coords] {
+  if (!tile) {
+    return ['', { x: 0, y: 0, z: 0 }];
+  }
+
   if (isCoords(tile)) {
     return [`${tile.x},${tile.y},${tile.z}`, tile];
   } else {
@@ -321,24 +338,68 @@ const WarLive = Layer.effect(
             break;
         }
       },
-      setPortal(coords) {
+      setPortal(c) {
+        const [_, coords] = tileIdAndCoords(c);
         if (store.settingPortalCoords === 'first') {
           store.portal[0] = coords;
         } else {
           store.portal[1] = coords;
         }
       },
-      setDeployTo(coords) {
+      setDeployTo(c) {
+        const [_, coords] = tileIdAndCoords(c);
         store.deployTo = O.some(coords);
       },
-      setTurnAction(action) {
-        store.turnAction = action;
+      setTurnAction() {
+        switch (store.turnAction) {
+          case 'portal':
+            store.turnAction = 'deploy';
+            break;
+          case 'deploy':
+            store.turnAction = 'attack';
+            break;
+          case 'attack':
+            store.turnAction = 'portal';
+            break;
+            // case 'reenforce':
+            //   setTurnAction('portal');
+            break;
+        }
       },
-      setAvailableTroopsToDeploy(numberOfTroops) {
-        store.availableTroopsToDeploy = numberOfTroops;
+      setAvailableTroopsToDeploy() {
+        store.availableTroopsToDeploy =
+          store.availableTroopsToDeploy - store.troopsToDeploy;
       },
-      setAttacking(coords) {
-        store.attacking = O.some(coords);
+      setTroopsToDeploy(numberOfTroops) {
+        store.troopsToDeploy = numberOfTroops;
+      },
+      setTerritoryToAttack(coords) {
+        store.territoryToAttack = O.some(coords);
+      },
+      attackTerritory() {
+        const combined = O.flatMap(store.selectedTileId, (value1) =>
+          O.map(store.territoryToAttack, (value2) => ({
+            selectedTileId: value1,
+            territoryToAttackId: tileIdAndCoords(value2)[0],
+          }))
+        );
+
+        O.match(combined, {
+          onNone: () => undefined,
+          onSome: ({ selectedTileId, territoryToAttackId }) => {
+            const territoryToAttack = store.tiles.find(
+              (tile) => tile.id === territoryToAttackId
+            );
+            const attackingTerritory = store.tiles.find(
+              (tile) => tile.id === selectedTileId
+            );
+
+            if (territoryToAttack && attackingTerritory) {
+              territoryToAttack.troopCount = territoryToAttack.troopCount - 1;
+              attackingTerritory.troopCount = attackingTerritory.troopCount - 1;
+            }
+          },
+        });
       },
     });
   })

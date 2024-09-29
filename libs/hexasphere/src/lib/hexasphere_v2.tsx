@@ -260,78 +260,12 @@ function getBoundaries(t: Tile, raised: boolean) {
 
   return { indices: new Uint16Array(indices), positions };
 }
-
-export const hexasphereProxy = proxy<{
-  name: string;
-  selection: {
-    selectedId: string | null;
-    cameraPosition: THREE.Vector3 | null;
-  };
-  colors: {
-    land: string;
-    water: string;
-  };
-  tiles: {
-    id: string;
-    selected: boolean;
-    defending: boolean;
-    raised: boolean;
-    name: string;
-    troopCount: number;
-    owner: number;
-  }[];
-}>({
-  name: getRandomName(),
-  selection: {
-    selectedId: null,
-    cameraPosition: null,
-  },
-  colors: {
-    land: faker.color.rgb({ format: 'hex' }),
-    water: faker.color.rgb({ format: 'hex' }),
-  },
-  tiles: Object.keys(hexasphere.tileLookup).map((tileId: string) => {
-    const perctRaised = faker.number.float({ min: 0.1, max: 0.9 });
-    return {
-      id: tileId,
-      selected: false,
-      defending: false,
-      raised: faker.datatype.boolean(perctRaised),
-      name: getRandomName(),
-      troopCount: 0,
-      owner: 0,
-    };
-  }),
-});
-
 Object.keys(hexasphere.tileLookup).forEach((tileId) => {
   const tile = hexasphere.tileLookup[tileId];
   const land = getBoundaries(tile, true);
   const water = getBoundaries(tile, false);
   hexasphere.tileLookup[tileId].land = land;
   hexasphere.tileLookup[tileId].water = water;
-});
-
-export const derivedDefault = derive({
-  cameraPath: (get) => {
-    const selectedId = get(hexasphereProxy.selection).selectedId;
-    const cameraPosition = get(hexasphereProxy.selection).cameraPosition;
-    if (selectedId && cameraPosition) {
-      const { x, y, z } = hexasphere.tileLookup[selectedId].centerPoint;
-      return buildCameraPath(cameraPosition, new THREE.Vector3(x, y, z));
-    }
-
-    return undefined;
-  },
-  selectedTileIndex: (get) => {
-    const selectedId = get(hexasphereProxy.selection).selectedId;
-    return hexasphereProxy.tiles
-      .filter((t) => t.raised)
-      .findIndex((t) => t.id === selectedId);
-  },
-  selectedNeighborsOwners: () => {
-    return {};
-  },
 });
 
 const TroopCount = React.memo(
