@@ -1,22 +1,15 @@
 import { H4, View, XStack } from 'tamagui';
 import { useEndApi } from '@end/data/web';
-import React, {
-  ComponentType,
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { ComponentType, useEffect, useMemo, useState } from 'react';
 import { useSnapshot } from 'valtio/react';
-import { Coords, hv2, selectTile, Tile } from '@end/hexasphere';
+import { Coords, hv2 } from '@end/hexasphere';
 import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
-import { PortalPath, useResponsive } from '@end/components';
+import { PortalPath, useResponsive, GameTabsV2 } from '@end/components';
 import { OrbitControls } from '@react-three/drei';
 import { useWindowDimensions } from 'react-native';
 import { getOrUndefined } from 'effect/Option';
-import { execute, warDerived, warProxy } from '@end/data/core';
+import { execute } from '@end/data/core';
 import { useParams } from 'react-router-dom';
 import {
   compose,
@@ -28,8 +21,6 @@ import { Observable } from 'rxjs';
 import { War } from '@end/wm/core';
 import { MarkerType, Node, Position, ReactFlow } from '@xyflow/react';
 import { Option } from 'effect/Option';
-import { tileIdAndCoords } from '../../../../libs/data/core/src/lib/services/war.service';
-import { GameTabsV2 } from '../../../../libs/ui/rnw/src/lib/Tabs/GameTabs_v2';
 
 const initialNodes = [
   {
@@ -161,13 +152,18 @@ function AttackDialog({
   const { services } = useEndApi();
   const { warService } = services;
   const warStore = useSnapshot(warService.store);
-  const tileOwners = useSnapshot(warService.derived.selectedNeighborsOwners);
+  const warDerived = useSnapshot(warService.derived);
+  const [selectedTileId] = warService.tileIdAndCoords(
+    getOrUndefined(warStore.selectedTileId)
+  );
 
   const nodes = useMemo(() => {
     let nodeId = 1;
-    const selectedTile = warProxy.tiles.find(
-      (t) => t.id == warProxy.selection.selectedId
-    ) ?? { name: '', troopCount: 0, id: '' };
+    const selectedTile = warStore.tiles.find((t) => t.id == selectedTileId) ?? {
+      name: '',
+      troopCount: 0,
+      id: '',
+    };
     const n: Record<number, Node & { tileId: string }> = {
       1: {
         ...initialNodes[0],
@@ -194,9 +190,9 @@ function AttackDialog({
     };
 
     for (let i = 1; i <= 7; i++) {
-      const tiles = Object.keys(tileOwners);
-      const tile = warProxy.tiles.find((t) => t.id == tiles[i - 1]);
-      const tileOwner = tileOwners[tile?.id ?? -1];
+      const tiles = Object.keys(warDerived.selectedNeighborsOwners);
+      const tile = warStore.tiles.find((t) => t.id == tiles[i - 1]);
+      const tileOwner = warDerived.selectedNeighborsOwners[tile?.id ?? -1];
 
       if (!tile || !tileOwner) {
         continue;
@@ -208,7 +204,8 @@ function AttackDialog({
         ...base,
         tileId: tile.id,
         selected:
-          tile.id === tileIdAndCoords(getOrUndefined(territoryToAttack))[0],
+          tile.id ===
+          warService.tileIdAndCoords(getOrUndefined(territoryToAttack))[0],
         data: {
           label: (
             <XStack>
@@ -253,7 +250,7 @@ function AttackDialog({
     })();
 
     if (portalCoord) {
-      const tile = warProxy.tiles.find((t) => t.id == portalCoord) ?? {
+      const tile = warStore.tiles.find((t) => t.id == portalCoord) ?? {
         name: '',
         troopCount: 0,
         id: '',
@@ -283,7 +280,7 @@ function AttackDialog({
     }
 
     return n;
-  }, [tileOwners, warProxy.selection.selectedId]);
+  }, [warDerived.selectedNeighborsOwners, warStore.selectedTileId]);
 
   return (
     <View
@@ -329,7 +326,7 @@ function AttackDialog({
             const tile = Object.values(nodes).find((n) => n.id === selectedId);
 
             if (tile) {
-              setTerritoryToAttack(tileIdAndCoords(tile.tileId)[1]);
+              setTerritoryToAttack(warService.tileIdAndCoords(tile.tileId)[1]);
             }
           }
         }}
@@ -369,7 +366,7 @@ function WarComponent({
     ];
   }, [width]);
 
-  const [selectedTile, setSelectedTile] = useState<string>();
+  const [_selectedTile, setSelectedTile] = useState<string>();
   const [menuOpen, setMenuOpen] = useState(true);
   let params = useParams();
   const [loaded, setLoaded] = useState(false);
@@ -447,7 +444,6 @@ function WarComponent({
       <GameTabsV2
         menuOpen={menuOpen}
         setMenuOpen={setMenuOpen}
-        selectTile={setSelectedTile}
         attackDialog={AttackDialog}
       />
     </View>

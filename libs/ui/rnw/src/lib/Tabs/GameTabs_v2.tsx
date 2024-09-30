@@ -46,12 +46,10 @@ export function GameTabsV2({
   menuOpen,
   setMenuOpen,
   attackDialog,
-  selectTile,
 }: {
   menuOpen: boolean;
   setMenuOpen: Dispatch<SetStateAction<boolean>>;
   attackDialog?: ElementType;
-  selectTile: (id: string) => void;
 }) {
   const { services } = useEndApi();
   const { warService } = services;
@@ -65,7 +63,7 @@ export function GameTabsV2({
       warService.derived,
       'selectedTileIndex',
       (selectedTileIndex) => {
-        if(!selectedTileIndex) {
+        if (!selectedTileIndex) {
           return;
         }
 
@@ -86,13 +84,10 @@ export function GameTabsV2({
     return () => unsubscribe();
   }, []);
 
-  const setSelectedTile = useCallback(
-    (tile: string) => {
-      disableListMovement.current = true;
-      selectTile(tile);
-    },
-    [selectTile]
-  );
+  const setSelectedTile = useCallback((tile: string) => {
+    disableListMovement.current = true;
+    warService.setSelectedTile(tile);
+  }, []);
 
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -281,7 +276,7 @@ export function GameTabsV2({
                   </XStack>
                 </YStack>
                 <ScrollView ref={sv}>
-                  <TilesList selectTile={setSelectedTile} />
+                  <TilesList setSelectedTile={setSelectedTile} />
                 </ScrollView>
               </View>
             </TabsContent>
@@ -303,19 +298,23 @@ export function GameTabsV2({
 }
 
 function TilesList({
-  selectedTile,
-  selectTile,
+  setSelectedTile,
 }: {
-  selectedTile?: string;
-  selectTile: (id: string) => void;
+  setSelectedTile: (id: string) => void;
 }) {
   const { services } = useEndApi();
   const { warService } = services;
   const warStore = useSnapshot(warService.store);
+  const warDerived = useSnapshot(warService.derived);
+  const [selectedTileId] = warService.tileIdAndCoords(
+    getOrUndefined(warStore.selectedTileId)
+  );
+
+  console.log({selectedTileId})
 
   return (
     <>
-      {warService.derived.sortedTiles.map((t: any) => (
+      {warDerived.sortedTiles.map((t) => (
         <ListItem
           display={t.raised ? 'flex' : 'none'}
           padding="0"
@@ -338,9 +337,9 @@ function TilesList({
           }
           pressTheme
           onPress={() => {
-            selectTile(t.id);
+            setSelectedTile(t.id);
           }}
-          iconAfter={t.id === selectedTile ? Crosshair : null}
+          iconAfter={t.id === selectedTileId ? Crosshair : null}
         />
       ))}
     </>
@@ -357,7 +356,7 @@ function TurnActionComponent({
   const { services } = useEndApi();
   const { warService } = services;
   const warStore = useSnapshot(warService.store);
-  const tiles = useSnapshot(warService.derived.raisedTiles);
+  const warDerived = useSnapshot(warService.derived);
 
   switch (warStore.turnAction) {
     case 'portal':
@@ -381,7 +380,7 @@ function TurnActionComponent({
                     warService.setPortal(value);
                   }}
                   id="first-select"
-                  items={tiles.map((t) => ({
+                  items={warDerived.raisedTiles.map((t) => ({
                     key: t.name,
                     value: t.id,
                   }))}
@@ -406,7 +405,7 @@ function TurnActionComponent({
                     warService.setSettingPortalCoords('second');
                     warService.setPortal(value);
                   }}
-                  items={tiles.map((t) => ({
+                  items={warDerived.raisedTiles.map((t) => ({
                     key: t.name,
                     value: t.id,
                   }))}
@@ -437,7 +436,7 @@ function TurnActionComponent({
                   getOrUndefined(warStore.deployTo) ?? {}
                 ).join(',')}
                 onValueChange={warService.setDeployTo}
-                items={tiles.map((t) => ({
+                items={warDerived.raisedTiles.map((t) => ({
                   key: t.name,
                   value: t.id,
                 }))}

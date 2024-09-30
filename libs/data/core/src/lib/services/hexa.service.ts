@@ -2,6 +2,7 @@ import { proxy } from 'valtio';
 import * as THREE from 'three';
 import { Context, Effect, Layer, pipe } from 'effect';
 import { faker } from '@faker-js/faker';
+// TODO this import is causing a circular depedency
 import { buildCameraPath, hexasphere } from '@end/hexasphere';
 import { derive } from 'valtio/utils';
 

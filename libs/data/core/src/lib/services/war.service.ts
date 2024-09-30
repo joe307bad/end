@@ -171,10 +171,27 @@ const derived = derive({
   },
 });
 
+function tileIdAndCoords(
+  tile: string | Coords | undefined
+): [string, Coords] {
+  if (!tile) {
+    return ['', { x: 0, y: 0, z: 0 }];
+  }
+
+  if (isCoords(tile)) {
+    return [`${tile.x},${tile.y},${tile.z}`, tile];
+  } else {
+    const [x, y, z] = tile.split(',').map((x) => parseFloat(x));
+    return [tile, { x, y, z }];
+  }
+}
+
 interface IWarService {
   store: WarStore;
   derived: typeof derived;
+  tileIdAndCoords: typeof tileIdAndCoords;
   hasPortal: () => boolean;
+  setSelectedTile: (coords: string | Coords) => void;
   onTileSelection: (
     tile: string | Coords | null,
     cameraPosition?: THREE.Vector3
@@ -208,21 +225,6 @@ function isCoords(value: string | Coords): value is Coords {
     (value as Coords).y !== undefined &&
     (value as Coords).z !== undefined
   );
-}
-
-export function tileIdAndCoords(
-  tile: string | Coords | undefined
-): [string, Coords] {
-  if (!tile) {
-    return ['', { x: 0, y: 0, z: 0 }];
-  }
-
-  if (isCoords(tile)) {
-    return [`${tile.x},${tile.y},${tile.z}`, tile];
-  } else {
-    const [x, y, z] = tile.split(',').map((x) => parseFloat(x));
-    return [tile, { x, y, z }];
-  }
 }
 
 function selectTile(id: string, cameraPosition: THREE.Vector3) {
@@ -278,11 +280,16 @@ const WarLive = Layer.effect(
     return WarService.of({
       store,
       derived,
+      tileIdAndCoords,
       hasPortal() {
         return (
           typeof store.portal[0] !== 'undefined' &&
           typeof store.portal[1] !== 'undefined'
         );
+      },
+      setSelectedTile(c: string | Coords) {
+        const [tileId, coords] = tileIdAndCoords(c);
+        store.selectedTileId = O.some(tileId);
       },
       setCameraPosition(v3) {
         store.cameraPosition = O.some(v3);

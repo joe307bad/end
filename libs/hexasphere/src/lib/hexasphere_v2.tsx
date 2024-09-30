@@ -33,7 +33,6 @@ import { proxy, useSnapshot } from 'valtio';
 import { derive, subscribeKey } from 'valtio/utils';
 // @ts-ignore
 import HS from './hexasphere.lib';
-import { buildCameraPath } from './build-camera-path';
 import { Edges } from '@react-three/drei';
 // @ts-ignore
 import v from 'voca';
