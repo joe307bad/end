@@ -2,14 +2,8 @@ import { proxy } from 'valtio';
 import { Context, Effect, Layer, pipe, Option as O } from 'effect';
 import type { Option } from 'effect/Option';
 import * as THREE from 'three';
-import {
-  buildCameraPath,
-  Coords,
-  getRandomName,
-  hexasphere,
-} from '@end/hexasphere';
 import { derive } from 'valtio/utils';
-import { faker } from '@faker-js/faker';
+import { buildCameraPath, Coords, hexasphere } from '@end/shared';
 
 type Tile = {
   id: string;

@@ -21,7 +21,6 @@ import {
   BufferGeometry,
   Group,
   MathUtils,
-  NormalBufferAttributes,
   Object3DEventMap,
 } from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
@@ -31,12 +30,11 @@ import tf from 'three/examples/fonts/helvetiker_regular.typeface.json';
 
 import { proxy, useSnapshot } from 'valtio';
 import { derive, subscribeKey } from 'valtio/utils';
-// @ts-ignore
-import HS from './hexasphere.lib';
-import { buildCameraPath } from './build-camera-path';
+import { buildCameraPath } from '@end/shared';
 import { Edges } from '@react-three/drei';
 // @ts-ignore
 import v from 'voca';
+import { Coords, hexasphere, Tile } from '@end/shared';
 
 function getPointInBetweenByPerc(
   pointA: THREE.Vector3,
@@ -125,36 +123,6 @@ const depthRatio = 1.04;
 function withDepthRatio(n: number) {
   return n * depthRatio - n;
 }
-
-export type Coords = {
-  x: number;
-  y: number;
-  z: number;
-};
-
-type Face = {
-  id: number;
-  centroid: Coords;
-  points: ({ faces: Face[] } & Coords)[];
-};
-
-export type Tile = {
-  boundary: Coords[];
-  centerPoint: { faces: Face[] } & Coords;
-  faces: Face[];
-  neighborIds: string[];
-  neighbors: Tile[];
-  raised?: boolean;
-  owner?: number;
-} & LandAndWater;
-
-export type THexasphere = {
-  radius: number;
-  tiles: Tile[];
-  tileLookup: Record<string, Tile>;
-};
-
-export const hexasphere: THexasphere = new HS(50, 4, 1);
 
 function getBoundaries(t: Tile, raised: boolean) {
   const v: number[] = [];
@@ -269,15 +237,7 @@ export const hexasphereProxy = proxy<{
     land: string;
     water: string;
   };
-  tiles: {
-    id: string;
-    selected: boolean;
-    defending: boolean;
-    raised: boolean;
-    name: string;
-    troopCount: number;
-    owner: number;
-  }[];
+  tiles: Tile[];
 }>({
   name: getRandomName(),
   selection: {
@@ -288,6 +248,7 @@ export const hexasphereProxy = proxy<{
     land: faker.color.rgb({ format: 'hex' }),
     water: faker.color.rgb({ format: 'hex' }),
   },
+  // @ts-ignore
   tiles: Object.keys(hexasphere.tileLookup).map((tileId: string) => {
     const perctRaised = faker.number.float({ min: 0.1, max: 0.9 });
     return {
@@ -348,7 +309,7 @@ const TroopCount = React.memo(
     z: number;
     selected: boolean;
     defending: boolean;
-    troopCount: number;
+    troopCount?: number;
     showTroopCount: boolean;
     ringColor: string;
   }) => {
@@ -383,6 +344,10 @@ const TroopCount = React.memo(
         textGeo.current &&
         textMesh.current
       ) {
+        if (!troopCount) {
+          return;
+        }
+
         if (troopCount > 99 || troopCount < 0) {
           cyl.current.scale.x = 1.5;
         }
@@ -485,7 +450,7 @@ const TroopCount = React.memo(
           {/* TODO this TextGeometry renders slowly on React Native */}
           <textGeometry
             ref={textGeo}
-            args={[troopCount.toString(), { font, size: 2, height: 0.25 }]}
+            args={[troopCount?.toString() ?? "", { font, size: 2, height: 0.25 }]}
           />
           <meshBasicMaterial
             side={THREE.DoubleSide}
@@ -497,12 +462,6 @@ const TroopCount = React.memo(
     );
   }
 );
-
-type LandAndWater = {
-  land: { positions: Float32Array; indices: Uint16Array };
-  water: { positions: Float32Array; indices: Uint16Array };
-  landGeometry: THREE.BufferGeometry<NormalBufferAttributes>;
-};
 
 const geometries = Object.keys(hexasphere.tileLookup).reduce<
   Record<
@@ -534,14 +493,14 @@ const AttackArrow = React.memo(
     neighbor,
     owner,
     derived,
-    raised
+    raised,
   }: {
     neighbor: Tile;
     showAttackArrows?: boolean;
     centerPoint: Coords;
     owner?: number;
     derived?: any;
-    raised?: boolean
+    raised?: boolean;
   }) => {
     if (!derived) {
       return null;
@@ -650,7 +609,7 @@ const AttackArrows = React.memo(
     raised?: boolean;
   }) => {
     const neighbors = hexasphere.tileLookup[id].neighbors;
-    return neighbors.map((neighbor) => (
+    return neighbors.map((neighbor: Tile) => (
       <AttackArrow
         derived={derived}
         neighbor={neighbor}
@@ -683,9 +642,9 @@ const TileMesh = React.memo(
     derived?: any;
     id: string;
     selected: boolean;
-    defending: boolean;
-    raised: boolean;
-    troopCount: number;
+    defending?: boolean;
+    raised?: boolean;
+    troopCount?: number;
     selectTile(id: string, position: THREE.Vector3): any;
     landColor: string;
     waterColor: string;

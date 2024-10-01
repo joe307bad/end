@@ -51,7 +51,7 @@ export default function Home() {
     const raised = hexasphereProxy.tiles
       .filter((tile) => tile.raised)
       .reduce((acc: Record<string, string>, curr) => {
-        acc[curr.id] = curr.name;
+        acc[curr.id] = curr.name ?? "";
         return acc;
       }, {});
 

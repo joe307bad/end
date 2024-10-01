@@ -31,8 +31,7 @@ import tf from 'three/examples/fonts/helvetiker_regular.typeface.json';
 
 import { proxy, useSnapshot } from 'valtio';
 import { derive, subscribeKey } from 'valtio/utils';
-// @ts-ignore
-import HS from './hexasphere.lib';
+import { HS } from '@end/shared';
 import { Edges } from '@react-three/drei';
 // @ts-ignore
 import v from 'voca';
@@ -259,6 +258,7 @@ function getBoundaries(t: Tile, raised: boolean) {
 
   return { indices: new Uint16Array(indices), positions };
 }
+
 Object.keys(hexasphere.tileLookup).forEach((tileId) => {
   const tile = hexasphere.tileLookup[tileId];
   const land = getBoundaries(tile, true);
@@ -614,15 +614,12 @@ const TileMesh = React.memo(
     }, []);
 
     const { camera } = useThree();
-    const click = useCallback(
-      (e: ThreeEvent<MouseEvent>) => {
-        e.stopPropagation();
-        startTransition(() => {
-          warService.onTileSelection(id, camera.position);
-        });
-      },
-      []
-    );
+    const click = useCallback((e: ThreeEvent<MouseEvent>) => {
+      e.stopPropagation();
+      startTransition(() => {
+        warService.onTileSelection(id, camera.position);
+      });
+    }, []);
 
     return (
       <mesh onClick={click}>

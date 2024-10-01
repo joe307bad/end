@@ -4,10 +4,10 @@ import { AuthService } from './auth.service';
 import { FetchService } from './fetch.service';
 import { Planet, War } from '@end/wm/core';
 import { DbService } from './db.service';
-import { hexasphere } from '@end/hexasphere';
 import { BehaviorSubject } from 'rxjs';
 import { io } from 'socket.io-client';
 import { ConfigService } from './config.service';
+import { hexasphere } from '@end/shared';
 
 interface Conquest {
   readonly startWar: (

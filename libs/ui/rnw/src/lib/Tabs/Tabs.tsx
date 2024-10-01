@@ -146,8 +146,8 @@ const TileListItem = React.memo(function ({
 }: {
   id: string;
   selectTile: (id: string) => void;
-  name: string;
-  raised: boolean;
+  name?: string;
+  raised?: boolean;
   selected: boolean;
 }) {
   return (

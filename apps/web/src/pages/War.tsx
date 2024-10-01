@@ -13,7 +13,8 @@ import { execute, warDerived, warProxy } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
 import { GameTabs, PortalPath, useResponsive } from '@end/components';
 import { Canvas } from '@react-three/fiber';
-import { Coords, hexasphere, Hexasphere } from '@end/hexasphere';
+import { Coords, hexasphere } from '@end/shared';
+import { Hexasphere } from '@end/hexasphere';
 import { OrbitControls } from '@react-three/drei';
 import { useWindowDimensions } from 'react-native';
 import * as THREE from 'three';
@@ -158,7 +159,7 @@ function AttackDialog({
   setTerritoryToAttack?: Dispatch<SetStateAction<string | undefined>>;
   territoryToAttack?: string;
 }) {
-  const tileOwners = useSnapshot(warDerived.selectedNeighborsOwners);
+  const derived = useSnapshot(warDerived);
 
   const nodes = useMemo(() => {
     let nodeId = 1;
@@ -191,9 +192,9 @@ function AttackDialog({
     };
 
     for (let i = 1; i <= 7; i++) {
-      const tiles = Object.keys(tileOwners);
+      const tiles = Object.keys(derived.selectedNeighborsOwners);
       const tile = warProxy.tiles.find((t) => t.id == tiles[i - 1]);
-      const tileOwner = tileOwners[tile?.id ?? -1];
+      const tileOwner = derived.selectedNeighborsOwners[tile?.id ?? -1];
 
       if (!tile || !tileOwner) {
         continue;
@@ -279,7 +280,7 @@ function AttackDialog({
     }
 
     return n;
-  }, [tileOwners, warProxy.selection.selectedId]);
+  }, [derived.selectedNeighborsOwners, warProxy.selection.selectedId]);
 
   return (
     <View
@@ -445,13 +446,13 @@ function WarComponent({
 
   useEffect(() => {
     setTerritoryToAttack(undefined);
-  }, [selectedTile])
+  }, [selectedTile]);
 
   const setAvailableTroops = useCallback(
     (args: any) => {
       const tile = warProxy.tiles.find((tile) => tile.id === selectedTile);
       if (tile) {
-        tile.troopCount = tile.troopCount + troopChange;
+        tile.troopCount = (tile.troopCount ?? 0) + troopChange;
       }
       return setAvailableTroopsState(args);
     },
@@ -501,11 +502,11 @@ function WarComponent({
     if (territoryToAttack) {
       const tile = warProxy.tiles.find((n) => n.id === territoryToAttack);
       if (tile) {
-        tile.troopCount = tile.troopCount - 1;
+        tile.troopCount = (tile?.troopCount ?? 1) - 1;
       }
       const attackingFrom = warProxy.tiles.find((n) => n.id === selectedTile);
       if (attackingFrom) {
-        attackingFrom.troopCount = attackingFrom.troopCount - 1;
+        attackingFrom.troopCount = (attackingFrom?.troopCount ?? 1) - 1;
       }
     }
   }, [territoryToAttack]);

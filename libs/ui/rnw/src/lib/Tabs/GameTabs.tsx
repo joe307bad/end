@@ -33,7 +33,7 @@ import React, {
   useState,
 } from 'react';
 import { useResponsive } from '../Layout';
-import { Coords } from '@end/hexasphere';
+import { Coords } from '@end/shared';
 import { SelectDemoItem } from '../Select';
 import { subscribeKey } from 'valtio/utils';
 import { Pressable, View } from 'react-native';
@@ -516,7 +516,7 @@ function TurnActionComponent({
                   }}
                   id="first-select"
                   items={tiles.map((t) => ({
-                    key: t.name,
+                    key: t.name ?? "",
                     value: t.id,
                   }))}
                   native
@@ -551,7 +551,7 @@ function TurnActionComponent({
                     });
                   }}
                   items={tiles.map((t) => ({
-                    key: t.name,
+                    key: t.name ?? "",
                     value: t.id,
                   }))}
                   native
@@ -587,7 +587,7 @@ function TurnActionComponent({
                   });
                 }}
                 items={tiles.map((t) => ({
-                  key: t.name,
+                  key: t.name ?? "",
                   value: t.id,
                 }))}
                 native
@@ -670,7 +670,7 @@ function TurnActionComponent({
               <SelectDemoItem
                 id="deploy-select"
                 items={proxy.tiles.map((t) => ({
-                  key: t.name,
+                  key: t.name ?? "",
                   value: t.id,
                 }))}
                 native
