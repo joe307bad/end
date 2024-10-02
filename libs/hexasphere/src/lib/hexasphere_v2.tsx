@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import '@react-three/fiber';
 import { faker } from '@faker-js/faker';
@@ -29,14 +30,15 @@ import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 // @ts-ignore
 import tf from 'three/examples/fonts/helvetiker_regular.typeface.json';
 
-import { proxy, useSnapshot } from 'valtio';
-import { derive, subscribeKey } from 'valtio/utils';
+import { useSnapshot } from 'valtio';
+import { subscribeKey } from 'valtio/utils';
 import { HS } from '@end/shared';
 import { Edges } from '@react-three/drei';
 // @ts-ignore
 import v from 'voca';
 import { useEndApi } from '@end/data/web';
 import { getOrUndefined } from 'effect/Option';
+import { Option as O } from 'effect';
 
 function getPointInBetweenByPerc(
   pointA: THREE.Vector3,
@@ -454,19 +456,16 @@ const AttackArrow = React.memo(
     centerPoint,
     neighbor,
     owner,
-    derived,
     raised,
   }: {
     neighbor: Tile;
     showAttackArrows?: boolean;
     centerPoint: Coords;
     owner?: number;
-    derived?: any;
     raised?: boolean;
   }) => {
-    if (!derived) {
-      return null;
-    }
+    const { services } = useEndApi();
+    const { warService } = services;
 
     const coneInner: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
     const coneRef = useRef<Group<Object3DEventMap>>(null);
@@ -478,11 +477,55 @@ const AttackArrow = React.memo(
         neighbor.centerPoint.z,
       ];
       return cp.join(',');
-    }, []);
+    }, [neighbor]);
 
     const id1 = useMemo(() => {
       const cp = [centerPoint.x, centerPoint.y, centerPoint.z];
       return cp.join(',');
+    }, [centerPoint]);
+
+    const [visible, setVisible] = useState(false);
+
+    useEffect(() => {
+      const unsubscribe = subscribeKey(
+        warService.derived,
+        'selectedNeighborsOwners',
+        (s) => {
+          const cp = [centerPoint.x, centerPoint.y, centerPoint.z].join(',');
+          const n = [
+            neighbor.centerPoint.x,
+            neighbor.centerPoint.y,
+            neighbor.centerPoint.z,
+          ].join(',');
+
+          const combined = O.flatMap(
+            warService.store.selectedTileId,
+            (value1) =>
+              O.map(warService.store.territoryToAttack, (value2) => ({
+                selectedId: value1,
+                attacking: value2,
+              }))
+          );
+
+          O.match(combined, {
+            onNone() {
+              return undefined;
+            },
+            onSome({attacking, selectedId}) {
+              const a = [attacking.x, attacking.y, attacking.z].join(',');
+              if (selectedId === cp && s[n] && n === a) {
+                setVisible(true);
+              } else {
+                setVisible(false);
+              }
+            },
+          });
+        }
+      );
+
+      return () => {
+        unsubscribe();
+      };
     }, []);
 
     useEffect(() => {
@@ -527,20 +570,6 @@ const AttackArrow = React.memo(
       }
     });
 
-    const tileOwners = useSnapshot(derived.selectedNeighborsOwners);
-
-    const visible = useMemo(() => {
-      if (!showAttackArrows) {
-        return false;
-      }
-
-      if (!tileOwners?.[id]) {
-        return false;
-      }
-
-      return tileOwners[id] !== owner && raised;
-    }, [tileOwners, id, id1, showAttackArrows]);
-
     return (
       <group visible={visible} ref={coneRef}>
         <mesh ref={coneInner}>
@@ -560,20 +589,17 @@ const AttackArrows = React.memo(
     centerPoint,
     raised,
     owner,
-    derived,
   }: {
     id: string;
     neighbors: Tile[];
     showAttackArrows?: boolean;
     centerPoint: Coords;
     owner?: number;
-    derived?: any;
     raised?: boolean;
   }) => {
     const neighbors = hexasphere.tileLookup[id].neighbors;
     return neighbors.map((neighbor) => (
       <AttackArrow
-        derived={derived}
         neighbor={neighbor}
         centerPoint={centerPoint}
         showAttackArrows={showAttackArrows}
@@ -621,11 +647,14 @@ const TileMesh = React.memo(
       });
     }, []);
 
+    // console.log({neighbors});
+
     return (
       <mesh onClick={click}>
         {neighbors && (
           <AttackArrows
             id={id}
+            showAttackArrows={true}
             neighbors={neighbors}
             centerPoint={centerPoint}
             raised={raised}
@@ -706,8 +735,25 @@ export const HexasphereV2 = React.memo(
           cameraPath.current = s;
         }
       );
+      const unsubscribeSelectedId = subscribeKey(
+        warService.store,
+        'selectedTileIdOverride',
+        (id) => {
+          O.match(id, {
+            onNone() {
+              return undefined;
+            },
+            onSome(value) {
+              warService.onTileSelection(value, camera.position);
+            },
+          });
+        }
+      );
 
-      return () => unsubscribe();
+      return () => {
+        unsubscribe();
+        unsubscribeSelectedId();
+      };
     }, []);
 
     useFrame(() => {

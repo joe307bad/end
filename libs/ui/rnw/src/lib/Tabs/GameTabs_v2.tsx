@@ -86,7 +86,7 @@ export function GameTabsV2({
 
   const setSelectedTile = useCallback((tile: string) => {
     disableListMovement.current = true;
-    warService.setSelectedTile(tile);
+    warService.setSelectedTileIdOverride(tile);
   }, []);
 
   const [loading, setLoading] = useState(false);
@@ -197,7 +197,7 @@ export function GameTabsV2({
                     <V paddingRight="$0.5" flex={1}>
                       <ActivityArrow
                         loading={loading}
-                        onPress={warService.setTurnAction}
+                        onPress={() => warService.setTurnAction()}
                         open={open}
                         message={errorMessage}
                       />
@@ -309,8 +309,6 @@ function TilesList({
   const [selectedTileId] = warService.tileIdAndCoords(
     getOrUndefined(warStore.selectedTileId)
   );
-
-  console.log({selectedTileId})
 
   return (
     <>
@@ -473,7 +471,10 @@ function TurnActionComponent({
                 <ActivityArrow
                   loading={false}
                   // @ts-ignore
-                  onPress={warService.setAvailableTroopsToDeploy}
+                  onPress={() => {
+                    warService.setAvailableTroopsToDeploy();
+                    warService.deployToTerritory();
+                  }}
                   open={false}
                   message={''}
                 />

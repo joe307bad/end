@@ -19,6 +19,7 @@ interface WarStore {
   active: boolean;
   name: Option<string>;
   selectedTileId: Option<string>;
+  selectedTileIdOverride: Option<string>;
   cameraPosition: Option<THREE.Vector3>;
   waterColor: Option<string>;
   landColor: Option<string>;
@@ -76,6 +77,7 @@ const store = proxy<WarStore>({
   cameraPosition: O.none(),
   landColor: O.none(),
   selectedTileId: O.none(),
+  selectedTileIdOverride: O.none(),
   sort: 'alphabetical',
   tiles: [],
   waterColor: O.none(),
@@ -141,8 +143,7 @@ const derived = derive({
       onSome: (id) => {
         const neighbors = hexasphere.tileLookup[id].neighbors;
         return neighbors.reduce((acc: Record<string, number>, tile) => {
-          const { x, y, z } = tile.centerPoint;
-          const id = `${x},${y},${z}`;
+          const [id] = tileIdAndCoords(tile.centerPoint);
           const t = tiles.find((t) => t.id === id);
 
           if (!t) {
@@ -165,9 +166,7 @@ const derived = derive({
   },
 });
 
-function tileIdAndCoords(
-  tile: string | Coords | undefined
-): [string, Coords] {
+function tileIdAndCoords(tile: string | Coords | undefined): [string, Coords] {
   if (!tile) {
     return ['', { x: 0, y: 0, z: 0 }];
   }
@@ -185,7 +184,7 @@ interface IWarService {
   derived: typeof derived;
   tileIdAndCoords: typeof tileIdAndCoords;
   hasPortal: () => boolean;
-  setSelectedTile: (coords: string | Coords) => void;
+  setSelectedTileIdOverride: (coords: string | Coords) => void;
   onTileSelection: (
     tile: string | Coords | null,
     cameraPosition?: THREE.Vector3
@@ -203,12 +202,13 @@ interface IWarService {
   ) => void;
   setPortal: (coords: string | Coords) => void;
   setDeployTo: (coords: string | Coords) => void;
-  setTurnAction: () => void;
+  setTurnAction: (action?: WarStore['turnAction'] | undefined) => void;
   setAvailableTroopsToDeploy: () => void;
   setTroopsToDeploy: (troopsToDeploy: number) => void;
   setTerritoryToAttack: (coords: Coords) => void;
   attackTerritory: () => void;
   setCameraPosition: (v3: THREE.Vector3) => void;
+  deployToTerritory: () => void;
 }
 
 const WarService = Context.GenericTag<IWarService>('war-service');
@@ -281,9 +281,9 @@ const WarLive = Layer.effect(
           typeof store.portal[1] !== 'undefined'
         );
       },
-      setSelectedTile(c: string | Coords) {
+      setSelectedTileIdOverride(c: string | Coords) {
         const [tileId, coords] = tileIdAndCoords(c);
-        store.selectedTileId = O.some(tileId);
+        store.selectedTileIdOverride = O.some(tileId);
       },
       setCameraPosition(v3) {
         store.cameraPosition = O.some(v3);
@@ -351,23 +351,41 @@ const WarLive = Layer.effect(
         const [_, coords] = tileIdAndCoords(c);
         store.deployTo = O.some(coords);
       },
-      setTurnAction() {
-        switch (store.turnAction) {
-          case 'portal':
-            store.turnAction = 'deploy';
-            break;
-          case 'deploy':
-            store.turnAction = 'attack';
-            break;
-          case 'attack':
-            store.turnAction = 'portal';
-            break;
-            // case 'reenforce':
-            //   setTurnAction('portal');
-            break;
+      setTurnAction(action: WarStore['turnAction'] | undefined = undefined) {
+        if (action) {
+          store.turnAction = action;
+        } else {
+          switch (store.turnAction) {
+            case 'portal':
+              store.turnAction = 'deploy';
+              break;
+            case 'deploy':
+              store.turnAction = 'attack';
+              break;
+            case 'attack':
+              store.turnAction = 'portal';
+              break;
+              // case 'reenforce':
+              //   setTurnAction('portal');
+              break;
+          }
         }
       },
       setAvailableTroopsToDeploy() {
+        store.availableTroopsToDeploy =
+          store.availableTroopsToDeploy - store.troopsToDeploy;
+      },
+      deployToTerritory() {
+        O.match(store.deployTo, {
+          onNone() {},
+          onSome(v) {
+            const [value] = tileIdAndCoords(v);
+            const tile = store.tiles.find((t) => t.id === value);
+            if (tile) {
+              tile.troopCount = tile.troopCount + store.troopsToDeploy;
+            }
+          },
+        });
         store.availableTroopsToDeploy =
           store.availableTroopsToDeploy - store.troopsToDeploy;
       },
