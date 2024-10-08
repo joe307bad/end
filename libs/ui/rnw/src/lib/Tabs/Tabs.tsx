@@ -1,16 +1,12 @@
 import {
-  H5,
-  Input,
   Section,
   Separator,
   SizableText,
-  Text,
   View,
   Tabs,
   Spacer,
   ListItem,
   ScrollView,
-  XStack,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
 import { tw } from '../components';
@@ -18,34 +14,38 @@ import { PrimaryButton } from '../Display';
 import { CircleDot, Crosshair, Hexagon } from '@tamagui/lucide-icons';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useResponsive } from '../Layout';
-import { derivedDefault, hexasphereProxy } from '@end/hexasphere';
 import { useSnapshot } from 'valtio';
 import Select from '../Select/Select';
 import { subscribeKey } from 'valtio/utils';
 import { useEndApi } from '@end/data/web';
 import { execute } from '@end/data/core';
+import { getOrUndefined } from 'effect/Option';
 
 export function TabsContainer({
   menuOpen,
-  selectTile,
   newPlanet,
   startGame,
 }: {
   newPlanet: () => void;
   menuOpen: boolean;
-  selectTile: (id: string, tileList?: { scrollTo(): void }) => void;
   startGame: () => void;
 }) {
-  const hs = useSnapshot(hexasphereProxy);
+  const { services } = useEndApi();
+  const { warService } = services;
+  const warDerived = useSnapshot(warService.derived);
   const { bp } = useResponsive(menuOpen, 1297);
   const sv = useRef<ScrollView | any>(null);
 
   useEffect(() => {
     const unsubscribe = subscribeKey(
-      derivedDefault,
+      warService.derived,
       'selectedTileIndex',
       (selectedTileIndex) => {
-        if (sv.current) {
+        if (!selectedTileIndex) {
+          return;
+        }
+
+        if (sv.current && selectedTileIndex > -1) {
           sv.current.scrollTo(selectedTileIndex * 67);
         }
       }
@@ -53,8 +53,6 @@ export function TabsContainer({
 
     return () => unsubscribe();
   }, []);
-
-  const { services } = useEndApi();
 
   const onSync = useCallback(() => execute(services.syncService.sync()), []);
 
@@ -109,14 +107,8 @@ export function TabsContainer({
             <TabsContent value="tab2" style={tw`h-full`}>
               <View style={tw`h-full overflow-scroll w-full`}>
                 <ScrollView ref={sv}>
-                  {hs.tiles.map((t) => (
-                    <TileListItem
-                      id={t.id}
-                      name={t.name}
-                      selectTile={selectTile}
-                      selected={t.selected}
-                      raised={t.raised}
-                    />
+                  {warDerived.sortedTiles.map((t) => (
+                    <TileListItem id={t.id} name={t.name} raised={t.raised} />
                   ))}
                 </ScrollView>
               </View>
@@ -140,16 +132,15 @@ export function TabsContainer({
 const TileListItem = React.memo(function ({
   name,
   raised,
-  selected,
   id,
-  selectTile,
 }: {
   id: string;
-  selectTile: (id: string) => void;
   name?: string;
   raised?: boolean;
-  selected: boolean;
 }) {
+  const { services } = useEndApi();
+  const { warService } = services;
+  const warStore = useSnapshot(warService.store);
   return (
     <ListItem
       display={raised ? 'flex' : 'none'}
@@ -158,8 +149,10 @@ const TileListItem = React.memo(function ({
       icon={Hexagon}
       title={<View style={{ cursor: 'pointer' }}>{name}</View>}
       pressTheme
-      onPress={() => selectTile(id)}
-      iconAfter={selected ? Crosshair : null}
+      onPress={() => warService.setSelectedTileIdOverride(id)}
+      iconAfter={
+        getOrUndefined(warStore.selectedTileId) === id ? Crosshair : null
+      }
     />
   );
 });

@@ -823,7 +823,7 @@ export const Hexasphere = React.memo(
     }>();
 
     useFrame(() => {
-      const speed = 10;
+      const speed = 30;
       const path = cp ?? cameraPath;
       if (path.current) {
         camPosIndex++;

@@ -72,7 +72,7 @@ export function GameTabsV2({
           selectedTileIndex > -1 &&
           !disableListMovement.current
         ) {
-          sv.current.scrollTo(selectedTileIndex * 44);
+          sv.current.scrollTo(selectedTileIndex);
         }
 
         if (disableListMovement.current) {

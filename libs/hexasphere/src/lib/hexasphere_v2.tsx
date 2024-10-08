@@ -375,7 +375,7 @@ const TroopCount = React.memo(
     });
 
     return (
-      <mesh ref={text} position={[x, y, z]}>
+      <mesh visible={troopCount > 0} ref={text} position={[x, y, z]}>
         <mesh ref={cyl}>
           <cylinderGeometry
             ref={countGeo}

@@ -4,6 +4,8 @@ import type { Option } from 'effect/Option';
 import * as THREE from 'three';
 import { derive } from 'valtio/utils';
 import { buildCameraPath, Coords, hexasphere } from '@end/shared';
+import { faker } from '@faker-js/faker';
+import { getRandomName } from '@end/hexasphere';
 
 type Tile = {
   id: string;
@@ -209,6 +211,7 @@ interface IWarService {
   attackTerritory: () => void;
   setCameraPosition: (v3: THREE.Vector3) => void;
   deployToTerritory: () => void;
+  initializeMap: () => void;
 }
 
 const WarService = Context.GenericTag<IWarService>('war-service');
@@ -280,6 +283,17 @@ const WarLive = Layer.effect(
           typeof store.portal[0] !== 'undefined' &&
           typeof store.portal[1] !== 'undefined'
         );
+      },
+      initializeMap() {
+        this.setName(getRandomName());
+        this.setLandAndWaterColors(
+          faker.color.rgb({ format: 'hex' }),
+          faker.color.rgb({ format: 'hex' })
+        );
+        store.tiles.forEach((tile) => {
+          tile.raised = faker.datatype.boolean(0.5);
+          tile.name = getRandomName();
+        });
       },
       setSelectedTileIdOverride(c: string | Coords) {
         const [tileId, coords] = tileIdAndCoords(c);
