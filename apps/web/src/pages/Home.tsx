@@ -65,9 +65,6 @@ export default function Home() {
         warStore.name,
       ]);
 
-      console.log({ combined });
-      console.log([warStore.landColor, warStore.waterColor, warStore.name]);
-
       await O.match(combined, {
         onNone() {
           return null;

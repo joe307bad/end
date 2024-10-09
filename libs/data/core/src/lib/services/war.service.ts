@@ -3,9 +3,13 @@ import { Context, Effect, Layer, pipe, Option as O } from 'effect';
 import type { Option } from 'effect/Option';
 import * as THREE from 'three';
 import { derive } from 'valtio/utils';
-import { buildCameraPath, Coords, hexasphere } from '@end/shared';
+import {
+  buildCameraPath,
+  Coords,
+  hexasphere,
+  getRandomName,
+} from '@end/shared';
 import { faker } from '@faker-js/faker';
-import { getRandomName } from '@end/hexasphere';
 
 type Tile = {
   id: string;
@@ -209,7 +213,6 @@ interface IWarService {
   setTroopsToDeploy: (troopsToDeploy: number) => void;
   setTerritoryToAttack: (coords: Coords) => void;
   attackTerritory: () => void;
-  setCameraPosition: (v3: THREE.Vector3) => void;
   deployToTerritory: () => void;
   initializeMap: () => void;
 }
@@ -293,14 +296,12 @@ const WarLive = Layer.effect(
         store.tiles.forEach((tile) => {
           tile.raised = faker.datatype.boolean(0.5);
           tile.name = getRandomName();
+          tile.troopCount = 0;
         });
       },
       setSelectedTileIdOverride(c: string | Coords) {
         const [tileId, coords] = tileIdAndCoords(c);
         store.selectedTileIdOverride = O.some(tileId);
-      },
-      setCameraPosition(v3) {
-        store.cameraPosition = O.some(v3);
       },
       setFilter(filter) {
         store.filter = filter;
@@ -379,9 +380,9 @@ const WarLive = Layer.effect(
             case 'attack':
               store.turnAction = 'portal';
               break;
-              // case 'reenforce':
-              //   setTurnAction('portal');
-              break;
+            // case 'reenforce':
+            //   setTurnAction('portal');
+            // break;
           }
         }
       },
@@ -400,8 +401,6 @@ const WarLive = Layer.effect(
             }
           },
         });
-        store.availableTroopsToDeploy =
-          store.availableTroopsToDeploy - store.troopsToDeploy;
       },
       setTroopsToDeploy(numberOfTroops) {
         store.troopsToDeploy = numberOfTroops;
