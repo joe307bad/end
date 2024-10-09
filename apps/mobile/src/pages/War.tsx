@@ -1,4 +1,4 @@
-import { newPlanet, PrimaryButton } from '@end/components';
+import { PrimaryButton } from '@end/components';
 import { Canvas } from '@react-three/fiber/native';
 import React, {
   startTransition,
@@ -9,7 +9,6 @@ import React, {
   useState,
 } from 'react';
 import { View } from 'react-native';
-import { Hexasphere } from '@end/hexasphere';
 import useControls from 'r3f-native-orbitcontrols';
 import * as THREE from 'three';
 import { useEndApi } from '@end/data/rn';
@@ -29,7 +28,7 @@ export default function War() {
   const np = useCallback(
     () =>
       startTransition(() => {
-        newPlanet();
+
       }),
     []
   );
@@ -52,14 +51,6 @@ export default function War() {
     <View style={{ flex: 1 }} {...events}>
       <Canvas camera={cam}>
         <Suspense fallback={null}>
-          <Hexasphere
-            key={reset}
-            proxy={getProxy()}
-            selectedTile="0,50,0"
-            waterColor={getColors().water}
-            landColor={getColors().land}
-            showTroopCount={true}
-          />
           <OrbitControls />
         </Suspense>
       </Canvas>

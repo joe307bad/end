@@ -1,8 +1,7 @@
-import { newPlanet, PrimaryButton } from '@end/components';
+import { PrimaryButton } from '@end/components';
 import { Canvas } from '@react-three/fiber/native';
 import React, { startTransition, useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
-import { Hexasphere } from '@end/hexasphere';
 import useControls from 'r3f-native-orbitcontrols';
 import * as THREE from 'three';
 
@@ -16,21 +15,11 @@ export default function Home({ navigation }: { navigation: any }) {
     return cam;
   }, []);
 
-  const np = useCallback(
-    () =>
-      startTransition(() => {
-        newPlanet();
-      }),
-    []
-  );
-
   return (
     <View style={{ flex: 1 }} {...events}>
       <Canvas camera={cam}>
-        <Hexasphere key={reset} />
         <OrbitControls />
       </Canvas>
-      <PrimaryButton onPress={np}>New Planet</PrimaryButton>
       <PrimaryButton onPress={() => {}}>Logout</PrimaryButton>
     </View>
   );

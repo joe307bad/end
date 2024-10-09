@@ -8,6 +8,7 @@ import { ConfigServiceFactory } from './config.service';
 import { FetchLivePipe } from './fetch.service';
 import { ConquestPipe, ConquestService } from './conquest.service';
 import { HexaPipe, HexaService } from './hexa.service';
+import { WarPipe, WarService } from './war.service';
 
 export const program = Effect.gen(function* () {
   return yield* Effect.succeed({
@@ -15,6 +16,7 @@ export const program = Effect.gen(function* () {
     syncService: yield* SyncService,
     conquestService: yield* ConquestService,
     hexaService: yield* HexaService,
+    warService: yield* WarService,
   });
 });
 const servicesFactory = (
@@ -31,7 +33,8 @@ const servicesFactory = (
     EndApiPipe,
     SyncLivePipe,
     ConquestPipe,
-    HexaPipe
+    HexaPipe,
+    WarPipe
   );
 
   return Effect.runSync(

@@ -1,22 +1,25 @@
-import { newPlanet, TabsContainer } from '@end/components';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useWindowDimensions, View } from 'react-native';
 import { OrbitControls } from '@react-three/drei';
-import { getRandomName, Hexasphere, hexasphereProxy } from '@end/hexasphere';
-import { faker } from '@faker-js/faker';
 import { H2 } from 'tamagui';
 import { useEndApi } from '@end/data/web';
 import { execute } from '@end/data/core';
 import { useNavigate } from 'react-router-dom';
 import { Effect, pipe } from 'effect';
 import { useSnapshot } from 'valtio/react';
+import { Option as O } from 'effect';
+import { getOrUndefined } from 'effect/Option';
+import { hv2 } from '@end/hexasphere';
+import { TabsContainer } from '@end/components';
 
 export default function Home() {
   const { width } = useWindowDimensions();
   const navigate = useNavigate();
-  const snapshot = useSnapshot(hexasphereProxy);
+  const { services } = useEndApi();
+  const { warService } = services;
+  const warStore = useSnapshot(warService.store);
 
   const [cameraResponsiveness, responsiveness] = useMemo(() => {
     if (width < 835) {
@@ -43,41 +46,57 @@ export default function Home() {
     return cam;
   }, []);
 
-  const [selectedTile, selectTile] = useState<string>();
-
-  const { services } = useEndApi();
-
-  const startGame = useCallback(async function () {
-    const raised = hexasphereProxy.tiles
-      .filter((tile) => tile.raised)
-      .reduce((acc: Record<string, string>, curr) => {
-        acc[curr.id] = curr.name;
-        return acc;
-      }, {});
-
-    await execute(
-      pipe(
-        services.conquestService.startWar(
-          {
-            landColor: hexasphereProxy.colors.land,
-            waterColor: hexasphereProxy.colors.water,
-            raised: JSON.stringify(raised),
-            name: hexasphereProxy.name,
-          },
-          5
-        ),
-        Effect.andThen((response) =>
-          services.syncService.sync().pipe(Effect.map(() => response))
-        ),
-        Effect.andThen((response) => navigate(`/war/${response.warId}`))
-      )
-    );
+  useEffect(() => {
+    warService.initializeMap();
   }, []);
+
+  const startGame = useCallback(
+    async function () {
+      const raised = warStore.tiles
+        .filter((tile) => tile.raised)
+        .reduce((acc: Record<string, string>, curr) => {
+          acc[curr.id] = curr.name ?? '';
+          return acc;
+        }, {});
+
+      const combined = O.all([
+        warStore.landColor,
+        warStore.waterColor,
+        warStore.name,
+      ]);
+
+      await O.match(combined, {
+        onNone() {
+          return null;
+        },
+        async onSome([land, water, name]) {
+          await execute(
+            pipe(
+              services.conquestService.startWar(
+                {
+                  landColor: land,
+                  waterColor: water,
+                  raised: JSON.stringify(raised),
+                  name: name,
+                },
+                5
+              ),
+              Effect.andThen((response) =>
+                services.syncService.sync().pipe(Effect.map(() => response))
+              ),
+              Effect.andThen((response) => navigate(`/war/${response.warId}`))
+            )
+          );
+        },
+      });
+    },
+    [warStore.landColor, warStore.waterColor, warStore.name]
+  );
 
   return (
     // <H database={database} sync={sync} apiUrl={process.env.API_BASE_URL}>
     <View style={{ overflow: 'hidden', height: '100%', width: '100%' }}>
-      <H2 paddingLeft="$1">{snapshot.name}</H2>
+      <H2 paddingLeft="$1">{getOrUndefined(warStore.name)}</H2>
       <Canvas
         style={{
           flex: 1,
@@ -85,13 +104,12 @@ export default function Home() {
         }}
         camera={cam}
       >
-        <Hexasphere selectedTile={selectedTile} />
+        <hv2.HexasphereV2 portalPath={undefined} />
         <OrbitControls />
       </Canvas>
       <TabsContainer
         menuOpen={true}
-        selectTile={selectTile}
-        newPlanet={() => newPlanet()}
+        newPlanet={() => warService.initializeMap()}
         startGame={startGame}
       />
     </View>

@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useMemo } from 'react';
+import React, { ReactNode, useMemo } from 'react';
 import * as THREE from 'three';
 import { TamaguiProvider } from 'tamagui';
 import { config, tokens } from './tamagui.config';
@@ -6,28 +6,11 @@ import { View } from 'react-native';
 import t, { useDeviceContext } from 'twrnc';
 import { AuthProvider } from '@end/auth';
 import { ToastProvider, ToastViewport } from '@tamagui/toast';
-import { getRandomName, hexasphereProxy } from '@end/hexasphere';
-import { faker } from '@faker-js/faker';
+import '@react-three/fiber';
 
 export const tw = t as any;
 
 export const tamaguiTokens = tokens;
-
-export function newPlanet() {
-  hexasphereProxy.tiles.forEach((tile) => {
-    const raisedness = faker.number.float({ min: 0.1, max: 0.9 });
-
-    tile.name = getRandomName();
-    tile.raised = faker.datatype.boolean(raisedness);
-    tile.selected = false;
-    tile.defending = false;
-  });
-  hexasphereProxy.name = getRandomName();
-  hexasphereProxy.selection.selectedId = null;
-  hexasphereProxy.selection.cameraPosition = null;
-  hexasphereProxy.colors.land = faker.color.rgb({ format: 'hex' });
-  hexasphereProxy.colors.water = faker.color.rgb({ format: 'hex' });
-};
 
 export function Providers({ children }: { children: ReactNode }) {
   // @ts-ignore

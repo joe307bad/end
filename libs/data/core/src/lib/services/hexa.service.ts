@@ -2,18 +2,8 @@ import { proxy } from 'valtio';
 import * as THREE from 'three';
 import { Context, Effect, Layer, pipe } from 'effect';
 import { faker } from '@faker-js/faker';
-import { buildCameraPath, getRandomName, hexasphere } from '@end/hexasphere';
 import { derive } from 'valtio/utils';
-
-type Tile = {
-  id: string;
-  selected: boolean;
-  defending: boolean;
-  raised: boolean;
-  name: string;
-  troopCount: number;
-  owner: number;
-};
+import { Tile, buildCameraPath, hexasphere } from '@end/shared';
 
 export const warProxy = proxy<{
   name: string;
@@ -40,6 +30,7 @@ export const warProxy = proxy<{
     land: faker.color.rgb({ format: 'hex' }),
     water: faker.color.rgb({ format: 'hex' }),
   },
+  // @ts-ignore
   tiles: Object.values(hexasphere.tileLookup).map((tile) => {
     const { x, y, z } = tile.centerPoint;
     return {
@@ -62,11 +53,11 @@ function sortedTilesList(
     .sort((a, b) => {
       switch (sort) {
         case 'alphabetical':
-          return a.name.localeCompare(b.name);
+          return a?.name?.localeCompare(b?.name ?? '') ?? 0;
         case 'least-troops':
-          return a.troopCount - b.troopCount;
+          return (a?.troopCount ?? 0) - (b?.troopCount ?? 0);
         case 'most-troops':
-          return b.troopCount - a.troopCount;
+          return (b?.troopCount ?? 0) - (a?.troopCount ?? 0);
       }
 
       return 0;

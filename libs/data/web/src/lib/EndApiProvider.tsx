@@ -14,7 +14,7 @@ function useServices(
 }
 
 interface Context {
-  services: ReturnType<typeof useServices>;
+  services: ReturnType<typeof servicesFactory>;
 }
 
 const EndApiContext = createContext<Context>({} as Context);

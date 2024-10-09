@@ -1,22 +1,17 @@
 import { H4, View, XStack } from 'tamagui';
-import React, {
-  ComponentType,
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-import { useParams } from 'react-router-dom';
-import { execute, warDerived, warProxy } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
-import { GameTabs, PortalPath, useResponsive } from '@end/components';
+import React, { ComponentType, useEffect, useMemo, useState } from 'react';
+import { useSnapshot } from 'valtio/react';
+import { hv2 } from '@end/hexasphere';
+import { Coords } from '@end/shared';
+import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
-import { Coords, hexasphere, Hexasphere } from '@end/hexasphere';
+import { PortalPath, useResponsive, GameTabsV2 } from '@end/components';
 import { OrbitControls } from '@react-three/drei';
 import { useWindowDimensions } from 'react-native';
-import * as THREE from 'three';
+import { getOrUndefined } from 'effect/Option';
+import { execute } from '@end/data/core';
+import { useParams } from 'react-router-dom';
 import {
   compose,
   withDatabase,
@@ -25,11 +20,10 @@ import {
 import { Database } from '@nozbe/watermelondb';
 import { Observable } from 'rxjs';
 import { War } from '@end/wm/core';
-import { MarkerType, Position, ReactFlow, Node } from '@xyflow/react';
-
+import { MarkerType, Node, Position, ReactFlow } from '@xyflow/react';
+import { Option } from 'effect/Option';
 import '@xyflow/react/dist/style.css';
-import { Tile, TurnAction } from '@end/war/core';
-import { useSnapshot } from 'valtio';
+
 
 const initialNodes = [
   {
@@ -155,16 +149,24 @@ function AttackDialog({
 }: {
   portalCoords?: [Coords?, Coords?];
   owner: number;
-  setTerritoryToAttack?: Dispatch<SetStateAction<string | undefined>>;
-  territoryToAttack?: string;
+  setTerritoryToAttack: (coords: Coords) => void;
+  territoryToAttack: Option<Coords>;
 }) {
-  const tileOwners = useSnapshot(warDerived.selectedNeighborsOwners);
+  const { services } = useEndApi();
+  const { warService } = services;
+  const warStore = useSnapshot(warService.store);
+  const warDerived = useSnapshot(warService.derived);
+  const [selectedTileId] = warService.tileIdAndCoords(
+    getOrUndefined(warStore.selectedTileId)
+  );
 
   const nodes = useMemo(() => {
     let nodeId = 1;
-    const selectedTile = warProxy.tiles.find(
-      (t) => t.id == warProxy.selection.selectedId
-    ) ?? { name: '', troopCount: 0, id: '' };
+    const selectedTile = warStore.tiles.find((t) => t.id == selectedTileId) ?? {
+      name: '',
+      troopCount: 0,
+      id: '',
+    };
     const n: Record<number, Node & { tileId: string }> = {
       1: {
         ...initialNodes[0],
@@ -191,9 +193,9 @@ function AttackDialog({
     };
 
     for (let i = 1; i <= 7; i++) {
-      const tiles = Object.keys(tileOwners);
-      const tile = warProxy.tiles.find((t) => t.id == tiles[i - 1]);
-      const tileOwner = tileOwners[tile?.id ?? -1];
+      const tiles = Object.keys(warDerived.selectedNeighborsOwners);
+      const tile = warStore.tiles.find((t) => t.id == tiles[i - 1]);
+      const tileOwner = warDerived.selectedNeighborsOwners[tile?.id ?? -1];
 
       if (!tile || !tileOwner) {
         continue;
@@ -204,7 +206,9 @@ function AttackDialog({
       n[nodeId + 1] = {
         ...base,
         tileId: tile.id,
-        selected: tile.id === territoryToAttack,
+        selected:
+          tile.id ===
+          warService.tileIdAndCoords(getOrUndefined(territoryToAttack))[0],
         data: {
           label: (
             <XStack>
@@ -249,7 +253,7 @@ function AttackDialog({
     })();
 
     if (portalCoord) {
-      const tile = warProxy.tiles.find((t) => t.id == portalCoord) ?? {
+      const tile = warStore.tiles.find((t) => t.id == portalCoord) ?? {
         name: '',
         troopCount: 0,
         id: '',
@@ -279,7 +283,7 @@ function AttackDialog({
     }
 
     return n;
-  }, [tileOwners, warProxy.selection.selectedId]);
+  }, [warDerived.selectedNeighborsOwners, warStore.selectedTileId]);
 
   return (
     <View
@@ -325,7 +329,7 @@ function AttackDialog({
             const tile = Object.values(nodes).find((n) => n.id === selectedId);
 
             if (tile) {
-              setTerritoryToAttack?.(tile.tileId);
+              setTerritoryToAttack(warService.tileIdAndCoords(tile.tileId)[1]);
             }
           }
         }}
@@ -341,81 +345,9 @@ function WarComponent({
   war: War;
   setTitle?: (title?: string) => void;
 }) {
-  const [title, setTitle] = useState('');
-  let params = useParams();
   const { services } = useEndApi();
-  const { getProxy, getDerived, getColors } = services.hexaService;
-
-  const [raisedTiles, setRaisedTiles] = useState<Set<string>>(new Set());
-  const [tileOwners, setTileOwners] = useState<Map<string, number>>(new Map());
-
-  const [portalCoords, setPortalCoords] = useState<[Coords?, Coords?]>();
-  const [deployCoords, setDeployCoords] = useState<Coords | undefined>();
-  const [selectingPortalEntry, setSelectingPortalEntry] = useState<
-    'first' | 'second' | undefined
-  >('first');
-
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    if (!params.id) {
-      return () => {};
-    }
-
-    Promise.all([
-      war.planet.fetch(),
-      execute(services.conquestService.getWar(params.id)).then((r) => r.json()),
-    ]).then(([local, remote]) => {
-      const tiles: Record<string, Tile> = JSON.parse(remote.war.state).context
-        .tiles;
-      const raised: Record<string, string> = JSON.parse(local.raised);
-      const owners = new Map();
-      getProxy().colors.land = local.landColor;
-      getProxy().colors.water = local.waterColor;
-      getProxy().tiles.forEach((tile) => {
-        if (raised[tile.id]) {
-          const name = raised[tile.id];
-          const { troopCount, owner } = tiles[tile.id];
-          tile.name = name;
-          tile.troopCount = troopCount;
-          tile.owner = owner;
-          tile.raised = true;
-          owners.set(tile.id, tile.owner);
-        }
-      });
-      setLoaded(true);
-
-      const title = `The War of ${local.name}`;
-      setTitle(title);
-      st?.(title);
-    });
-
-    services.conquestService.connectToWarLog(params.id).subscribe((r) => {
-      // try {
-      //   if (r) {
-      //     const s = JSON.parse(
-      //       JSON.parse(r).updateDescription.updatedFields.state
-      //     );
-      //
-      //     const tile = getProxy().tiles.find((tile) => tile.id === tile1);
-      //
-      //     if (tile) {
-      //       tile.troopCount = s.context.tiles[tile1].troopCount;
-      //     }
-      //   }
-      // } catch (e) {}
-    });
-
-    return () => {
-      st?.('');
-    };
-  }, []);
-  const cam = useMemo(() => {
-    const cam = new THREE.PerspectiveCamera(45);
-    cam.position.set(0, 0, 160);
-
-    return cam;
-  }, []);
+  const { warService } = services;
+  const warStore = useSnapshot(warService.store);
   const { width } = useWindowDimensions();
 
   const [cameraResponsiveness, responsiveness] = useMemo(() => {
@@ -437,78 +369,60 @@ function WarComponent({
     ];
   }, [width]);
 
-  const [selectedTile, setSelectedTile] = useState<string>();
-  const [turnAction, setTurnAction] = useState<TurnAction>('attack');
-  const [availableTroops, setAvailableTroopsState] = useState(100);
-  const [troopChange, setTroopChange] = useState(0);
-  const [territoryToAttack, setTerritoryToAttack] = useState<string>();
-
-  useEffect(() => {
-    setTerritoryToAttack(undefined);
-  }, [selectedTile])
-
-  const setAvailableTroops = useCallback(
-    (args: any) => {
-      const tile = warProxy.tiles.find((tile) => tile.id === selectedTile);
-      if (tile) {
-        tile.troopCount = tile.troopCount + troopChange;
-      }
-      return setAvailableTroopsState(args);
-    },
-    [setAvailableTroopsState, troopChange, selectedTile]
-  );
-
-  const onTileSelection = useCallback(
-    (tile: Coords) => {
-      setSelectedTile(Object.values(tile).join(','));
-
-      switch (turnAction) {
-        case 'portal':
-          if (selectingPortalEntry === 'first') {
-            setPortalCoords((prev) => {
-              prev = [tile, prev?.[1]];
-              return prev;
-            });
-          } else if (selectingPortalEntry === 'second') {
-            setPortalCoords((prev) => {
-              prev = [prev?.[0], tile];
-              return prev;
-            });
-          }
-          break;
-        case 'deploy':
-          setDeployCoords(tile);
-          break;
-      }
-    },
-    [selectingPortalEntry, setPortalCoords, setDeployCoords, turnAction]
-  );
-
+  const [_selectedTile, setSelectedTile] = useState<string>();
   const [menuOpen, setMenuOpen] = useState(true);
-  const { bp } = useResponsive(menuOpen);
-
-  const attackTerritories = useMemo(() => {
-    if (!selectedTile) {
-      return [];
+  let params = useParams();
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    if (!params.id) {
+      return () => {};
     }
-    return hexasphere.tileLookup[selectedTile].neighbors.map((tile) => {
-      const { x, y, z } = tile.centerPoint;
-      return [x, y, z].join(',');
+
+    Promise.all([
+      war.planet.fetch(),
+      execute(services.conquestService.getWar(params.id)).then((r) => r.json()),
+    ]).then(([local, remote]) => {
+      const tiles: Record<string, any> = JSON.parse(remote.war.state).context
+        .tiles;
+      const raised: Record<string, string> = JSON.parse(local.raised);
+      const owners = new Map();
+      warService.setLandAndWaterColors(local.waterColor, local.landColor);
+      warService.setTiles(raised, tiles);
+      setLoaded(true);
+
+      const title = `The War of ${local.name}`;
+      warService.setName(title);
+      st?.(title);
     });
-  }, [selectedTile]);
 
-  const attackTerritory = useCallback(() => {
-    if (territoryToAttack) {
-      const tile = warProxy.tiles.find((n) => n.id === territoryToAttack);
-      if (tile) {
-        tile.troopCount = tile.troopCount - 1;
-      }
-      const attackingFrom = warProxy.tiles.find((n) => n.id === selectedTile);
-      if (attackingFrom) {
-        attackingFrom.troopCount = attackingFrom.troopCount - 1;
-      }
-    }
-  }, [territoryToAttack]);
+    services.conquestService.connectToWarLog(params.id).subscribe((r) => {
+      // try {
+      //   if (r) {
+      //     const s = JSON.parse(
+      //       JSON.parse(r).updateDescription.updatedFields.state
+      //     );
+      //
+      //     const tile = getProxy().tiles.find((tile) => tile.id === tile1);
+      //
+      //     if (tile) {
+      //       tile.troopCount = s.context.tiles[tile1].troopCount;
+      //     }
+      //   }
+      // } catch (e) {}
+    });
+
+    return () => {
+      warService.onTileSelection(null);
+    };
+  }, []);
+
+  const cam = useMemo(() => {
+    const cam = new THREE.PerspectiveCamera(45);
+    cam.position.set(0, 0, 160);
+
+    return cam;
+  }, []);
+  const { bp } = useResponsive(menuOpen);
 
   if (!loaded) {
     return null;
@@ -517,7 +431,7 @@ function WarComponent({
   return (
     <View style={{ overflow: 'hidden', height: '100%', width: '100%' }}>
       <View style={bp(['pl-10 flex items-start', 'hidden', 'block'])}>
-        <H4>{title}</H4>
+        <H4>{getOrUndefined(warStore.name)}</H4>
         {/*<Badge title={params.id} />*/}
       </View>
       <Canvas
@@ -527,50 +441,13 @@ function WarComponent({
         }}
         camera={cam}
       >
-        <Hexasphere
-          derived={getDerived()}
-          proxy={getProxy()}
-          onTileSelection={onTileSelection}
-          selectedTile={selectedTile}
-          waterColor={getColors().water}
-          landColor={getColors().land}
-          showTroopCount={true}
-          raisedTiles={raisedTiles}
-          showAttackArrows={true}
-          tileOwners={tileOwners}
-          portalCoords={portalCoords}
-          portalPath={PortalPath}
-        />
+        <hv2.HexasphereV2 portalPath={PortalPath} />
         <OrbitControls />
       </Canvas>
-      <GameTabs
-        derived={getDerived()}
+      <GameTabsV2
         menuOpen={menuOpen}
-        proxy={getProxy()}
-        selectedTile={selectedTile}
-        setSelectingPortalEntry={setSelectingPortalEntry}
-        selectTile={(tile) => {
-          const [x, y, z] = tile.split(',').map((x) => parseFloat(x));
-          onTileSelection({ x, y, z });
-        }}
         setMenuOpen={setMenuOpen}
-        newPlanet={() => {}}
-        startGame={() => {}}
         attackDialog={AttackDialog}
-        portalCoords={portalCoords}
-        setPortalCoords={setPortalCoords}
-        deployCoords={deployCoords}
-        setDeployCoords={setDeployCoords}
-        turnAction={turnAction}
-        setTurnAction={setTurnAction}
-        availableTroops={availableTroops}
-        setAvailableTroops={setAvailableTroops}
-        troopChange={troopChange}
-        setTroopChange={setTroopChange}
-        attackTerritories={attackTerritories}
-        attackTerritory={attackTerritory}
-        setTerritoryToAttack={setTerritoryToAttack}
-        territoryToAttack={territoryToAttack}
       />
     </View>
   );

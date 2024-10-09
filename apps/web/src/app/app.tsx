@@ -152,9 +152,9 @@ function AppRoutes() {
                         services={services}
                         goToHome={() => n('/home')}
                       />
-                      <Link to={'#'}>
-                        <Badge title="Download the Android app" />
-                      </Link>
+                      {/*<Link to={'#'}>*/}
+                      {/*  <Badge title="Download the Android app" />*/}
+                      {/*</Link>*/}
                     </>
                   )}
                 </WithNavigate>
