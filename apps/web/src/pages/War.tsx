@@ -24,7 +24,6 @@ import { MarkerType, Node, Position, ReactFlow } from '@xyflow/react';
 import { Option } from 'effect/Option';
 import '@xyflow/react/dist/style.css';
 
-
 const initialNodes = [
   {
     id: '1',
@@ -396,19 +395,26 @@ function WarComponent({
     });
 
     services.conquestService.connectToWarLog(params.id).subscribe((r) => {
-      // try {
-      //   if (r) {
-      //     const s = JSON.parse(
-      //       JSON.parse(r).updateDescription.updatedFields.state
-      //     );
-      //
-      //     const tile = getProxy().tiles.find((tile) => tile.id === tile1);
-      //
-      //     if (tile) {
-      //       tile.troopCount = s.context.tiles[tile1].troopCount;
-      //     }
-      //   }
-      // } catch (e) {}
+      try {
+        if (r) {
+          const s = JSON.parse(
+            JSON.parse(r).updateDescription.updatedFields.state
+          );
+
+          const [tile1] = warService.tileIdAndCoords(
+            getOrUndefined(warStore.territoryToAttack)
+          );
+
+          debugger;
+
+          const tile = warStore.tiles.find((tile) => tile.id === tile1);
+
+          if (tile) {
+            // @ts-ignore
+            tile.troopCount = s.context.tiles[tile1].troopCount;
+          }
+        }
+      } catch (e) {}
     });
 
     return () => {

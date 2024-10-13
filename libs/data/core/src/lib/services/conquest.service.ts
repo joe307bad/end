@@ -135,6 +135,8 @@ const ConquestLive = Layer.effect(
         return warLog;
       },
       attack: (event: { tile1: string; tile2: string; warId: string }) => {
+        debugger;
+
         return fetch.post('/conquest', { type: 'attack', ...event });
       },
       selectFirstTerritory: (event: { id: string; warId: string }) => {

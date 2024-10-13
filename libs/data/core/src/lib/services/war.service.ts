@@ -10,6 +10,8 @@ import {
   getRandomName,
 } from '@end/shared';
 import { faker } from '@faker-js/faker';
+import conquest from '../../../../../../apps/web/src/pages/Conquest';
+import { ConquestService } from './conquest.service';
 
 type Tile = {
   id: string;
@@ -212,7 +214,7 @@ interface IWarService {
   setAvailableTroopsToDeploy: () => void;
   setTroopsToDeploy: (troopsToDeploy: number) => void;
   setTerritoryToAttack: (coords: Coords) => void;
-  attackTerritory: () => void;
+  attackTerritory: () => Effect.Effect<string, string>;
   deployToTerritory: () => void;
   initializeMap: () => void;
 }
@@ -416,8 +418,8 @@ const WarLive = Layer.effect(
           }))
         );
 
-        O.match(combined, {
-          onNone: () => undefined,
+        return O.match(combined, {
+          onNone: () => Effect.fail('Missing required arguments to attack'),
           onSome: ({ selectedTileId, territoryToAttackId }) => {
             const territoryToAttack = store.tiles.find(
               (tile) => tile.id === territoryToAttackId
@@ -430,6 +432,8 @@ const WarLive = Layer.effect(
               territoryToAttack.troopCount = territoryToAttack.troopCount - 1;
               attackingTerritory.troopCount = attackingTerritory.troopCount - 1;
             }
+
+            return Effect.succeed("");
           },
         });
       },

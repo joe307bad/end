@@ -35,6 +35,9 @@ import { useSnapshot } from 'valtio';
 import { ActivityArrow } from '../ActivityArrow';
 import { Swords } from '@tamagui/lucide-icons';
 import { getOrUndefined } from 'effect/Option';
+import { Effect } from 'effect';
+import { useParams } from 'react-router-dom';
+import { execute } from '@end/data/core';
 
 export function GameTabsV2({
   menuOpen,
@@ -346,9 +349,27 @@ function TurnActionComponent({
   setSelectedTile: (tile: string) => void;
 }) {
   const { services } = useEndApi();
-  const { warService } = services;
+  const { warService, conquestService } = services;
   const warStore = useSnapshot(warService.store);
   const warDerived = useSnapshot(warService.derived);
+  let params = useParams();
+
+  const attackTerritory = useCallback(async () => {
+    const [tile2] = warService.tileIdAndCoords(
+      getOrUndefined(warStore.territoryToAttack)
+    );
+    await execute(
+      warService.attackTerritory().pipe(
+        Effect.flatMap(() =>
+          conquestService.attack({
+            tile1: getOrUndefined(warStore.selectedTileId) ?? '',
+            tile2,
+            warId: params['id'] ?? '',
+          })
+        )
+      )
+    );
+  }, [warStore.territoryToAttack, warStore.selectedTileId]);
 
   switch (warStore.turnAction) {
     case 'portal':
@@ -485,7 +506,7 @@ function TurnActionComponent({
               <H4>Attack a territory</H4>
             </V>
             <V justifyContent="center">
-              <Pressable onPress={warService.attackTerritory}>
+              <Pressable onPress={attackTerritory}>
                 <Swords size="$1" />
               </Pressable>
             </V>
