@@ -58,10 +58,7 @@ export default function Home() {
           Effect.andThen((response) =>
             services.syncService.sync().pipe(Effect.map(() => response))
           ),
-          Effect.andThen((response) => {
-            debugger;
-            return navigate(`/war/${response.warId}`);
-          })
+          Effect.andThen((response) => navigate(`/war/${response.warId}`))
         )
       );
     },

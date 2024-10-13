@@ -647,8 +647,6 @@ const TileMesh = React.memo(
       });
     }, []);
 
-    // console.log({neighbors});
-
     return (
       <mesh onClick={click}>
         {neighbors && (

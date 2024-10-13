@@ -95,7 +95,6 @@ const ConquestLive = Layer.effect(
                         war.planet.id = newPlanet;
                         war.players = players;
                       });
-                    debugger;
                     resolve(id);
                   });
                 });
@@ -104,7 +103,6 @@ const ConquestLive = Layer.effect(
             });
           }),
           Effect.flatMap((war) => {
-            debugger;
             return fetch.post<{ warId: string }>('/conquest', {
               type: 'generate-new-war',
               warId: war,

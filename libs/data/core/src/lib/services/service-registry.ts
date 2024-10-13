@@ -47,7 +47,6 @@ const servicesFactory = (
           Layer.provide(ConfigLivePipe),
           Layer.provide(DbLivePipe),
           Layer.provideMerge(AuthLivePipe),
-          Layer.provideMerge(AuthLivePipe),
           Layer.provideMerge(WarLivePipe)
         )
       )
