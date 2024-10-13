@@ -5,6 +5,7 @@ const webpack = require('webpack');
 require('dotenv').config();
 
 module.exports = composePlugins(withNx(), withReact(), (config) => {
+  console.log(process.env)
   config.plugins.push(
     new webpack.DefinePlugin({
       'process.env': {

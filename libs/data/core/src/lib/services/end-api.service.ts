@@ -7,7 +7,7 @@ interface EndApi {
   readonly login: (
     userName: string,
     password: string
-  ) => Effect.Effect<{ access_token: string }, Error>;
+  ) => Effect.Effect<{ access_token: string }, string>;
   readonly database: Database;
 }
 

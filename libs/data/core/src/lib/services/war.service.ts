@@ -437,6 +437,6 @@ const WarLive = Layer.effect(
   })
 );
 
-const WarPipe = pipe(WarLive);
+const WarLivePipe = pipe(WarLive);
 
-export { WarService, WarPipe, IWarService };
+export { WarService, WarLivePipe, IWarService };

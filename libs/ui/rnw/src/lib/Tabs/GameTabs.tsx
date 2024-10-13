@@ -16,19 +16,13 @@ import {
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
 import { tw } from '../components';
-import {
-  CircleDot,
-  Crosshair,
-  Hexagon,
-  ArrowRight,
-} from '@tamagui/lucide-icons';
+import { CircleDot, Crosshair, Hexagon } from '@tamagui/lucide-icons';
 import React, {
   Dispatch,
   ElementType,
   SetStateAction,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react';

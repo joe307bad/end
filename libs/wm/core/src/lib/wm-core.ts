@@ -70,8 +70,9 @@ export const migrations = schemaMigrations({
 });
 
 export const syncFactory =
-  (database: Database) => (token: string | null, apiUrl?: string) =>
-    synchronize({
+  (database: Database) => (token: string | undefined, apiUrl?: string) => {
+    debugger;
+    return synchronize({
       database,
       pullChanges: async ({ lastPulledAt, schemaVersion, migration }) => {
         const urlParams = `last_pulled_at=${lastPulledAt}&schema_version=${schemaVersion}&migration=${encodeURIComponent(
@@ -108,3 +109,4 @@ export const syncFactory =
       },
       migrationsEnabledAtVersion: 1,
     });
+  };

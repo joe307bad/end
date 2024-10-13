@@ -52,43 +52,18 @@ export default function Home() {
 
   const startGame = useCallback(
     async function () {
-      const raised = warStore.tiles
-        .filter((tile) => tile.raised)
-        .reduce((acc: Record<string, string>, curr) => {
-          acc[curr.id] = curr.name ?? '';
-          return acc;
-        }, {});
-
-      const combined = O.all([
-        warStore.landColor,
-        warStore.waterColor,
-        warStore.name,
-      ]);
-
-      await O.match(combined, {
-        onNone() {
-          return null;
-        },
-        async onSome([land, water, name]) {
-          await execute(
-            pipe(
-              services.conquestService.startWar(
-                {
-                  landColor: land,
-                  waterColor: water,
-                  raised: JSON.stringify(raised),
-                  name: name,
-                },
-                5
-              ),
-              Effect.andThen((response) =>
-                services.syncService.sync().pipe(Effect.map(() => response))
-              ),
-              Effect.andThen((response) => navigate(`/war/${response.warId}`))
-            )
-          );
-        },
-      });
+      return execute(
+        pipe(
+          services.conquestService.startWar(5),
+          Effect.andThen((response) =>
+            services.syncService.sync().pipe(Effect.map(() => response))
+          ),
+          Effect.andThen((response) => {
+            debugger;
+            return navigate(`/war/${response.warId}`);
+          })
+        )
+      );
     },
     [warStore.landColor, warStore.waterColor, warStore.name]
   );
