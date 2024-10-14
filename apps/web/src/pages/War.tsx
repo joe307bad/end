@@ -3,7 +3,7 @@ import { useEndApi } from '@end/data/web';
 import React, { ComponentType, useEffect, useMemo, useState } from 'react';
 import { useSnapshot } from 'valtio/react';
 import { hv2 } from '@end/hexasphere';
-import { Coords } from '@end/shared';
+import { Coords, Tile } from '@end/shared';
 import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
 import { PortalPath, useResponsive, GameTabsV2 } from '@end/components';
@@ -394,27 +394,21 @@ function WarComponent({
       st?.(title);
     });
 
-    services.conquestService.connectToWarLog(params.id).subscribe((r) => {
+    services.conquestService.connectToWarLog(params.id).subscribe((r: any) => {
       try {
-        if (r) {
-          const s = JSON.parse(
-            JSON.parse(r).updateDescription.updatedFields.state
-          );
+        const { tile1, tile2, tile1TroopCount, tile2TroopCount } =
+          JSON.parse(r);
 
-          const [tile1] = warService.tileIdAndCoords(
-            getOrUndefined(warStore.territoryToAttack)
-          );
+        const t1 = warService.store.tiles.find((t) => t.id === tile1);
+        const t2 = warService.store.tiles.find((t) => t.id === tile2);
 
-          debugger;
+        console.log({ r });
 
-          const tile = warStore.tiles.find((tile) => tile.id === tile1);
-
-          if (tile) {
-            // @ts-ignore
-            tile.troopCount = s.context.tiles[tile1].troopCount;
-          }
+        if (t1 && t2) {
+          t1.troopCount = tile1TroopCount;
+          t2.troopCount = tile2TroopCount;
         }
-      } catch (e) {}
+      } catch (_) {}
     });
 
     return () => {

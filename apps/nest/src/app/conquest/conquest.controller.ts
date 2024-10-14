@@ -5,6 +5,7 @@ import { createActor } from 'xstate';
 import { InjectModel, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
 import { Entity } from '../sync/sync.service';
+import { ConquestService } from './conquest.service';
 
 @Schema({ strict: false })
 export class War {
@@ -24,7 +25,8 @@ export const WarSchema = SchemaFactory.createForClass(War);
 export class ConquestController {
   constructor(
     @InjectModel(War.name) private warModel: Model<War>,
-    @InjectModel(Entity.name) private entityModel: Model<Entity>
+    @InjectModel(Entity.name) private entityModel: Model<Entity>,
+    private conquest: ConquestService
   ) {}
 
   @Post()
@@ -69,6 +71,18 @@ export class ConquestController {
             .then((r) => {
               return { id: r.upsertedId };
             });
+
+          const tile1TroopCount =
+            // @ts-ignore
+            existingWarState.context.tiles[event.tile1].troopCount;
+          const tile2TroopCount =
+            // @ts-ignore
+            existingWarState.context.tiles[event.tile2].troopCount;
+
+          this.conquest.next({
+            ...event,
+            ...{ tile1TroopCount, tile2TroopCount },
+          });
 
           return { state: existingWarState, warId: event.warId };
         } catch (e) {

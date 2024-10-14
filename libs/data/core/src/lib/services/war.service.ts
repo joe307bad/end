@@ -10,8 +10,6 @@ import {
   getRandomName,
 } from '@end/shared';
 import { faker } from '@faker-js/faker';
-import conquest from '../../../../../../apps/web/src/pages/Conquest';
-import { ConquestService } from './conquest.service';
 
 type Tile = {
   id: string;
