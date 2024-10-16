@@ -10,6 +10,7 @@ import {
   getRandomName,
 } from '@end/shared';
 import { faker } from '@faker-js/faker';
+import { WarState } from '@end/war/core';
 
 type Tile = {
   id: string;
@@ -22,6 +23,7 @@ type Tile = {
 };
 
 interface WarStore {
+  state: Option<WarState>;
   active: boolean;
   name: Option<string>;
   selectedTileId: Option<string>;
@@ -78,6 +80,7 @@ function sortedTilesList(
 }
 
 const store = proxy<WarStore>({
+  state: O.none(),
   active: true,
   filter: 'all',
   cameraPosition: O.none(),
@@ -189,6 +192,7 @@ interface IWarService {
   store: WarStore;
   derived: typeof derived;
   tileIdAndCoords: typeof tileIdAndCoords;
+  setWarState: (stage: WarState) => void;
   hasPortal: () => boolean;
   setSelectedTileIdOverride: (coords: string | Coords) => void;
   onTileSelection: (
@@ -281,6 +285,9 @@ const WarLive = Layer.effect(
       store,
       derived,
       tileIdAndCoords,
+      setWarState(state: WarState) {
+        store.state = O.some(state);
+      },
       hasPortal() {
         return (
           typeof store.portal[0] !== 'undefined' &&

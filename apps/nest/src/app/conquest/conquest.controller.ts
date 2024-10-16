@@ -1,11 +1,11 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { Public } from '../auth/auth.guard';
+import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
 import { warMachine, Event } from '@end/war/core';
 import { createActor } from 'xstate';
 import { InjectModel, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
 import { Entity } from '../sync/sync.service';
 import { ConquestService } from './conquest.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Schema({ strict: false })
 export class War {
@@ -21,21 +21,30 @@ export class War {
 export const WarSchema = SchemaFactory.createForClass(War);
 
 @Controller('conquest')
-@Public()
 export class ConquestController {
   constructor(
     @InjectModel(War.name) private warModel: Model<War>,
     @InjectModel(Entity.name) private entityModel: Model<Entity>,
+    private jwtService: JwtService,
     private conquest: ConquestService
   ) {}
 
   @Post()
-  async log(@Body() event: Event) {
+  async log(@Body() event: Event, @Req() request: Request) {
     switch (event.type) {
       case 'generate-new-war':
+        const userId: string = (() => {
+          const authHeader = request.headers['authorization'];
+          if (authHeader && authHeader.startsWith('Bearer ')) {
+            const token = authHeader.split(' ')[1];
+            return this.jwtService.decode(token).sub;
+          }
+          return null;
+        })();
+
         const warActor = createActor(warMachine(event.warId));
         warActor.start();
-        warActor.send(event);
+        warActor.send({ ...event, players: [userId] });
         const state = warActor.getSnapshot();
         await this.warModel
           .create({ state: JSON.stringify(state), warId: event.warId })
@@ -44,6 +53,7 @@ export class ConquestController {
           });
 
         return { state, warId: event.warId };
+      case 'add-player':
       case 'select-first-territory':
       case 'attack':
         try {
@@ -72,17 +82,19 @@ export class ConquestController {
               return { id: r.upsertedId };
             });
 
-          const tile1TroopCount =
-            // @ts-ignore
-            existingWarState.context.tiles[event.tile1].troopCount;
-          const tile2TroopCount =
-            // @ts-ignore
-            existingWarState.context.tiles[event.tile2].troopCount;
+          if (event.type === 'attack') {
+            const tile1TroopCount =
+              // @ts-ignore
+              existingWarState.context.tiles[event.tile1].troopCount;
+            const tile2TroopCount =
+              // @ts-ignore
+              existingWarState.context.tiles[event.tile2].troopCount;
 
-          this.conquest.next({
-            ...event,
-            ...{ tile1TroopCount, tile2TroopCount },
-          });
+            this.conquest.next({
+              ...event,
+              ...{ tile1TroopCount, tile2TroopCount },
+            });
+          }
 
           return { state: existingWarState, warId: event.warId };
         } catch (e) {

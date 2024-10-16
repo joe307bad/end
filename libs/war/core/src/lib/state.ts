@@ -1,4 +1,4 @@
-import { assign, setup } from 'xstate';
+import { assign, setup, StateFrom } from 'xstate';
 import { faker } from '@faker-js/faker';
 
 export interface Tile {
@@ -7,7 +7,7 @@ export interface Tile {
   id: string;
   troopCount: number;
   owner: number;
-  name: string
+  name: string;
 }
 
 interface Context {
@@ -25,6 +25,7 @@ export type Event =
       tiles: Record<string, Tile>;
       warId: string;
     }
+  | { type: 'add-player'; warId: string }
   | { type: 'attack'; tile1: string; tile2: string; warId: string }
   | { type: 'select-first-territory'; id: string; warId: string }
   | { type: 'select-second-territory'; id: string };
@@ -77,11 +78,24 @@ export const warMachine = (
         on: {
           'generate-new-war': {
             actions: 'generate-new-war',
-            target: 'war-in-progress',
+            target: 'searching-for-players',
           },
         },
       },
       'war-complete': {},
+      'searching-for-players': {
+        on: {
+          'add-player': {
+            actions: assign({
+              players: ({ context, event }) => {
+                const newPlayers = [...context['players']];
+                newPlayers.push(Math.random().toString());
+                return newPlayers;
+              },
+            }),
+          },
+        },
+      },
       'war-in-progress': {
         on: {
           'select-first-territory': {
@@ -130,3 +144,5 @@ export const warMachine = (
       },
     },
   });
+
+export type WarState = StateFrom<typeof warMachine>['value'];

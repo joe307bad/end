@@ -43,10 +43,24 @@ const FetchLive = Layer.effect(
         );
       },
       get: (route: string) => {
-        return Effect.tryPromise({
-          try: () => fetch(`${config.apiUrl}${route}`),
-          catch: (error) => `Error fetching ${route}: ${error?.toString()}`,
-        });
+        return pipe(
+          Effect.match(getToken(), {
+            onSuccess: (token) => getOrUndefined(token),
+            onFailure: () => Effect.fail('Token required'),
+          }),
+          Effect.flatMap((token) =>
+            Effect.tryPromise({
+              try: () =>
+                fetch(`${config.apiUrl}${route}`, {
+                  method: 'GET',
+                  headers: {
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                  },
+                }),
+              catch: (error) => `Error fetching ${route}: ${error?.toString()}`,
+            })
+          )
+        );
       },
     });
   })

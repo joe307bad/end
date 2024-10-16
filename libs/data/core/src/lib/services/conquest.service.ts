@@ -20,6 +20,9 @@ interface Conquest {
     tile2: string;
     warId: string;
   }) => Effect.Effect<Response, string>;
+  readonly addPlayer: (payload: {
+    warId: string;
+  }) => Effect.Effect<Response, string>;
   readonly selectFirstTerritory: (payload: {
     id: string;
     warId: string;
@@ -136,6 +139,9 @@ const ConquestLive = Layer.effect(
       },
       attack: (event: { tile1: string; tile2: string; warId: string }) => {
         return fetch.post('/conquest', { type: 'attack', ...event });
+      },
+      addPlayer: (event: { warId: string }) => {
+        return fetch.post('/conquest', { type: 'add-player', ...event });
       },
       selectFirstTerritory: (event: { id: string; warId: string }) => {
         return fetch.post('/conquest', {

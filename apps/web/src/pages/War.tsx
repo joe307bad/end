@@ -257,6 +257,11 @@ function AttackDialog({
         troopCount: 0,
         id: '',
       };
+
+      if (tile?.troopCount === 0) {
+        return n;
+      }
+
       n[9] = {
         ...initialNodes[7],
         tileId: portalCoord,
@@ -372,6 +377,15 @@ function WarComponent({
   const [menuOpen, setMenuOpen] = useState(true);
   let params = useParams();
   const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    setInterval(() => {
+      // execute(
+      //   services.conquestService.addPlayer({ warId: params.id ?? '' })
+      // ).then(console.log);
+    }, 5000);
+  }, []);
+
   useEffect(() => {
     if (!params.id) {
       return () => {};
@@ -381,10 +395,15 @@ function WarComponent({
       war.planet.fetch(),
       execute(services.conquestService.getWar(params.id)).then((r) => r.json()),
     ]).then(([local, remote]) => {
-      const tiles: Record<string, any> = JSON.parse(remote.war.state).context
-        .tiles;
+      const war = JSON.parse(remote.war.state);
+      const players = war.context.players;
+      console.log({ players });
+      const state = war.value;
+
+      warService.setWarState(state);
+
+      const tiles: Record<string, any> = war.context.tiles;
       const raised: Record<string, string> = JSON.parse(local.raised);
-      const owners = new Map();
       warService.setLandAndWaterColors(local.waterColor, local.landColor);
       warService.setTiles(raised, tiles);
       setLoaded(true);
@@ -401,8 +420,6 @@ function WarComponent({
 
         const t1 = warService.store.tiles.find((t) => t.id === tile1);
         const t2 = warService.store.tiles.find((t) => t.id === tile2);
-
-        console.log({ r });
 
         if (t1 && t2) {
           t1.troopCount = tile1TroopCount;
