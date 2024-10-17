@@ -11,7 +11,7 @@ export interface Tile {
 }
 
 interface Context {
-  players: string[];
+  players: [string, string][];
   turn: number;
   tiles: Record<string, Tile>;
   selectedTerritory1?: string;
@@ -21,11 +21,11 @@ interface Context {
 export type Event =
   | {
       type: 'generate-new-war';
-      players: string[];
+      players: [string, string][];
       tiles: Record<string, Tile>;
       warId: string;
     }
-  | { type: 'add-player'; warId: string }
+  | { type: 'add-player'; warId: string; player: [string, string] }
   | { type: 'attack'; tile1: string; tile2: string; warId: string }
   | { type: 'select-first-territory'; id: string; warId: string }
   | { type: 'select-second-territory'; id: string };
@@ -89,7 +89,7 @@ export const warMachine = (
             actions: assign({
               players: ({ context, event }) => {
                 const newPlayers = [...context['players']];
-                newPlayers.push(Math.random().toString());
+                newPlayers.push(event.player);
                 return newPlayers;
               },
             }),

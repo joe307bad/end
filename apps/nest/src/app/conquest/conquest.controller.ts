@@ -33,18 +33,20 @@ export class ConquestController {
   async log(@Body() event: Event, @Req() request: Request) {
     switch (event.type) {
       case 'generate-new-war':
-        const userId: string = (() => {
-          const authHeader = request.headers['authorization'];
-          if (authHeader && authHeader.startsWith('Bearer ')) {
-            const token = authHeader.split(' ')[1];
-            return this.jwtService.decode(token).sub;
-          }
-          return null;
-        })();
+        const { userId, username }: { userId: string; username: string } =
+          (() => {
+            const authHeader = request.headers['authorization'];
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+              const token = authHeader.split(' ')[1];
+              const { sub, username } = this.jwtService.decode(token);
+              return { userId: sub, username };
+            }
+            return null;
+          })();
 
         const warActor = createActor(warMachine(event.warId));
         warActor.start();
-        warActor.send({ ...event, players: [userId] });
+        warActor.send({ ...event, players: [[userId, username]] });
         const state = warActor.getSnapshot();
         await this.warModel
           .create({ state: JSON.stringify(state), warId: event.warId })

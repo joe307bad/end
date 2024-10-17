@@ -24,6 +24,7 @@ type Tile = {
 
 interface WarStore {
   state: Option<WarState>;
+  players: [string, string][];
   active: boolean;
   name: Option<string>;
   selectedTileId: Option<string>;
@@ -81,6 +82,7 @@ function sortedTilesList(
 
 const store = proxy<WarStore>({
   state: O.none(),
+  players: [],
   active: true,
   filter: 'all',
   cameraPosition: O.none(),
@@ -189,6 +191,16 @@ function tileIdAndCoords(tile: string | Coords | undefined): [string, Coords] {
 }
 
 interface IWarService {
+  begin: (
+    title: string,
+    state: WarState,
+    raised: Record<string, string>,
+    tiles: Record<string, Tile>,
+    waterColor: string,
+    landColor: string,
+    players: [string, string][]
+  ) => void;
+  setPlayers: (players: [string, string][]) => void;
   store: WarStore;
   derived: typeof derived;
   tileIdAndCoords: typeof tileIdAndCoords;
@@ -287,6 +299,24 @@ const WarLive = Layer.effect(
       tileIdAndCoords,
       setWarState(state: WarState) {
         store.state = O.some(state);
+      },
+      begin(
+        title: string,
+        state: WarState,
+        raised: Record<string, string>,
+        tiles: Record<string, Tile>,
+        waterColor: string,
+        landColor: string,
+        players: [string, string][]
+      ) {
+        this.setWarState(state);
+        this.setLandAndWaterColors(waterColor, landColor);
+        this.setTiles(raised, tiles);
+        this.setName(title);
+        this.setPlayers(players);
+      },
+      setPlayers(players: [string, string][]) {
+        store.players = players;
       },
       hasPortal() {
         return (
@@ -438,7 +468,7 @@ const WarLive = Layer.effect(
               attackingTerritory.troopCount = attackingTerritory.troopCount - 1;
             }
 
-            return Effect.succeed("");
+            return Effect.succeed('');
           },
         });
       },

@@ -11,6 +11,7 @@ import {
   ContainerWithNav,
   Landing,
   Providers,
+  Register,
 } from '@end/components';
 import './app.module.scss';
 
@@ -158,6 +159,14 @@ function AppRoutes() {
                     </>
                   )}
                 </WithNavigate>
+              </Container>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <Container>
+                <WithNavigate>{(n) => <Register />}</WithNavigate>
               </Container>
             }
           />

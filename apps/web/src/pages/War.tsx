@@ -397,20 +397,24 @@ function WarComponent({
     ]).then(([local, remote]) => {
       const war = JSON.parse(remote.war.state);
       const players = war.context.players;
-      console.log({ players });
       const state = war.value;
-
-      warService.setWarState(state);
 
       const tiles: Record<string, any> = war.context.tiles;
       const raised: Record<string, string> = JSON.parse(local.raised);
-      warService.setLandAndWaterColors(local.waterColor, local.landColor);
-      warService.setTiles(raised, tiles);
       setLoaded(true);
 
       const title = `The War of ${local.name}`;
-      warService.setName(title);
       st?.(title);
+
+      warService.begin(
+        title,
+        state,
+        raised,
+        tiles,
+        local.waterColor,
+        local.landColor,
+        players
+      );
     });
 
     services.conquestService.connectToWarLog(params.id).subscribe((r: any) => {
@@ -461,6 +465,7 @@ function WarComponent({
         <hv2.HexasphereV2 portalPath={PortalPath} />
         <OrbitControls />
       </Canvas>
+
       <GameTabsV2
         menuOpen={menuOpen}
         setMenuOpen={setMenuOpen}
