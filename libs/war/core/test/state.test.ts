@@ -24,7 +24,7 @@ describe('Simple xstate test', () => {
     warActor.start();
     warActor.send({ type: 'start-battle' });
     warActor.send({ type: 'attack', tile1: '1', tile2: '2' });
-    // console.log(feedbackActor.getSnapshot().context)
+
     console.log(getNextEvents(warActor.getSnapshot()));
   });
 

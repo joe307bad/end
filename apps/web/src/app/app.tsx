@@ -151,6 +151,7 @@ function AppRoutes() {
                     <>
                       <Landing
                         services={services}
+                        goToRegister={() => n('/register')}
                         goToHome={() => n('/home')}
                       />
                       {/*<Link to={'#'}>*/}
@@ -166,7 +167,9 @@ function AppRoutes() {
             path="/register"
             element={
               <Container>
-                <WithNavigate>{(n) => <Register />}</WithNavigate>
+                <WithNavigate>
+                  {(n) => <Register services={services} />}
+                </WithNavigate>
               </Container>
             }
           />

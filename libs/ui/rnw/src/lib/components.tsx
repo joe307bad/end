@@ -1,11 +1,11 @@
 import React, { ReactNode, useMemo } from 'react';
 import * as THREE from 'three';
-import { TamaguiProvider } from 'tamagui';
+import { TamaguiProvider, YStack } from 'tamagui';
 import { config, tokens } from './tamagui.config';
 import { View } from 'react-native';
 import t, { useDeviceContext } from 'twrnc';
 import { AuthProvider } from '@end/auth';
-import { ToastProvider, ToastViewport } from '@tamagui/toast';
+import { Toast, ToastProvider, ToastViewport, useToastState } from '@tamagui/toast';
 import '@react-three/fiber';
 
 export const tw = t as any;
@@ -50,8 +50,7 @@ export function PortalPath({
   from?: { x: number; y: number; z: number };
   to?: { x: number; y: number; z: number };
 }) {
-
-  if(!from || !to) {
+  if (!from || !to) {
     return null;
   }
 
@@ -189,10 +188,42 @@ export function PortalPath({
   ) : null;
 }
 
+
+export const CurrentToast = () => {
+  const currentToast = useToastState();
+
+  return (
+    <Toast
+      key={currentToast?.id}
+      duration={currentToast?.duration}
+      enterStyle={{ opacity: 0, scale: 0.5, y: -25 }}
+      exitStyle={{ opacity: 0, scale: 1, y: -20 }}
+      y={0}
+      opacity={1}
+      scale={1}
+      animation="medium"
+      viewportName={currentToast?.viewportName}
+    >
+      <YStack backgroundColor="black" padding="$0.5">
+        <Toast.Title>{currentToast?.title}</Toast.Title>
+        {!!currentToast?.message && (
+          <Toast.Description>{currentToast?.message}</Toast.Description>
+        )}
+      </YStack>
+    </Toast>
+  );
+};
+
 export function Container({ children }: { children: ReactNode }) {
   return (
-    <View style={{ display: 'flex', alignItems: 'center', padding: 50 }}>
-      <View style={{ maxWidth: '100%' }}>{children}</View>
+    <View
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        height: '100%',
+      }}
+    >
+      <View style={{ maxWidth: '100%', height: '100%' }}>{children}</View>
     </View>
   );
 }

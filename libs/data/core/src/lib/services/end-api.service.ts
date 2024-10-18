@@ -8,6 +8,11 @@ interface EndApi {
     userName: string,
     password: string
   ) => Effect.Effect<{ access_token: string }, string>;
+  readonly register: (
+    userName: string,
+    password: string,
+    confirmPassword: string
+  ) => Effect.Effect<{ access_token: string }, string>;
   readonly database: Database;
 }
 
@@ -26,6 +31,25 @@ const EndApiLive = Layer.effect(
           userName,
           password,
         });
+      },
+      register: (
+        userName: string,
+        password: string,
+        confirmPassword: string
+      ) => {
+        return pipe(
+          Effect.suspend(() =>
+            password != '' && confirmPassword === password
+              ? Effect.succeed('Passwords match')
+              : Effect.fail('Password confirmation does not match')
+          ),
+          Effect.flatMap(() => {
+            return fetch.post('/auth/register', {
+              userName,
+              password,
+            });
+          })
+        );
       },
       database,
     });
