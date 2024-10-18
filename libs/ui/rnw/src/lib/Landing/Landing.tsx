@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import * as Typography from '../Typography';
 import { Input, View, XStack, YStack } from 'tamagui';
 import { PrimaryButton } from '../Display';
@@ -39,6 +39,10 @@ export function Landing({ goToHome, goToRegister, services }: Props) {
         toast.show('An error occurred. Try again.', { message: e?.message });
       });
   }, [userName, password]);
+
+  useEffect(() => {
+    toast.hide();
+  }, []);
 
   return (
     <YStack space="$0.5" style={{ alignItems: 'center' }} height="100%">

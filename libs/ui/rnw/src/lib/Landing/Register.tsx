@@ -1,7 +1,7 @@
 import { Input, XStack, YStack } from 'tamagui';
 import * as Typography from '../Typography';
 import { PrimaryButton } from '../Display';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { execute, servicesFactory } from '@end/data/core';
 import { useToastController } from '@tamagui/toast';
 import { useAuth } from '@end/auth';
@@ -20,6 +20,10 @@ export function Register({
   const toast = useToastController();
   const { setToken } = useAuth();
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    toast.hide()
+  }, []);
 
   const register = useCallback(() => {
     setLoading(true);
