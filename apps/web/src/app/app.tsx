@@ -168,7 +168,9 @@ function AppRoutes() {
             element={
               <Container>
                 <WithNavigate>
-                  {(n) => <Register services={services} />}
+                  {(n) => (
+                    <Register services={services} goToHome={() => n('/home')} />
+                  )}
                 </WithNavigate>
               </Container>
             }
