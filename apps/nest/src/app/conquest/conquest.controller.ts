@@ -18,6 +18,16 @@ export class War {
   _id: ObjectId;
 }
 
+const getUserInfo = (jwtService: JwtService) => (request: Request) => {
+  const authHeader = request.headers['authorization'];
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    const { sub, username } = jwtService.decode(token);
+    return { userId: sub, username };
+  }
+  return null;
+};
+
 export const WarSchema = SchemaFactory.createForClass(War);
 
 @Controller('conquest')
@@ -67,6 +77,15 @@ export class ConquestController {
             warMachine(event.warId, warState.context, warState.value)
           );
           existingWarActor.start();
+
+          if (event.type === 'add-player') {
+            const { userId, username } = getUserInfo(this.jwtService)(request);
+            event = {
+              ...event,
+              player: [userId, username],
+            };
+          }
+
           existingWarActor.send(event);
           const existingWarState = existingWarActor.getSnapshot();
           await this.warModel
@@ -95,6 +114,13 @@ export class ConquestController {
             this.conquest.next({
               ...event,
               ...{ tile1TroopCount, tile2TroopCount },
+            });
+          }
+
+          if (event.type === 'add-player') {
+            this.conquest.next({
+              warId: event.warId,
+              players: existingWarState.context.players,
             });
           }
 

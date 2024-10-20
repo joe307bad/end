@@ -419,17 +419,26 @@ function WarComponent({
 
     services.conquestService.connectToWarLog(params.id).subscribe((r: any) => {
       try {
-        const { tile1, tile2, tile1TroopCount, tile2TroopCount } =
-          JSON.parse(r);
+        const p = JSON.parse(r);
+        debugger;
 
-        const t1 = warService.store.tiles.find((t) => t.id === tile1);
-        const t2 = warService.store.tiles.find((t) => t.id === tile2);
+        try {
+          const { tile1, tile2, tile1TroopCount, tile2TroopCount } = p;
 
-        if (t1 && t2) {
-          t1.troopCount = tile1TroopCount;
-          t2.troopCount = tile2TroopCount;
+          const t1 = warService.store.tiles.find((t) => t.id === tile1);
+          const t2 = warService.store.tiles.find((t) => t.id === tile2);
+
+          if (t1 && t2) {
+            t1.troopCount = tile1TroopCount;
+            t2.troopCount = tile2TroopCount;
+          }
+        } catch(e) {
+          console.log(e);
         }
-      } catch (_) {}
+
+      } catch (_) {
+        console.log(_);
+      }
     });
 
     return () => {

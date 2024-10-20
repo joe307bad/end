@@ -1,15 +1,21 @@
 import { Text, View } from 'tamagui';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useEndApi } from '@end/data/web';
 import { useSnapshot } from 'valtio';
 import { UserCircle2 } from '@tamagui/lucide-icons';
-import { tw } from '../components';
 import { PrimaryButton } from '../Display';
+import { useParams } from 'react-router-dom';
+import { execute } from '@end/data/core';
 
 export function LobbyTabs() {
   const { services } = useEndApi();
   const { warService } = services;
   const warStore = useSnapshot(warService.store);
+  const params = useParams();
+
+  const join = useCallback(async () => {
+    await execute(services.conquestService.addPlayer({ warId: params['id'] ?? '' }));
+  }, []);
 
   return (
     <View
@@ -43,7 +49,7 @@ export function LobbyTabs() {
       </View>
       <View paddingTop="$1" width="100%">
         <View width={100} alignSelf="flex-end">
-          <PrimaryButton>Join</PrimaryButton>
+          <PrimaryButton onPress={join}>Join</PrimaryButton>
         </View>
       </View>
     </View>
