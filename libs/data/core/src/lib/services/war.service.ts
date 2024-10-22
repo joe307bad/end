@@ -1,6 +1,6 @@
 import { proxy } from 'valtio';
 import { Context, Effect, Layer, pipe, Option as O } from 'effect';
-import { Schema as S } from '@effect/Schema';
+import { Schema as S } from '@effect/schema';
 import { Option } from 'effect/Option';
 import * as THREE from 'three';
 import { derive } from 'valtio/utils';
