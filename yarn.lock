@@ -2057,6 +2057,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@effect/schema@npm:^0.75.5":
+  version: 0.75.5
+  resolution: "@effect/schema@npm:0.75.5"
+  dependencies:
+    fast-check: "npm:^3.21.0"
+  peerDependencies:
+    effect: ^3.9.2
+  checksum: 287a860f67eb41d54d0b46f2303eba273b35a9db41f1c2c352fc94023e88574969e03c6284d5dcefdda953f56eabdd98d2cdd268fa872f5966108f540c9e3f44
+  languageName: node
+  linkType: hard
+
 "@egjs/hammerjs@npm:^2.0.17":
   version: 2.0.17
   resolution: "@egjs/hammerjs@npm:2.0.17"
@@ -2093,6 +2104,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.23.8"
     "@babel/preset-react": "npm:^7.14.5"
     "@config-plugins/detox": "npm:~6.0.0"
+    "@effect/schema": "npm:^0.75.5"
     "@expo/cli": "npm:~0.10.13"
     "@expo/metro-config": "npm:~0.10.7"
     "@faker-js/faker": "npm:^8.3.1"
@@ -2173,7 +2185,7 @@ __metadata:
     detox: "npm:^20.11.1"
     dotenv: "npm:^16.3.1"
     eas-cli: "npm:~5.2.0"
-    effect: "npm:^3.2.9"
+    effect: "npm:3.10.0"
     esbuild: "npm:^0.19.2"
     eslint: "npm:~8.48.0"
     eslint-config-prettier: "npm:^9.0.0"
@@ -12332,10 +12344,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"effect@npm:^3.2.9":
-  version: 3.2.9
-  resolution: "effect@npm:3.2.9"
-  checksum: deca1b55f52ead9ebf47dc0d894394ae8281a8558a82eecca8109e2cf602b4e8f7c4b7b483e832dcb8d9c43915fb109dee299dcbdf964469df6739a4e5dad8d9
+"effect@npm:3.10.0":
+  version: 3.10.0
+  resolution: "effect@npm:3.10.0"
+  dependencies:
+    fast-check: "npm:^3.21.0"
+  checksum: 9d59b7c50ece9e9f9b87df587941927f206e863226ebad607a0880aab3287d67d751288e796db138d6682a130c97a92361a881c2fa1b6864810905372ecff159
   languageName: node
   linkType: hard
 
@@ -13525,6 +13539,15 @@ __metadata:
     ext-list: "npm:^2.0.0"
     sort-keys-length: "npm:^1.0.0"
   checksum: 6750b34636bb6dca78e1bcc797615af68ecf50d62cf774624a32ee7879da99c949b5c41e8aa56ede4eb15c6abad6b1a8858d0934faab75ff6e2fd6f408debe18
+  languageName: node
+  linkType: hard
+
+"fast-check@npm:^3.21.0":
+  version: 3.22.0
+  resolution: "fast-check@npm:3.22.0"
+  dependencies:
+    pure-rand: "npm:^6.1.0"
+  checksum: 15c70f83df655f9bdcec4f8ed7e3207a933bf6e22c220a4fafc7ea17a28a009bc5d0a85588689f5726e3514796745cb5b35e7295ce469ac286992548fd55cc1d
   languageName: node
   linkType: hard
 
@@ -21116,6 +21139,13 @@ __metadata:
   version: 6.0.4
   resolution: "pure-rand@npm:6.0.4"
   checksum: 0fe7b12f25b10ea5b804598a6f37e4bcf645d2be6d44fe963741f014bf0095bdb6ff525106d6da6e76addc8142358fd380f1a9b8c62ea4d5516bf26a96a37c95
+  languageName: node
+  linkType: hard
+
+"pure-rand@npm:^6.1.0":
+  version: 6.1.0
+  resolution: "pure-rand@npm:6.1.0"
+  checksum: 1abe217897bf74dcb3a0c9aba3555fe975023147b48db540aa2faf507aee91c03bf54f6aef0eb2bf59cc259a16d06b28eca37f0dc426d94f4692aeff02fb0e65
   languageName: node
   linkType: hard
 

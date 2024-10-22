@@ -417,10 +417,15 @@ function WarComponent({
       );
     });
 
-    services.conquestService.connectToWarLog(params.id).subscribe((r: any) => {
+    const { warLog, socket, clearWarLog } =
+      services.conquestService.connectToWarLog(params.id);
+    const subscription = warLog.subscribe(async (r: any) => {
+      if (!r) {
+        return;
+      }
       try {
         const p = JSON.parse(r);
-        debugger;
+        await execute(services.warService.handleWarLogEntry(r));
 
         try {
           const { tile1, tile2, tile1TroopCount, tile2TroopCount } = p;
@@ -432,17 +437,19 @@ function WarComponent({
             t1.troopCount = tile1TroopCount;
             t2.troopCount = tile2TroopCount;
           }
-        } catch(e) {
-          console.log(e);
+        } catch (e) {
+          // console.log(e);
         }
-
       } catch (_) {
-        console.log(_);
+        // console.log(_);
       }
     });
 
     return () => {
       warService.onTileSelection(null);
+      subscription.unsubscribe();
+      socket.close();
+      clearWarLog();
     };
   }, []);
 

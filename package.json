@@ -4,6 +4,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "@effect/schema": "^0.75.5",
     "@expo/metro-config": "~0.10.7",
     "@faker-js/faker": "^8.3.1",
     "@fastify/autoload": "~5.7.1",
@@ -39,7 +40,7 @@
     "bcrypt": "^5.1.1",
     "burnt": "^0.12.2",
     "dotenv": "^16.3.1",
-    "effect": "^3.2.9",
+    "effect": "3.10.0",
     "expo": "49.0.16",
     "expo-build-properties": "~0.8.3",
     "expo-font": "~11.4.0",

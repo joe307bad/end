@@ -4,17 +4,22 @@ import { FetchService } from './fetch.service';
 import { Planet, War } from '@end/wm/core';
 import { DbService } from './db.service';
 import { BehaviorSubject } from 'rxjs';
-import { io } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 import { ConfigService } from './config.service';
 import { hexasphere } from '@end/shared';
 import { WarService } from './war.service';
 
 interface Conquest {
+  readonly warLog: BehaviorSubject<string | null>;
   readonly startWar: (
     players: number
   ) => Effect.Effect<{ warId: string }, string>;
   readonly getWar: (warId: string) => Effect.Effect<Response, string>;
-  readonly connectToWarLog: (warId: string) => BehaviorSubject<string | null>;
+  readonly connectToWarLog: (warId: string) => {
+    warLog: BehaviorSubject<string | null>;
+    socket: Socket;
+    clearWarLog(): void;
+  };
   readonly attack: (payload: {
     tile1: string;
     tile2: string;
@@ -39,13 +44,10 @@ const ConquestLive = Layer.effect(
     const config = yield* ConfigService;
     const war = yield* WarService;
     const database = yield* db.database();
-    const warLog = new BehaviorSubject<string | null>(null);
-    const socket = io(`${config.webSocketUrl ?? 'localhost:3000'}`, {});
-    socket.on('connect', () => {
-      warLog.next(socket?.id ?? '');
-    });
+    let warLog = new BehaviorSubject<string | null>(null);
 
     return ConquestService.of({
+      warLog,
       startWar: (players: number) => {
         const raised = war.store.tiles
           .filter((tile) => tile.raised)
@@ -131,11 +133,18 @@ const ConquestLive = Layer.effect(
       },
       getWar: (warId: string) => fetch.get(`/conquest/war/${warId}`),
       connectToWarLog: (warId: string) => {
+        const socket = io(`${config.webSocketUrl ?? 'localhost:3000'}`, {});
         socket.emit('joinRoom', { warId: warId });
         socket.on('serverToRoom', (message) => {
           warLog.next(message.toString());
         });
-        return warLog;
+        return {
+          warLog,
+          socket,
+          clearWarLog() {
+            warLog = new BehaviorSubject<string | null>(null);
+          },
+        };
       },
       attack: (event: { tile1: string; tile2: string; warId: string }) => {
         return fetch.post('/conquest', { type: 'attack', ...event });

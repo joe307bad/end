@@ -1,6 +1,7 @@
 import { proxy } from 'valtio';
 import { Context, Effect, Layer, pipe, Option as O } from 'effect';
-import type { Option } from 'effect/Option';
+import { Schema as S } from '@effect/Schema';
+import { Option } from 'effect/Option';
 import * as THREE from 'three';
 import { derive } from 'valtio/utils';
 import {
@@ -11,6 +12,7 @@ import {
 } from '@end/shared';
 import { faker } from '@faker-js/faker';
 import { WarState } from '@end/war/core';
+import { isRight } from 'effect/Either';
 
 type Tile = {
   id: string;
@@ -190,6 +192,23 @@ function tileIdAndCoords(tile: string | Coords | undefined): [string, Coords] {
   }
 }
 
+const AttackSchema = S.Struct({
+  type: S.Literal('attack'),
+  tile1: S.String,
+  tile2: S.String,
+  tile1TroopCount: S.Number,
+  tile2TroopCount: S.Number,
+});
+
+const PlayerJoinedSchema = S.Struct({
+  type: S.Literal('player-joined'),
+  players: S.Array(S.Array(S.String)),
+});
+
+const ResultSchema = S.Union(AttackSchema, PlayerJoinedSchema);
+
+type Result = S.Schema.Type<typeof ResultSchema>;
+
 interface IWarService {
   begin: (
     title: string,
@@ -231,6 +250,8 @@ interface IWarService {
   attackTerritory: () => Effect.Effect<string, string>;
   deployToTerritory: () => void;
   initializeMap: () => void;
+  parseWarLogEntry: (entry: any) => Effect.Effect<Result, string>;
+  handleWarLogEntry: (entry: any) => Effect.Effect<string, string>;
 }
 
 const WarService = Context.GenericTag<IWarService>('war-service');
@@ -471,6 +492,44 @@ const WarLive = Layer.effect(
             return Effect.succeed('');
           },
         });
+      },
+      parseWarLogEntry(entry: any) {
+        return pipe(
+          Effect.try({
+            try: () => JSON.parse(entry),
+            catch: () => 'Failed to parse war log entry. Invalid json.',
+          }),
+          Effect.flatMap((parsed) => {
+            const valid = S.decodeEither(ResultSchema)(parsed);
+
+            if (isRight(valid)) {
+              return Effect.succeed(valid.right);
+            }
+
+            return Effect.fail(
+              'Failed to parse war log entry. Entry did not match any known schema.'
+            );
+          })
+        );
+      },
+      handleWarLogEntry(entry: any) {
+        return pipe(
+          this.parseWarLogEntry(entry),
+          Effect.match({
+            onSuccess: (result) => {
+              console.log('handleWarLogEntry');
+              switch (result.type) {
+                case 'attack':
+                  return 'Attack event';
+                  break;
+                case 'player-joined':
+                  return 'Player joined event';
+                  break;
+              }
+            },
+            onFailure: (e) => e,
+          })
+        );
       },
     });
   })

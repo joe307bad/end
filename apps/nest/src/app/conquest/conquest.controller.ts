@@ -112,6 +112,7 @@ export class ConquestController {
               existingWarState.context.tiles[event.tile2].troopCount;
 
             this.conquest.next({
+              type: 'attack',
               ...event,
               ...{ tile1TroopCount, tile2TroopCount },
             });
@@ -119,6 +120,7 @@ export class ConquestController {
 
           if (event.type === 'add-player') {
             this.conquest.next({
+              type: 'player-joined',
               warId: event.warId,
               players: existingWarState.context.players,
             });
