@@ -71,7 +71,7 @@ export function GameTabsV2({
           selectedTileIndex > -1 &&
           !disableListMovement.current
         ) {
-          sv.current.scrollTo(selectedTileIndex);
+          sv.current.scrollTo(selectedTileIndex * 44);
         }
 
         if (disableListMovement.current) {
@@ -294,6 +294,7 @@ function TilesList({
     <>
       {warDerived.sortedTiles.map((t) => (
         <ListItem
+          key={t.id}
           display={t.raised ? 'flex' : 'none'}
           padding="0"
           paddingLeft="$1"
@@ -309,8 +310,8 @@ function TilesList({
                 flexDirection: 'row',
               }}
             >
-              <View style={{ flex: 1 }}>{t.name}</View>
-              <View>{t.troopCount}</View>
+              <Text flex={1}>{t.name}</Text>
+              <Text>{t.troopCount}</Text>
             </View>
           }
           pressTheme

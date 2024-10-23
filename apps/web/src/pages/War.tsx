@@ -1,4 +1,4 @@
-import { H4, View, XStack } from 'tamagui';
+import { H4, View, XStack, Text} from 'tamagui';
 import { useEndApi } from '@end/data/web';
 import React, { ComponentType, useEffect, useMemo, useState } from 'react';
 import { useSnapshot } from 'valtio/react';
@@ -182,9 +182,9 @@ function AttackDialog({
                   marginRight: 10,
                 }}
               >
-                {selectedTile.name}
+                <Text>{selectedTile.name}</Text>
               </View>
-              <View> / {selectedTile.troopCount}</View>
+              <Text whiteSpace="nowrap">/ {selectedTile.troopCount}</Text>
             </XStack>
           ),
         },
@@ -220,9 +220,11 @@ function AttackDialog({
                   marginRight: 10,
                 }}
               >
-                {tile.name}
+                <Text>
+                  {tile.name}
+                </Text>
               </View>
-              <View> / {tile.troopCount}</View>
+              <Text whiteSpace="nowrap">/ {tile.troopCount}</Text>
             </XStack>
           ),
         },
@@ -268,7 +270,7 @@ function AttackDialog({
         data: {
           label: (
             <XStack>
-              <View
+              <Text
                 flex={1}
                 style={{
                   textOverflow: 'ellipsis',
@@ -278,8 +280,8 @@ function AttackDialog({
                 }}
               >
                 {tile.name}
-              </View>
-              <View> / {tile.troopCount}</View>
+              </Text>
+              <Text whiteSpace="nowrap">/ {tile.troopCount}</Text>
             </XStack>
           ),
         },
@@ -417,39 +419,14 @@ function WarComponent({
       );
     });
 
-    const { warLog, socket, clearWarLog } =
-      services.conquestService.connectToWarLog(params.id);
-    const subscription = warLog.subscribe(async (r: any) => {
-      if (!r) {
-        return;
-      }
-      try {
-        const p = JSON.parse(r);
-        await execute(services.warService.handleWarLogEntry(r));
-
-        try {
-          const { tile1, tile2, tile1TroopCount, tile2TroopCount } = p;
-
-          const t1 = warService.store.tiles.find((t) => t.id === tile1);
-          const t2 = warService.store.tiles.find((t) => t.id === tile2);
-
-          if (t1 && t2) {
-            t1.troopCount = tile1TroopCount;
-            t2.troopCount = tile2TroopCount;
-          }
-        } catch (e) {
-          // console.log(e);
-        }
-      } catch (_) {
-        // console.log(_);
-      }
-    });
+    const unsubscribe = services.conquestService.connectToWarLog(
+      params.id,
+      (r) => execute(services.warService.handleWarLogEntry(r))
+    );
 
     return () => {
       warService.onTileSelection(null);
-      subscription.unsubscribe();
-      socket.close();
-      clearWarLog();
+      unsubscribe();
     };
   }, []);
 
@@ -481,7 +458,6 @@ function WarComponent({
         <hv2.HexasphereV2 portalPath={PortalPath} />
         <OrbitControls />
       </Canvas>
-
       <GameTabsV2
         menuOpen={menuOpen}
         setMenuOpen={setMenuOpen}

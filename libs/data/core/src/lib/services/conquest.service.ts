@@ -15,11 +15,10 @@ interface Conquest {
     players: number
   ) => Effect.Effect<{ warId: string }, string>;
   readonly getWar: (warId: string) => Effect.Effect<Response, string>;
-  readonly connectToWarLog: (warId: string) => {
-    warLog: BehaviorSubject<string | null>;
-    socket: Socket;
-    clearWarLog(): void;
-  };
+  readonly connectToWarLog: (
+    warId: string,
+    callback: (v: string | null) => void
+  ) => () => void;
   readonly attack: (payload: {
     tile1: string;
     tile2: string;
@@ -132,18 +131,20 @@ const ConquestLive = Layer.effect(
         );
       },
       getWar: (warId: string) => fetch.get(`/conquest/war/${warId}`),
-      connectToWarLog: (warId: string) => {
+      connectToWarLog: (
+        warId: string,
+        callback: (v: string | null) => void
+      ) => {
         const socket = io(`${config.webSocketUrl ?? 'localhost:3000'}`, {});
         socket.emit('joinRoom', { warId: warId });
         socket.on('serverToRoom', (message) => {
           warLog.next(message.toString());
         });
-        return {
-          warLog,
-          socket,
-          clearWarLog() {
-            warLog = new BehaviorSubject<string | null>(null);
-          },
+        const subscription = warLog.subscribe(callback);
+        return function () {
+          subscription.unsubscribe();
+          socket.close();
+          warLog = new BehaviorSubject<string | null>(null);
         };
       },
       attack: (event: { tile1: string; tile2: string; warId: string }) => {

@@ -63,6 +63,9 @@ export const warMachine = (
         },
       }),
     },
+    guards: {
+      hasEnoughPlayers: ({ context }) => context.players.length >= 3,
+    },
   }).createMachine({
     id: `war-${warId}`,
     initial: initialState ?? 'war-created',
@@ -95,6 +98,12 @@ export const warMachine = (
             }),
           },
         },
+        always: [
+          {
+            target: 'war-in-progress',
+            guard: 'hasEnoughPlayers',
+          },
+        ],
       },
       'war-in-progress': {
         on: {

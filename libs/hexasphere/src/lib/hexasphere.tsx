@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useMemo,
   useRef,
-  useState,
+  useState
 } from 'react';
 import '@react-three/fiber';
 import { faker } from '@faker-js/faker';
@@ -14,7 +14,7 @@ import {
   Object3DNode,
   ThreeEvent,
   useFrame,
-  useThree,
+  useThree
 } from '@react-three/fiber';
 import * as THREE from 'three';
 import {
@@ -23,7 +23,7 @@ import {
   Group,
   MathUtils,
   NormalBufferAttributes,
-  Object3DEventMap,
+  Object3DEventMap
 } from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
@@ -76,7 +76,7 @@ function convertToRoman(num: number) {
     IX: 9,
     V: 5,
     IV: 4,
-    I: 1,
+    I: 1
   };
   var str = '';
 
@@ -96,7 +96,7 @@ export const getRandomName = () => {
     faker.lorem.word(),
     faker.word.noun(),
     faker.person.lastName(),
-    faker.science.chemicalElement().name,
+    faker.science.chemicalElement().name
   ];
   const word1 = words[faker.number.int({ min: 0, max: words.length - 1 })];
 
@@ -271,13 +271,13 @@ Object.keys(hexasphere.tileLookup).forEach((tileId) => {
 
 const TroopCount = React.memo(
   ({
-    x,
-    y,
-    z,
-    selected,
-    troopCount,
-    ringColor,
-  }: {
+     x,
+     y,
+     z,
+     selected,
+     troopCount,
+     ringColor
+   }: {
     x: number;
     y: number;
     z: number;
@@ -452,12 +452,12 @@ const geometries = Object.keys(hexasphere.tileLookup).reduce<
 
 const AttackArrow = React.memo(
   ({
-    showAttackArrows,
-    centerPoint,
-    neighbor,
-    owner,
-    raised,
-  }: {
+     showAttackArrows,
+     centerPoint,
+     neighbor,
+     owner,
+     raised
+   }: {
     neighbor: Tile;
     showAttackArrows?: boolean;
     centerPoint: Coords;
@@ -474,7 +474,7 @@ const AttackArrow = React.memo(
       const cp = [
         neighbor.centerPoint.x,
         neighbor.centerPoint.y,
-        neighbor.centerPoint.z,
+        neighbor.centerPoint.z
       ];
       return cp.join(',');
     }, [neighbor]);
@@ -495,7 +495,7 @@ const AttackArrow = React.memo(
           const n = [
             neighbor.centerPoint.x,
             neighbor.centerPoint.y,
-            neighbor.centerPoint.z,
+            neighbor.centerPoint.z
           ].join(',');
 
           const combined = O.flatMap(
@@ -503,7 +503,7 @@ const AttackArrow = React.memo(
             (value1) =>
               O.map(warService.store.territoryToAttack, (value2) => ({
                 selectedId: value1,
-                attacking: value2,
+                attacking: value2
               }))
           );
 
@@ -511,14 +511,14 @@ const AttackArrow = React.memo(
             onNone() {
               return undefined;
             },
-            onSome({attacking, selectedId}) {
+            onSome({ attacking, selectedId }) {
               const a = [attacking.x, attacking.y, attacking.z].join(',');
               if (selectedId === cp && s[n] && n === a) {
                 setVisible(true);
               } else {
                 setVisible(false);
               }
-            },
+            }
           });
         }
       );
@@ -584,12 +584,12 @@ const AttackArrow = React.memo(
 
 const AttackArrows = React.memo(
   ({
-    id,
-    showAttackArrows,
-    centerPoint,
-    raised,
-    owner,
-  }: {
+     id,
+     showAttackArrows,
+     centerPoint,
+     raised,
+     owner
+   }: {
     id: string;
     neighbors: Tile[];
     showAttackArrows?: boolean;
@@ -598,8 +598,9 @@ const AttackArrows = React.memo(
     raised?: boolean;
   }) => {
     const neighbors = hexasphere.tileLookup[id].neighbors;
-    return neighbors.map((neighbor) => (
+    return neighbors.map((neighbor, i) => (
       <AttackArrow
+        key={i}
         neighbor={neighbor}
         centerPoint={centerPoint}
         showAttackArrows={showAttackArrows}
@@ -612,14 +613,14 @@ const AttackArrows = React.memo(
 
 const TileMesh = React.memo(
   ({
-    id,
-    selected,
-    raised,
-    troopCount,
-    ringColor,
-    owner,
-    defending,
-  }: {
+     id,
+     selected,
+     raised,
+     troopCount,
+     ringColor,
+     owner,
+     defending
+   }: {
     id: string;
     selected: boolean;
     raised: boolean;
@@ -635,7 +636,7 @@ const TileMesh = React.memo(
     const { land, neighbors, water, centerPoint } = useMemo(() => {
       return {
         ...geometries[id],
-        centerPoint: hexasphere.tileLookup[id]?.centerPoint,
+        centerPoint: hexasphere.tileLookup[id]?.centerPoint
       };
     }, []);
 
@@ -707,7 +708,7 @@ export const HexasphereV2 = React.memo(
         return [
           faker.helpers.arrayElement([randomX, randomX1]),
           faker.helpers.arrayElement([randomY, randomY1]),
-          faker.helpers.arrayElement([randomZ, randomZ1]),
+          faker.helpers.arrayElement([randomZ, randomZ1])
         ];
       };
 
@@ -743,7 +744,7 @@ export const HexasphereV2 = React.memo(
             },
             onSome(value) {
               warService.onTileSelection(value, camera.position);
-            },
+            }
           });
         }
       );

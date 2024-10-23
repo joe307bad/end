@@ -14,7 +14,9 @@ export function LobbyTabs() {
   const params = useParams();
 
   const join = useCallback(async () => {
-    await execute(services.conquestService.addPlayer({ warId: params['id'] ?? '' }));
+    await execute(
+      services.conquestService.addPlayer({ warId: params['id'] ?? '' })
+    );
   }, []);
 
   return (
@@ -29,9 +31,14 @@ export function LobbyTabs() {
       backgroundColor="black"
       padding="$1"
     >
-      <View flex={1}>
-        {warStore.players.map(([userId, userName]) => (
-          <View flexDirection="row" alignItems="center" space="$1">
+      <View flex={1} space="$1">
+        {warStore.players.map(([userId, userName], i) => (
+          <View
+            key={`${userId}_${i}`}
+            flexDirection="row"
+            alignItems="center"
+            space="$1"
+          >
             <View>
               <UserCircle2 />
             </View>

@@ -1,6 +1,6 @@
 import { proxy } from 'valtio';
 import { Context, Effect, Layer, pipe, Option as O } from 'effect';
-import { Schema as S } from '@effect/schema';
+import * as S from "@effect/schema/Schema"
 import { Option } from 'effect/Option';
 import * as THREE from 'three';
 import { derive } from 'valtio/utils';
@@ -26,7 +26,7 @@ type Tile = {
 
 interface WarStore {
   state: Option<WarState>;
-  players: [string, string][];
+  players: Players;
   active: boolean;
   name: Option<string>;
   selectedTileId: Option<string>;
@@ -202,8 +202,12 @@ const AttackSchema = S.Struct({
 
 const PlayerJoinedSchema = S.Struct({
   type: S.Literal('player-joined'),
-  players: S.Array(S.Array(S.String)),
+  players: S.Array(S.Tuple(S.String, S.String)),
 });
+
+type PlayerJoined = S.Schema.Type<typeof PlayerJoinedSchema>
+
+type Players = PlayerJoined["players"];
 
 const ResultSchema = S.Union(AttackSchema, PlayerJoinedSchema);
 
@@ -219,7 +223,7 @@ interface IWarService {
     landColor: string,
     players: [string, string][]
   ) => void;
-  setPlayers: (players: [string, string][]) => void;
+  setPlayers: (players: Players) => void;
   store: WarStore;
   derived: typeof derived;
   tileIdAndCoords: typeof tileIdAndCoords;
@@ -336,7 +340,7 @@ const WarLive = Layer.effect(
         this.setName(title);
         this.setPlayers(players);
       },
-      setPlayers(players: [string, string][]) {
+      setPlayers(players: Players) {
         store.players = players;
       },
       hasPortal() {
@@ -477,18 +481,6 @@ const WarLive = Layer.effect(
         return O.match(combined, {
           onNone: () => Effect.fail('Missing required arguments to attack'),
           onSome: ({ selectedTileId, territoryToAttackId }) => {
-            const territoryToAttack = store.tiles.find(
-              (tile) => tile.id === territoryToAttackId
-            );
-            const attackingTerritory = store.tiles.find(
-              (tile) => tile.id === selectedTileId
-            );
-
-            if (territoryToAttack && attackingTerritory) {
-              territoryToAttack.troopCount = territoryToAttack.troopCount - 1;
-              attackingTerritory.troopCount = attackingTerritory.troopCount - 1;
-            }
-
             return Effect.succeed('');
           },
         });
@@ -517,12 +509,22 @@ const WarLive = Layer.effect(
           this.parseWarLogEntry(entry),
           Effect.match({
             onSuccess: (result) => {
-              console.log('handleWarLogEntry');
               switch (result.type) {
                 case 'attack':
+                  const tile1 = store.tiles.find((t) => t.id === result.tile1);
+                  const tile2 = store.tiles.find((t) => t.id === result.tile2);
+
+                  if (tile1 && tile2) {
+                    tile1.troopCount = result.tile1TroopCount;
+                    tile2.troopCount = result.tile2TroopCount;
+                  }
+
                   return 'Attack event';
                   break;
                 case 'player-joined':
+
+                  this.setPlayers(result.players)
+
                   return 'Player joined event';
                   break;
               }
