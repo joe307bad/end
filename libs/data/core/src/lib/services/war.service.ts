@@ -1,6 +1,6 @@
 import { proxy } from 'valtio';
 import { Context, Effect, Layer, pipe, Option as O } from 'effect';
-import * as S from "@effect/schema/Schema"
+import * as S from '@effect/schema/Schema';
 import { Option } from 'effect/Option';
 import * as THREE from 'three';
 import { derive } from 'valtio/utils';
@@ -24,6 +24,33 @@ type Tile = {
   owner: number;
 };
 
+const AttackSchema = S.Struct({
+  type: S.Literal('attack'),
+  tile1: S.String,
+  tile2: S.String,
+  tile1TroopCount: S.Number,
+  tile2TroopCount: S.Number,
+});
+
+const DeploySchema = S.Struct({
+  type: S.Literal('deploy'),
+  tile: S.String,
+  troopsCount: S.Number,
+});
+
+const PlayerJoinedSchema = S.Struct({
+  type: S.Literal('player-joined'),
+  players: S.Array(S.Tuple(S.String, S.String)),
+});
+
+type PlayerJoined = S.Schema.Type<typeof PlayerJoinedSchema>;
+
+type Players = PlayerJoined['players'];
+
+const ResultSchema = S.Union(AttackSchema, PlayerJoinedSchema, DeploySchema);
+
+type Result = S.Schema.Type<typeof ResultSchema>;
+
 interface WarStore {
   state: Option<WarState>;
   players: Players;
@@ -45,6 +72,73 @@ interface WarStore {
   troopsToDeploy: number;
   territoryToAttack: Option<Coords>;
 }
+
+interface IWarService {
+  begin: (
+    title: string,
+    state: WarState,
+    raised: Record<string, string>,
+    tiles: Record<string, Tile>,
+    waterColor: string,
+    landColor: string,
+    players: [string, string][]
+  ) => void;
+  setPlayers: (players: Players) => void;
+  store: WarStore;
+  derived: typeof derived;
+  tileIdAndCoords: typeof tileIdAndCoords;
+  setWarState: (stage: WarState) => void;
+  hasPortal: () => boolean;
+  setSelectedTileIdOverride: (coords: string | Coords) => void;
+  onTileSelection: (
+    tile: string | Coords | null,
+    cameraPosition?: THREE.Vector3
+  ) => void;
+  setFilter: (filter: WarStore['filter']) => void;
+  setLandAndWaterColors: (water: string, land: string) => void;
+  setName: (name: string) => void;
+  setTiles: (
+    raisedTiles: Record<string, string>,
+    ownedTiles: Record<string, Tile>
+  ) => void;
+  setSort: (sort: WarStore['sort']) => void;
+  setSettingPortalCoords: (
+    settingPortalCords: WarStore['settingPortalCoords']
+  ) => void;
+  setPortal: (coords: string | Coords) => void;
+  setDeployTo: (coords: string | Coords) => void;
+  setTurnAction: (action?: WarStore['turnAction'] | undefined) => void;
+  setAvailableTroopsToDeploy: () => void;
+  setTroopsToDeploy: (troopsToDeploy: number) => void;
+  setTerritoryToAttack: (coords: Coords) => void;
+  attackTerritory: () => Effect.Effect<string, string>;
+  deployToTerritory: (tileId: string, troopsCount: number) => void;
+  initializeMap: () => void;
+  parseWarLogEntry: (entry: any) => Effect.Effect<Result, string>;
+  handleWarLogEntry: (entry: any) => Effect.Effect<string, string>;
+}
+
+const store = proxy<WarStore>({
+  state: O.none(),
+  players: [],
+  active: true,
+  filter: 'all',
+  cameraPosition: O.none(),
+  landColor: O.none(),
+  selectedTileId: O.none(),
+  selectedTileIdOverride: O.none(),
+  sort: 'alphabetical',
+  tiles: [],
+  waterColor: O.none(),
+  name: O.none(),
+  settingPortalCoords: 'first',
+  portal: [undefined, undefined],
+  deployTo: O.none(),
+  turnAction: 'portal',
+  availableTroopsToDeploy: 100,
+  troopsToDeploy: 0,
+  territoryToAttack: O.none(),
+});
 
 function sortedTilesList(
   tiles: Tile[],
@@ -81,28 +175,6 @@ function sortedTilesList(
       return true;
     });
 }
-
-const store = proxy<WarStore>({
-  state: O.none(),
-  players: [],
-  active: true,
-  filter: 'all',
-  cameraPosition: O.none(),
-  landColor: O.none(),
-  selectedTileId: O.none(),
-  selectedTileIdOverride: O.none(),
-  sort: 'alphabetical',
-  tiles: [],
-  waterColor: O.none(),
-  name: O.none(),
-  settingPortalCoords: 'first',
-  portal: [undefined, undefined],
-  deployTo: O.none(),
-  turnAction: 'portal',
-  availableTroopsToDeploy: 100,
-  troopsToDeploy: 0,
-  territoryToAttack: O.none(),
-});
 
 const derived = derive({
   cameraPath: (get) => {
@@ -190,72 +262,6 @@ function tileIdAndCoords(tile: string | Coords | undefined): [string, Coords] {
     const [x, y, z] = tile.split(',').map((x) => parseFloat(x));
     return [tile, { x, y, z }];
   }
-}
-
-const AttackSchema = S.Struct({
-  type: S.Literal('attack'),
-  tile1: S.String,
-  tile2: S.String,
-  tile1TroopCount: S.Number,
-  tile2TroopCount: S.Number,
-});
-
-const PlayerJoinedSchema = S.Struct({
-  type: S.Literal('player-joined'),
-  players: S.Array(S.Tuple(S.String, S.String)),
-});
-
-type PlayerJoined = S.Schema.Type<typeof PlayerJoinedSchema>
-
-type Players = PlayerJoined["players"];
-
-const ResultSchema = S.Union(AttackSchema, PlayerJoinedSchema);
-
-type Result = S.Schema.Type<typeof ResultSchema>;
-
-interface IWarService {
-  begin: (
-    title: string,
-    state: WarState,
-    raised: Record<string, string>,
-    tiles: Record<string, Tile>,
-    waterColor: string,
-    landColor: string,
-    players: [string, string][]
-  ) => void;
-  setPlayers: (players: Players) => void;
-  store: WarStore;
-  derived: typeof derived;
-  tileIdAndCoords: typeof tileIdAndCoords;
-  setWarState: (stage: WarState) => void;
-  hasPortal: () => boolean;
-  setSelectedTileIdOverride: (coords: string | Coords) => void;
-  onTileSelection: (
-    tile: string | Coords | null,
-    cameraPosition?: THREE.Vector3
-  ) => void;
-  setFilter: (filter: WarStore['filter']) => void;
-  setLandAndWaterColors: (water: string, land: string) => void;
-  setName: (name: string) => void;
-  setTiles: (
-    raisedTiles: Record<string, string>,
-    ownedTiles: Record<string, Tile>
-  ) => void;
-  setSort: (sort: WarStore['sort']) => void;
-  setSettingPortalCoords: (
-    settingPortalCords: WarStore['settingPortalCoords']
-  ) => void;
-  setPortal: (coords: string | Coords) => void;
-  setDeployTo: (coords: string | Coords) => void;
-  setTurnAction: (action?: WarStore['turnAction'] | undefined) => void;
-  setAvailableTroopsToDeploy: () => void;
-  setTroopsToDeploy: (troopsToDeploy: number) => void;
-  setTerritoryToAttack: (coords: Coords) => void;
-  attackTerritory: () => Effect.Effect<string, string>;
-  deployToTerritory: () => void;
-  initializeMap: () => void;
-  parseWarLogEntry: (entry: any) => Effect.Effect<Result, string>;
-  handleWarLogEntry: (entry: any) => Effect.Effect<string, string>;
 }
 
 const WarService = Context.GenericTag<IWarService>('war-service');
@@ -452,17 +458,23 @@ const WarLive = Layer.effect(
         store.availableTroopsToDeploy =
           store.availableTroopsToDeploy - store.troopsToDeploy;
       },
-      deployToTerritory() {
-        O.match(store.deployTo, {
-          onNone() {},
-          onSome(v) {
-            const [value] = tileIdAndCoords(v);
-            const tile = store.tiles.find((t) => t.id === value);
-            if (tile) {
-              tile.troopCount = tile.troopCount + store.troopsToDeploy;
-            }
-          },
-        });
+      deployToTerritory(tileId: string, troopsCount: number) {
+        const tile = store.tiles.find((t) => t.id === tileId);
+
+        if (tile) {
+          tile.troopCount = troopsCount;
+        }
+
+        // O.match(store.deployTo, {
+        //   onNone() {},
+        //   onSome(v) {
+        //     const [value] = tileIdAndCoords(v);
+        //     const tile = store.tiles.find((t) => t.id === value);
+        //     if (tile) {
+        //       tile.troopCount = tile.troopCount + store.troopsToDeploy;
+        //     }
+        //   },
+        // });
       },
       setTroopsToDeploy(numberOfTroops) {
         store.troopsToDeploy = numberOfTroops;
@@ -522,10 +534,14 @@ const WarLive = Layer.effect(
                   return 'Attack event';
                   break;
                 case 'player-joined':
-
-                  this.setPlayers(result.players)
+                  this.setPlayers(result.players);
 
                   return 'Player joined event';
+                  break;
+                case 'deploy':
+                  this.deployToTerritory(result.tile, result.troopsCount);
+
+                  return 'Deploy event';
                   break;
               }
             },

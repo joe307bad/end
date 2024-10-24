@@ -35,7 +35,7 @@ import { useSnapshot } from 'valtio';
 import { ActivityArrow } from '../ActivityArrow';
 import { Swords } from '@tamagui/lucide-icons';
 import { getOrUndefined } from 'effect/Option';
-import { Effect } from 'effect';
+import { Effect, Option as O, pipe } from 'effect';
 import { useParams } from 'react-router-dom';
 import { execute } from '@end/data/core';
 import { ResponsiveTabs } from './ResponsiveTabs';
@@ -355,6 +355,27 @@ function TurnActionComponent({
     );
   }, [warStore.territoryToAttack, warStore.selectedTileId]);
 
+  const deploy = useCallback(async () => {
+    await execute(
+      pipe(
+        warStore.deployTo,
+        O.match({
+          onNone() {
+            return Effect.fail('Select a territory before deploying');
+          },
+          onSome(d) {
+            const [tile] = warService.tileIdAndCoords(d);
+            return conquestService.deploy({
+              tile,
+              troopsToDeploy: warStore.troopsToDeploy,
+              warId: params['id'] ?? '',
+            });
+          },
+        })
+      )
+    );
+  }, [warStore.troopsToDeploy, warStore.deployTo]);
+
   switch (warStore.turnAction) {
     case 'portal':
       return (
@@ -471,8 +492,9 @@ function TurnActionComponent({
                   loading={false}
                   // @ts-ignore
                   onPress={() => {
-                    warService.setAvailableTroopsToDeploy();
-                    warService.deployToTerritory();
+                    deploy();
+                    // warService.setAvailableTroopsToDeploy();
+                    // warService.deployToTerritory();
                   }}
                   open={false}
                   message={''}

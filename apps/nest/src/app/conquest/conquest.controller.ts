@@ -67,6 +67,7 @@ export class ConquestController {
         return { state, warId: event.warId };
       case 'add-player':
       case 'select-first-territory':
+      case 'deploy':
       case 'attack':
         try {
           const war = await this.warModel
@@ -123,6 +124,16 @@ export class ConquestController {
               type: 'player-joined',
               warId: event.warId,
               players: existingWarState.context.players,
+            });
+          }
+
+          if (event.type === 'deploy') {
+            this.conquest.next({
+              type: 'deploy',
+              tile: event.tile,
+              troopsCount:
+                existingWarState.context.tiles[event.tile].troopCount,
+              warId: event.warId,
             });
           }
 

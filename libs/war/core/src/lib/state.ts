@@ -25,6 +25,12 @@ export type Event =
       tiles: Record<string, Tile>;
       warId: string;
     }
+  | {
+      type: 'deploy';
+      tile: string;
+      troopsToDeploy: number;
+      warId: string;
+    }
   | { type: 'add-player'; warId: string; player: [string, string] }
   | { type: 'attack'; tile1: string; tile2: string; warId: string }
   | { type: 'select-first-territory'; id: string; warId: string }
@@ -144,6 +150,20 @@ export const warMachine = (
                 //   ...context.tiles[event.tile2],
                 //   // troopCount: tile2TroopCount - 1,
                 // };
+
+                return context.tiles;
+              },
+            }),
+          },
+          deploy: {
+            actions: assign({
+              tiles: ({ context, event }) => {
+                let { troopCount } = context.tiles[event.tile];
+
+                context.tiles[event.tile] = {
+                  ...context.tiles[event.tile],
+                  troopCount: troopCount + event.troopsToDeploy,
+                };
 
                 return context.tiles;
               },
