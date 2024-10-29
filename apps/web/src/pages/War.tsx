@@ -1,4 +1,4 @@
-import { H4, View, XStack, Text} from 'tamagui';
+import { H4, View, XStack, Text } from 'tamagui';
 import { useEndApi } from '@end/data/web';
 import React, { ComponentType, useEffect, useMemo, useState } from 'react';
 import { useSnapshot } from 'valtio/react';
@@ -220,9 +220,7 @@ function AttackDialog({
                   marginRight: 10,
                 }}
               >
-                <Text>
-                  {tile.name}
-                </Text>
+                <Text>{tile.name}</Text>
               </View>
               <Text whiteSpace="nowrap">/ {tile.troopCount}</Text>
             </XStack>
@@ -381,14 +379,6 @@ function WarComponent({
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    setInterval(() => {
-      // execute(
-      //   services.conquestService.addPlayer({ warId: params.id ?? '' })
-      // ).then(console.log);
-    }, 5000);
-  }, []);
-
-  useEffect(() => {
     if (!params.id) {
       return () => {};
     }
@@ -485,6 +475,5 @@ const EnhancedWarComponent = compose(
 
 export default function WarRouteComponent() {
   const params = useParams();
-
   return <EnhancedWarComponent warId={params.id} />;
 }

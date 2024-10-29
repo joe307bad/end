@@ -3,7 +3,7 @@ import React, {
   ReactNode,
   useCallback,
   useEffect,
-  useState,
+  useState
 } from 'react';
 import {
   Badge,
@@ -11,7 +11,7 @@ import {
   ContainerWithNav,
   Landing,
   Providers,
-  Register,
+  Register
 } from '@end/components';
 import './app.module.scss';
 
@@ -25,7 +25,7 @@ import {
   Route,
   Outlet,
   Navigate,
-  useParams,
+  useParams
 } from 'react-router-dom';
 import Home from '../pages/Home';
 import { useAuth } from '@end/auth';
@@ -33,7 +33,7 @@ import {
   compose,
   DatabaseProvider,
   withDatabase,
-  withObservables,
+  withObservables
 } from '@nozbe/watermelondb/react';
 import Conquest from '../pages/Conquest';
 import War from '../pages/War';
@@ -41,6 +41,7 @@ import { EndApiProvider, useEndApi } from '@end/data/web';
 import { War as TWar } from '@end/wm/core';
 import { Database } from '@nozbe/watermelondb';
 import { Observable } from 'rxjs';
+import { execute } from '@end/data/core';
 
 function WithNavigate({
   children,
@@ -86,13 +87,13 @@ const EnhancedPage = compose(
   withObservables(
     ['warId'],
     ({
-      database,
-      warId,
-    }: {
+       database,
+       warId
+     }: {
       database: Database;
       warId: string;
     }): { war: Observable<TWar> } => ({
-      war: database.get<TWar>('wars').findAndObserve(warId),
+      war: database.get<TWar>('wars').findAndObserve(warId)
     })
   ) as (arg0: unknown) => ComponentType
 )(Page);
@@ -132,6 +133,17 @@ const PrivateRoutes = () => {
 
 function AppRoutes() {
   const { services } = useEndApi();
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    execute(services.syncService.sync()).then((r) => {
+      setLoaded(true);
+    });
+  }, []);
+
+  if (!loaded) {
+    return <></>;
+  }
 
   return (
     <DatabaseProvider database={services.endApi.database}>
