@@ -3,7 +3,7 @@ import React, {
   ReactNode,
   useCallback,
   useEffect,
-  useState
+  useState,
 } from 'react';
 import {
   Badge,
@@ -11,12 +11,11 @@ import {
   ContainerWithNav,
   Landing,
   Providers,
-  Register
+  Register,
 } from '@end/components';
 import './app.module.scss';
 
 import {
-  Link,
   NavigateFunction,
   useLocation,
   useNavigate,
@@ -25,7 +24,7 @@ import {
   Route,
   Outlet,
   Navigate,
-  useParams
+  useParams,
 } from 'react-router-dom';
 import Home from '../pages/Home';
 import { useAuth } from '@end/auth';
@@ -33,7 +32,7 @@ import {
   compose,
   DatabaseProvider,
   withDatabase,
-  withObservables
+  withObservables,
 } from '@nozbe/watermelondb/react';
 import Conquest from '../pages/Conquest';
 import War from '../pages/War';
@@ -87,13 +86,13 @@ const EnhancedPage = compose(
   withObservables(
     ['warId'],
     ({
-       database,
-       warId
-     }: {
+      database,
+      warId,
+    }: {
       database: Database;
       warId: string;
     }): { war: Observable<TWar> } => ({
-      war: database.get<TWar>('wars').findAndObserve(warId)
+      war: database.get<TWar>('wars').findAndObserve(warId),
     })
   ) as (arg0: unknown) => ComponentType
 )(Page);
@@ -109,12 +108,23 @@ function PageRouteComponent({ children }: { children: ReactNode }) {
 }
 
 const PrivateRoutes = () => {
+  const { services } = useEndApi();
   const { getToken } = useAuth();
   const [token, setToken] = useState<string | null | 'LOADING'>('LOADING');
 
   useEffect(() => {
     getToken().then((t) => {
-      setToken(t);
+      execute(services.syncService.sync())
+        .then((r) => {
+          setToken(t);
+        })
+        .catch((e) => {
+          const statusCode = JSON.parse(e.message).statusCode;
+          console.error(e);
+          if (statusCode === 401) {
+            setToken(null);
+          }
+        });
     });
   }, []);
 
@@ -127,23 +137,16 @@ const PrivateRoutes = () => {
       <Outlet />
     </PageRouteComponent>
   ) : (
-    <Navigate to="/" />
+    <Navigate
+      to={`/?return_path=${encodeURIComponent(
+        window.location.pathname + window.location.search
+      )}`}
+    />
   );
 };
 
 function AppRoutes() {
   const { services } = useEndApi();
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    execute(services.syncService.sync()).then((r) => {
-      setLoaded(true);
-    });
-  }, []);
-
-  if (!loaded) {
-    return <></>;
-  }
 
   return (
     <DatabaseProvider database={services.endApi.database}>
@@ -164,7 +167,13 @@ function AppRoutes() {
                       <Landing
                         services={services}
                         goToRegister={() => n('/register')}
-                        goToHome={() => n('/home')}
+                        goToHome={() => {
+                          const queryParams = new URLSearchParams(
+                            window.location.search
+                          );
+                          const returnPath = queryParams.get('return_path');
+                          n(returnPath ? returnPath : '/home');
+                        }}
                       />
                       {/*<Link to={'#'}>*/}
                       {/*  <Badge title="Download the Android app" />*/}

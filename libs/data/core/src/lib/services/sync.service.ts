@@ -6,7 +6,7 @@ import { ConfigService } from './config.service';
 import { getOrUndefined } from 'effect/Option';
 
 interface Sync {
-  readonly sync: () => Effect.Effect<void, string>;
+  readonly sync: () => Effect.Effect<void, unknown>;
 }
 
 const SyncService = Context.GenericTag<Sync>('sync-service');
@@ -29,8 +29,7 @@ const SyncLive = Layer.effect(
           Effect.flatMap((token) =>
             Effect.tryPromise({
               try: () => sync(token, config.apiUrl),
-              catch: (error) =>
-                `Error during synchronization: ${error?.toString()}`,
+              catch: (error) => error,
             })
           )
         ),
