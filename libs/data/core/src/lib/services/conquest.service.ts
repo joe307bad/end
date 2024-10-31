@@ -6,7 +6,7 @@ import { DbService } from './db.service';
 import { BehaviorSubject } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 import { ConfigService } from './config.service';
-import { hexasphere } from '@end/shared';
+import { Coords, hexasphere } from '@end/shared';
 import { WarService } from './war.service';
 
 interface Conquest {
@@ -29,6 +29,10 @@ interface Conquest {
     troopsToDeploy: number;
     warId: string;
   }) => Effect.Effect<Response, string>;
+  readonly setPortal: (payload: {
+    portal: [Coords?, Coords?];
+    warId: string;
+  }) => Effect.Effect<Response, string>;
   readonly addPlayer: (payload: {
     warId: string;
   }) => Effect.Effect<Response, string>;
@@ -40,7 +44,7 @@ interface Conquest {
 
 const ConquestService = Context.GenericTag<Conquest>('conquest-api');
 
-const ConquestLive = Layer.effect(
+export const ConquestLive = Layer.effect(
   ConquestService,
   Effect.gen(function* () {
     const fetch = yield* FetchService;
@@ -161,6 +165,9 @@ const ConquestLive = Layer.effect(
         warId: string;
       }) => {
         return fetch.post('/conquest', { type: 'deploy', ...event });
+      },
+      setPortal: (event: { portal: [Coords?, Coords?]; warId: string }) => {
+        return fetch.post('/conquest', { type: 'set-portal-entry', ...event });
       },
       addPlayer: (event: { warId: string }) => {
         return fetch.post('/conquest', { type: 'add-player', ...event });

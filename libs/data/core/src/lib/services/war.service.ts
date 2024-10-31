@@ -1,7 +1,7 @@
 import { proxy } from 'valtio';
 import { Context, Effect, Layer, pipe, Option as O } from 'effect';
 import * as S from '@effect/schema/Schema';
-import { Option } from 'effect/Option';
+import { getOrUndefined, Option, Some } from 'effect/Option';
 import * as THREE from 'three';
 import { derive } from 'valtio/utils';
 import {
@@ -13,6 +13,8 @@ import {
 import { faker } from '@faker-js/faker';
 import { WarState } from '@end/war/core';
 import { isRight } from 'effect/Either';
+import { ConquestService } from './conquest.service';
+import { execute } from '@end/data/core';
 
 type Tile = {
   id: string;
@@ -52,6 +54,7 @@ const ResultSchema = S.Union(AttackSchema, PlayerJoinedSchema, DeploySchema);
 type Result = S.Schema.Type<typeof ResultSchema>;
 
 interface WarStore {
+  warId: Option<string>;
   state: Option<WarState>;
   players: Players;
   active: boolean;
@@ -75,13 +78,15 @@ interface WarStore {
 
 interface IWarService {
   begin: (
+    warId: Option<string>,
     title: string,
     state: WarState,
     raised: Record<string, string>,
     tiles: Record<string, Tile>,
     waterColor: string,
     landColor: string,
-    players: [string, string][]
+    players: [string, string][],
+    portal: [Coords?, Coords?]
   ) => void;
   setPlayers: (players: Players) => void;
   store: WarStore;
@@ -119,6 +124,7 @@ interface IWarService {
 }
 
 const store = proxy<WarStore>({
+  warId: O.none(),
   state: O.none(),
   players: [],
   active: true,
@@ -309,7 +315,7 @@ function selectTile(id: string, cameraPosition: THREE.Vector3) {
   return currentlySelected;
 }
 
-const WarLive = Layer.effect(
+export const WarLive = Layer.effect(
   WarService,
   Effect.gen(function* () {
     store.tiles = Object.keys(hexasphere.tileLookup).map((tileId: string) => {
@@ -323,6 +329,7 @@ const WarLive = Layer.effect(
         owner: 0,
       };
     });
+    // const conquest = yield* ConquestService;
 
     return WarService.of({
       store,
@@ -332,19 +339,23 @@ const WarLive = Layer.effect(
         store.state = O.some(state);
       },
       begin(
+        warId: Option<string>,
         title: string,
         state: WarState,
         raised: Record<string, string>,
         tiles: Record<string, Tile>,
         waterColor: string,
         landColor: string,
-        players: [string, string][]
+        players: [string, string][],
+        portal: [Coords?, Coords?]
       ) {
+        store.warId = warId;
         this.setWarState(state);
         this.setLandAndWaterColors(waterColor, landColor);
         this.setTiles(raised, tiles);
         this.setName(title);
         this.setPlayers(players);
+        store.portal = portal;
       },
       setPlayers(players: Players) {
         store.players = players;
@@ -429,6 +440,19 @@ const WarLive = Layer.effect(
         } else {
           store.portal[1] = coords;
         }
+
+        // O.match(store.warId, {
+        //   onNone() {},
+        //   async onSome(warId) {
+        //     debugger;
+        //     await execute(
+        //       conquest.setPortal({
+        //         portal: store.portal,
+        //         warId,
+        //       })
+        //     );
+        //   },
+        // });
       },
       setDeployTo(c) {
         const [_, coords] = tileIdAndCoords(c);

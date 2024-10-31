@@ -68,6 +68,7 @@ export class ConquestController {
       case 'add-player':
       case 'select-first-territory':
       case 'deploy':
+      case 'set-portal-entry':
       case 'attack':
         try {
           const war = await this.warModel
@@ -124,6 +125,14 @@ export class ConquestController {
               type: 'player-joined',
               warId: event.warId,
               players: existingWarState.context.players,
+            });
+          }
+
+          if (event.type === 'set-portal-entry') {
+            this.conquest.next({
+              type: 'portal-entry-set',
+              warId: event.warId,
+              portal: existingWarState.context.portal,
             });
           }
 

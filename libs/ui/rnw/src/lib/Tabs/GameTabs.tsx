@@ -222,9 +222,6 @@ export function GameTabsV2({
               }}
             >
               <YStack>
-                <View>
-                  <H4 paddingLeft="$0.75">Territories</H4>
-                </View>
                 <XStack>
                   <XStack
                     flex={1}
@@ -380,9 +377,9 @@ function TurnActionComponent({
     case 'portal':
       return (
         <YStack style={{ display: 'flex', width: '100%' }}>
-          <H4>Change portal location</H4>
           <RadioGroup
             defaultValue="first"
+            value={warStore.settingPortalCoords}
             // @ts-ignore
             onValueChange={warService.setSettingPortalCoords}
           >
@@ -442,7 +439,6 @@ function TurnActionComponent({
     case 'deploy':
       return (
         <YStack style={{ display: 'flex', width: '100%' }}>
-          <H4>Deploy or remove troops for a territory</H4>
           <XStack alignItems="center">
             <XStack minWidth="25%" paddingHorizontal="$0.75">
               <Label htmlFor="deploy-select">Territory</Label>
@@ -508,10 +504,7 @@ function TurnActionComponent({
       return (
         <YStack id="where-is-this" height="50%">
           <XStack>
-            <V flex={1}>
-              <H4>Attack a territory</H4>
-            </V>
-            <V justifyContent="center">
+            <V alignItems="flex-end" width={"100%"} justifyContent="center">
               <Pressable onPress={attackTerritory}>
                 <Swords size="$1" />
               </Pressable>

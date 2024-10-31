@@ -3,12 +3,13 @@ import { useEndApi } from '@end/data/web';
 import React, { ComponentType, useEffect, useMemo, useState } from 'react';
 import { useSnapshot } from 'valtio/react';
 import { hv2 } from '@end/hexasphere';
-import { Coords, Tile } from '@end/shared';
+import { Coords } from '@end/shared';
 import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
 import { PortalPath, useResponsive, GameTabsV2 } from '@end/components';
 import { OrbitControls } from '@react-three/drei';
 import { useWindowDimensions } from 'react-native';
+import { Option as O } from 'effect';
 import { getOrUndefined } from 'effect/Option';
 import { execute } from '@end/data/core';
 import { useParams } from 'react-router-dom';
@@ -389,6 +390,7 @@ function WarComponent({
     ]).then(([local, remote]) => {
       const war = JSON.parse(remote.war.state);
       const players = war.context.players;
+      const portal = war.context.portal;
       const state = war.value;
 
       const tiles: Record<string, any> = war.context.tiles;
@@ -399,13 +401,15 @@ function WarComponent({
       st?.(title);
 
       warService.begin(
+        params.id ? O.some(params.id) : O.none(),
         title,
         state,
         raised,
         tiles,
         local.waterColor,
         local.landColor,
-        players
+        players,
+        portal
       );
     });
 

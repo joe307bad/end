@@ -1,5 +1,6 @@
 import { assign, setup, StateFrom } from 'xstate';
 import { faker } from '@faker-js/faker';
+import { Coords } from '@end/shared';
 
 export interface Tile {
   habitable: boolean;
@@ -14,8 +15,7 @@ interface Context {
   players: [string, string][];
   turn: number;
   tiles: Record<string, Tile>;
-  selectedTerritory1?: string;
-  selectedTerritory2?: string;
+  portal: [Coords?, Coords?];
 }
 
 export type Event =
@@ -29,6 +29,12 @@ export type Event =
       type: 'deploy';
       tile: string;
       troopsToDeploy: number;
+      warId: string;
+    }
+  | {
+      type: 'set-portal-entry';
+      entryNumber: 1 | 2;
+      coords: Coords;
       warId: string;
     }
   | { type: 'add-player'; warId: string; player: [string, string] }
@@ -81,6 +87,7 @@ export const warMachine = (
         players: [],
         turn: 0,
         tiles: {} as Record<string, Tile>,
+        portal: [undefined, undefined],
       } as Context),
     states: {
       'war-created': {
@@ -113,17 +120,17 @@ export const warMachine = (
       },
       'war-in-progress': {
         on: {
-          'select-first-territory': {
+          'set-portal-entry': {
             actions: assign({
-              selectedTerritory1: ({ context, event }) => {
-                return event.id;
-              },
-            }),
-          },
-          'select-second-territory': {
-            actions: assign({
-              selectedTerritory2: ({ context, event }) => {
-                return event.id;
+              portal: ({ context, event }) => {
+                if (event.entryNumber === 1) {
+                  return [event.coords, context.portal[1]];
+                }
+                if (event.entryNumber === 2) {
+                  return [context.portal[1], event.coords];
+                }
+
+                return context.portal;
               },
             }),
           },
