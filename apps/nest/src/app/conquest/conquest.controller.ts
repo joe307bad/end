@@ -66,7 +66,6 @@ export class ConquestController {
 
         return { state, warId: event.warId };
       case 'add-player':
-      case 'select-first-territory':
       case 'deploy':
       case 'set-portal-entry':
       case 'attack':
@@ -145,6 +144,7 @@ export class ConquestController {
               warId: event.warId,
             });
           }
+
 
           return { state: existingWarState, warId: event.warId };
         } catch (e) {

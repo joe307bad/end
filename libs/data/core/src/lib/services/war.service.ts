@@ -1,7 +1,7 @@
 import { proxy } from 'valtio';
 import { Context, Effect, Layer, pipe, Option as O } from 'effect';
 import * as S from '@effect/schema/Schema';
-import { getOrUndefined, Option, Some } from 'effect/Option';
+import { Option } from 'effect/Option';
 import * as THREE from 'three';
 import { derive } from 'valtio/utils';
 import {
@@ -13,8 +13,7 @@ import {
 import { faker } from '@faker-js/faker';
 import { WarState } from '@end/war/core';
 import { isRight } from 'effect/Either';
-import { ConquestService } from './conquest.service';
-import { execute } from '@end/data/core';
+import { AuthService } from './auth.service';
 
 type Tile = {
   id: string;
@@ -34,6 +33,17 @@ const AttackSchema = S.Struct({
   tile2TroopCount: S.Number,
 });
 
+const ObjectSchema = S.Struct({
+  x: S.Number,
+  y: S.Number,
+  z: S.Number,
+});
+
+const PortalSetSchema = S.Struct({
+  type: S.Literal('portal-entry-set'),
+  portal: S.Tuple(ObjectSchema, ObjectSchema),
+});
+
 const DeploySchema = S.Struct({
   type: S.Literal('deploy'),
   tile: S.String,
@@ -49,11 +59,19 @@ type PlayerJoined = S.Schema.Type<typeof PlayerJoinedSchema>;
 
 type Players = PlayerJoined['players'];
 
-const ResultSchema = S.Union(AttackSchema, PlayerJoinedSchema, DeploySchema);
+const ResultSchema = S.Union(
+  AttackSchema,
+  PlayerJoinedSchema,
+  DeploySchema,
+  PortalSetSchema
+);
 
 type Result = S.Schema.Type<typeof ResultSchema>;
 
 interface WarStore {
+  round: number;
+  userId: string;
+  currentUsersTurn: string;
   warId: Option<string>;
   state: Option<WarState>;
   players: Players;
@@ -86,7 +104,9 @@ interface IWarService {
     waterColor: string,
     landColor: string,
     players: [string, string][],
-    portal: [Coords?, Coords?]
+    portal: [Coords?, Coords?],
+    turn: number,
+    round: number
   ) => void;
   setPlayers: (players: Players) => void;
   store: WarStore;
@@ -98,7 +118,7 @@ interface IWarService {
   onTileSelection: (
     tile: string | Coords | null,
     cameraPosition?: THREE.Vector3
-  ) => void;
+  ) => Promise<boolean>;
   setFilter: (filter: WarStore['filter']) => void;
   setLandAndWaterColors: (water: string, land: string) => void;
   setName: (name: string) => void;
@@ -110,7 +130,8 @@ interface IWarService {
   setSettingPortalCoords: (
     settingPortalCords: WarStore['settingPortalCoords']
   ) => void;
-  setPortal: (coords: string | Coords) => void;
+  onPortalSetWebSocket: (coords: [Coords?, Coords?]) => void;
+  setPortal: (coords: string | Coords) => Promise<true>;
   setDeployTo: (coords: string | Coords) => void;
   setTurnAction: (action?: WarStore['turnAction'] | undefined) => void;
   setAvailableTroopsToDeploy: () => void;
@@ -121,9 +142,15 @@ interface IWarService {
   initializeMap: () => void;
   parseWarLogEntry: (entry: any) => Effect.Effect<Result, string>;
   handleWarLogEntry: (entry: any) => Effect.Effect<string, string>;
+  setCurrentUserTurn: (userId: string) => void;
+  setRound: (round: number) => void;
+  setUserId: (userId: string) => void;
 }
 
 const store = proxy<WarStore>({
+  round: 0,
+  userId: '',
+  currentUsersTurn: '',
   warId: O.none(),
   state: O.none(),
   players: [],
@@ -329,7 +356,7 @@ export const WarLive = Layer.effect(
         owner: 0,
       };
     });
-    // const conquest = yield* ConquestService;
+    const auth = yield* AuthService;
 
     return WarService.of({
       store,
@@ -337,6 +364,9 @@ export const WarLive = Layer.effect(
       tileIdAndCoords,
       setWarState(state: WarState) {
         store.state = O.some(state);
+      },
+      setCurrentUserTurn(userId) {
+        store.currentUsersTurn = userId;
       },
       begin(
         warId: Option<string>,
@@ -347,7 +377,9 @@ export const WarLive = Layer.effect(
         waterColor: string,
         landColor: string,
         players: [string, string][],
-        portal: [Coords?, Coords?]
+        portal: [Coords?, Coords?],
+        turn: number,
+        round: number
       ) {
         store.warId = warId;
         this.setWarState(state);
@@ -355,7 +387,23 @@ export const WarLive = Layer.effect(
         this.setTiles(raised, tiles);
         this.setName(title);
         this.setPlayers(players);
-        store.portal = portal;
+        store.portal = portal ?? [undefined, undefined];
+        this.setCurrentUserTurn(players[turn - 1][0]);
+
+        Effect.match(auth.getUserId(), {
+          onSuccess: (v) => {
+            this.setUserId(v);
+          },
+          onFailure() {},
+        });
+
+        this.setRound(round);
+      },
+      setUserId(userId) {
+        store.userId = userId;
+      },
+      setRound(round) {
+        store.round = round;
       },
       setPlayers(players: Players) {
         store.players = players;
@@ -417,7 +465,7 @@ export const WarLive = Layer.effect(
         if (!tile || !cameraPosition) {
           store.selectedTileId = O.none();
           store.cameraPosition = O.none();
-          return;
+          return Promise.resolve(false);
         }
 
         const [tileId, coords] = tileIdAndCoords(tile);
@@ -432,6 +480,8 @@ export const WarLive = Layer.effect(
             this.setDeployTo(coords);
             break;
         }
+
+        return Promise.resolve(store.turnAction === 'portal');
       },
       setPortal(c) {
         const [_, coords] = tileIdAndCoords(c);
@@ -441,18 +491,7 @@ export const WarLive = Layer.effect(
           store.portal[1] = coords;
         }
 
-        // O.match(store.warId, {
-        //   onNone() {},
-        //   async onSome(warId) {
-        //     debugger;
-        //     await execute(
-        //       conquest.setPortal({
-        //         portal: store.portal,
-        //         warId,
-        //       })
-        //     );
-        //   },
-        // });
+        return Promise.resolve(true);
       },
       setDeployTo(c) {
         const [_, coords] = tileIdAndCoords(c);
@@ -540,6 +579,9 @@ export const WarLive = Layer.effect(
           })
         );
       },
+      onPortalSetWebSocket(coords: [Coords?, Coords?]) {
+        store.portal = coords;
+      },
       handleWarLogEntry(entry: any) {
         return pipe(
           this.parseWarLogEntry(entry),
@@ -566,6 +608,11 @@ export const WarLive = Layer.effect(
                   this.deployToTerritory(result.tile, result.troopsCount);
 
                   return 'Deploy event';
+                  break;
+                case 'portal-entry-set':
+                  this.onPortalSetWebSocket(result.portal as any);
+
+                  return 'Portal entry set event';
                   break;
               }
             },

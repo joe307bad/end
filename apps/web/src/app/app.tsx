@@ -119,10 +119,14 @@ const PrivateRoutes = () => {
           setToken(t);
         })
         .catch((e) => {
-          const statusCode = JSON.parse(e.message).statusCode;
-          console.error(e);
-          if (statusCode === 401) {
-            setToken(null);
+          try {
+            const statusCode = JSON.parse(e.message).statusCode;
+            console.error(e);
+            if (statusCode === 401) {
+              setToken(null);
+            }
+          } catch (e) {
+            setToken(null)
           }
         });
     });

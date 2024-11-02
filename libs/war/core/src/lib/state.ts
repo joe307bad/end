@@ -14,6 +14,7 @@ export interface Tile {
 interface Context {
   players: [string, string][];
   turn: number;
+  round: number;
   tiles: Record<string, Tile>;
   portal: [Coords?, Coords?];
 }
@@ -33,14 +34,15 @@ export type Event =
     }
   | {
       type: 'set-portal-entry';
-      entryNumber: 1 | 2;
-      coords: Coords;
+      portal: [Coords?, Coords?];
+      warId: string;
+    }
+  | {
+      type: 'complete-turn';
       warId: string;
     }
   | { type: 'add-player'; warId: string; player: [string, string] }
-  | { type: 'attack'; tile1: string; tile2: string; warId: string }
-  | { type: 'select-first-territory'; id: string; warId: string }
-  | { type: 'select-second-territory'; id: string };
+  | { type: 'attack'; tile1: string; tile2: string; warId: string };
 
 export const warMachine = (
   warId: string,
@@ -55,6 +57,7 @@ export const warMachine = (
     actions: {
       'generate-new-war': assign({
         turn: () => 1,
+        round: () => 1,
         tiles: ({ context, event }) => {
           if (event.type !== 'generate-new-war') return context.tiles;
 
@@ -74,9 +77,12 @@ export const warMachine = (
           return event.players;
         },
       }),
+      // setWarContext: assign({
+      //   round: () => 1,
+      // }),
     },
     guards: {
-      hasEnoughPlayers: ({ context }) => context.players.length >= 3,
+      hasEnoughPlayers: ({ context }) => context.players.length >= 2,
     },
   }).createMachine({
     id: `war-${warId}`,
@@ -86,6 +92,7 @@ export const warMachine = (
       ({
         players: [],
         turn: 0,
+        round: 0,
         tiles: {} as Record<string, Tile>,
         portal: [undefined, undefined],
       } as Context),
@@ -120,17 +127,24 @@ export const warMachine = (
       },
       'war-in-progress': {
         on: {
+        //   'complete-turn': {
+        //     actions: assign({
+        //       turn: ({ context, event }) => {
+        //         return context.turn > context.players.length + 1
+        //           ? 1
+        //           : context.turn + 1;
+        //       },
+        //       round: ({ context }) => {
+        //         return context.turn > context.players.length + 1
+        //           ? context.round + 1
+        //           : context.round;
+        //       },
+        //     }),
+        //   },
           'set-portal-entry': {
             actions: assign({
               portal: ({ context, event }) => {
-                if (event.entryNumber === 1) {
-                  return [event.coords, context.portal[1]];
-                }
-                if (event.entryNumber === 2) {
-                  return [context.portal[1], event.coords];
-                }
-
-                return context.portal;
+                return event.portal;
               },
             }),
           },

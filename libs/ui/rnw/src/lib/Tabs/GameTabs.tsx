@@ -1,5 +1,4 @@
 import {
-  Section,
   Separator,
   SizableText,
   Tabs,
@@ -9,14 +8,13 @@ import {
   XStack,
   YStack,
   Input,
-  H4,
   ListItem,
   Text,
   View as V,
+  H4,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
-import { tw } from '../components';
-import { CircleDot, Crosshair, Hexagon } from '@tamagui/lucide-icons';
+import { Crosshair, Hexagon } from '@tamagui/lucide-icons';
 import React, {
   Dispatch,
   ElementType,
@@ -88,19 +86,9 @@ export function GameTabsV2({
     warService.setSelectedTileIdOverride(tile);
   }, []);
 
-  const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string>('');
-
-  useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-  }, [loading]);
-
   return (
     <ResponsiveTabs menuOpen={menuOpen} setMenuOpen={setMenuOpen}>
-      {warStore.players.length < 3 ? (
+      {warStore.players.length < 2 ? (
         <LobbyTabs />
       ) : (
         <Tabs
@@ -186,12 +174,12 @@ export function GameTabsV2({
                   {/*  </Label>*/}
                   {/*</XStack>*/}
                   <V paddingRight="$0.5" flex={1}>
-                    <ActivityArrow
-                      loading={loading}
-                      onPress={() => warService.setTurnAction()}
-                      open={open}
-                      message={errorMessage}
-                    />
+                    {/*<ActivityArrow*/}
+                    {/*  loading={loading}*/}
+                    {/*  onPress={() => warService.setTurnAction()}*/}
+                    {/*  open={open}*/}
+                    {/*  message={errorMessage}*/}
+                    {/*/>*/}
                   </V>
                 </XStack>
               </RadioGroup>
@@ -209,10 +197,7 @@ export function GameTabsV2({
                   padding: 5,
                 }}
               >
-                <TurnActionComponent
-                  setSelectedTile={setSelectedTile}
-                  attackDialog={attackDialog}
-                />
+                <TurnActionComponent attackDialog={attackDialog} />
               </ScrollView>
             </View>
             <View
@@ -324,10 +309,8 @@ function TilesList({
 
 function TurnActionComponent({
   attackDialog: AttackDialog,
-  setSelectedTile,
 }: {
   attackDialog?: ElementType;
-  setSelectedTile: (tile: string) => void;
 }) {
   const { services } = useEndApi();
   const { warService, conquestService } = services;
@@ -373,6 +356,15 @@ function TurnActionComponent({
     );
   }, [warStore.troopsToDeploy, warStore.deployTo]);
 
+  if (warStore.currentUsersTurn !== warStore.userId) {
+    return (
+      <View>
+        <H4>Current Turn: {warStore.currentUsersTurn}</H4>
+        <H4>Current Round: {warStore.round}</H4>
+      </View>
+    );
+  }
+
   switch (warStore.turnAction) {
     case 'portal':
       return (
@@ -392,7 +384,9 @@ function TurnActionComponent({
                   value={Object.values(warStore.portal?.[0] ?? {}).join(',')}
                   onValueChange={(value) => {
                     warService.setSettingPortalCoords('first');
-                    warService.setPortal(value);
+                    warService
+                      .setPortal(value)
+                      .then(() => execute(conquestService.setPortal()));
                   }}
                   id="first-select"
                   items={warDerived.raisedTiles.map((t) => ({
@@ -418,7 +412,9 @@ function TurnActionComponent({
                   value={Object.values(warStore.portal?.[1] ?? {}).join(',')}
                   onValueChange={(value) => {
                     warService.setSettingPortalCoords('second');
-                    warService.setPortal(value);
+                    warService
+                      .setPortal(value)
+                      .then(() => execute(conquestService.setPortal()));
                   }}
                   items={warDerived.raisedTiles.map((t) => ({
                     key: t.name,
@@ -504,7 +500,7 @@ function TurnActionComponent({
       return (
         <YStack id="where-is-this" height="50%">
           <XStack>
-            <V alignItems="flex-end" width={"100%"} justifyContent="center">
+            <V alignItems="flex-end" width={'100%'} justifyContent="center">
               <Pressable onPress={attackTerritory}>
                 <Swords size="$1" />
               </Pressable>

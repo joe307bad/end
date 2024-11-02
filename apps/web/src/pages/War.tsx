@@ -351,7 +351,7 @@ function WarComponent({
   setTitle?: (title?: string) => void;
 }) {
   const { services } = useEndApi();
-  const { warService } = services;
+  const { warService, conquestService } = services;
   const warStore = useSnapshot(warService.store);
   const { width } = useWindowDimensions();
 
@@ -392,6 +392,8 @@ function WarComponent({
       const players = war.context.players;
       const portal = war.context.portal;
       const state = war.value;
+      const turn = war.context.turn;
+      const round = war.context.round;
 
       const tiles: Record<string, any> = war.context.tiles;
       const raised: Record<string, string> = JSON.parse(local.raised);
@@ -409,7 +411,9 @@ function WarComponent({
         local.waterColor,
         local.landColor,
         players,
-        portal
+        portal,
+        turn,
+        round
       );
     });
 
@@ -419,7 +423,11 @@ function WarComponent({
     );
 
     return () => {
-      warService.onTileSelection(null);
+      warService.onTileSelection(null).then(async (settingPortal) => {
+        if (settingPortal) {
+          await execute(conquestService.setPortal());
+        }
+      });
       unsubscribe();
     };
   }, []);

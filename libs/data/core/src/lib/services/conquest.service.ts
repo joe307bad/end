@@ -8,6 +8,7 @@ import { io, Socket } from 'socket.io-client';
 import { ConfigService } from './config.service';
 import { Coords, hexasphere } from '@end/shared';
 import { WarService } from './war.service';
+import { getOrUndefined } from 'effect/Option';
 
 interface Conquest {
   readonly warLog: BehaviorSubject<string | null>;
@@ -29,10 +30,7 @@ interface Conquest {
     troopsToDeploy: number;
     warId: string;
   }) => Effect.Effect<Response, string>;
-  readonly setPortal: (payload: {
-    portal: [Coords?, Coords?];
-    warId: string;
-  }) => Effect.Effect<Response, string>;
+  readonly setPortal: () => Effect.Effect<Response, string>;
   readonly addPlayer: (payload: {
     warId: string;
   }) => Effect.Effect<Response, string>;
@@ -166,8 +164,15 @@ export const ConquestLive = Layer.effect(
       }) => {
         return fetch.post('/conquest', { type: 'deploy', ...event });
       },
-      setPortal: (event: { portal: [Coords?, Coords?]; warId: string }) => {
-        return fetch.post('/conquest', { type: 'set-portal-entry', ...event });
+      setPortal: () => {
+        if (!getOrUndefined(war.store.warId)) {
+          return Effect.succeed({} as any);
+        }
+        return fetch.post('/conquest', {
+          type: 'set-portal-entry',
+          portal: war.store.portal,
+          warId: getOrUndefined(war.store.warId),
+        });
       },
       addPlayer: (event: { warId: string }) => {
         return fetch.post('/conquest', { type: 'add-player', ...event });
