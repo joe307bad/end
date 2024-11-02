@@ -356,7 +356,7 @@ export const WarLive = Layer.effect(
         owner: 0,
       };
     });
-    const auth = yield* AuthService;
+    // const auth = yield* AuthService;
 
     return WarService.of({
       store,
@@ -390,12 +390,12 @@ export const WarLive = Layer.effect(
         store.portal = portal ?? [undefined, undefined];
         this.setCurrentUserTurn(players[turn - 1][0]);
 
-        Effect.match(auth.getUserId(), {
-          onSuccess: (v) => {
-            this.setUserId(v);
-          },
-          onFailure() {},
-        });
+        // Effect.match(auth.getUserId(), {
+        //   onSuccess: (v) => {
+        //     this.setUserId(v);
+        //   },
+        //   onFailure() {},
+        // });
 
         this.setRound(round);
       },
