@@ -11,11 +11,11 @@ import {
   ContainerWithNav,
   Landing,
   Providers,
+  Register,
 } from '@end/components';
 import './app.module.scss';
 
 import {
-  Link,
   NavigateFunction,
   useLocation,
   useNavigate,
@@ -40,6 +40,7 @@ import { EndApiProvider, useEndApi } from '@end/data/web';
 import { War as TWar } from '@end/wm/core';
 import { Database } from '@nozbe/watermelondb';
 import { Observable } from 'rxjs';
+import { execute } from '@end/data/core';
 
 function WithNavigate({
   children,
@@ -107,12 +108,27 @@ function PageRouteComponent({ children }: { children: ReactNode }) {
 }
 
 const PrivateRoutes = () => {
+  const { services } = useEndApi();
   const { getToken } = useAuth();
   const [token, setToken] = useState<string | null | 'LOADING'>('LOADING');
 
   useEffect(() => {
     getToken().then((t) => {
-      setToken(t);
+      execute(services.syncService.sync())
+        .then((r) => {
+          setToken(t);
+        })
+        .catch((e) => {
+          try {
+            const statusCode = JSON.parse(e.message).statusCode;
+            console.error(e);
+            if (statusCode === 401) {
+              setToken(null);
+            }
+          } catch (e) {
+            setToken(null)
+          }
+        });
     });
   }, []);
 
@@ -125,7 +141,11 @@ const PrivateRoutes = () => {
       <Outlet />
     </PageRouteComponent>
   ) : (
-    <Navigate to="/" />
+    <Navigate
+      to={`/?return_path=${encodeURIComponent(
+        window.location.pathname + window.location.search
+      )}`}
+    />
   );
 };
 
@@ -150,12 +170,31 @@ function AppRoutes() {
                     <>
                       <Landing
                         services={services}
-                        goToHome={() => n('/home')}
+                        goToRegister={() => n('/register')}
+                        goToHome={() => {
+                          const queryParams = new URLSearchParams(
+                            window.location.search
+                          );
+                          const returnPath = queryParams.get('return_path');
+                          n(returnPath ? returnPath : '/home');
+                        }}
                       />
                       {/*<Link to={'#'}>*/}
                       {/*  <Badge title="Download the Android app" />*/}
                       {/*</Link>*/}
                     </>
+                  )}
+                </WithNavigate>
+              </Container>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <Container>
+                <WithNavigate>
+                  {(n) => (
+                    <Register services={services} goToHome={() => n('/home')} />
                   )}
                 </WithNavigate>
               </Container>

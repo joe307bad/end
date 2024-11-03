@@ -2,10 +2,20 @@ import React, { createContext, ReactNode, useContext, useMemo } from 'react';
 import { servicesFactory } from '@end/data/core';
 import { useAuth } from '@end/auth';
 import { adapter } from '@end/wm/rn';
+import { Effect, Option as O, pipe } from 'effect';
 
 function useServices(getToken: () => Promise<string | null>, apiUrl: string) {
   return useMemo(() => {
-    return servicesFactory(getToken, adapter, apiUrl, '');
+    return servicesFactory(
+      () =>
+        pipe(
+          Effect.promise(() => getToken()),
+          Effect.map((result) => O.fromNullable(result))
+        ),
+      adapter,
+      apiUrl,
+      ''
+    );
   }, []);
 }
 

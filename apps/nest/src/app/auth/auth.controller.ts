@@ -12,4 +12,11 @@ export class AuthController {
   signIn(@Body() signInDto: Record<string, string>) {
     return this.authService.signIn(signInDto.userName, signInDto.password);
   }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('register')
+  @Public()
+  register(@Body() signInDto: Record<string, string>) {
+    return this.authService.register(signInDto.userName, signInDto.password);
+  }
 }

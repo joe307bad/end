@@ -108,7 +108,12 @@ export function TabsContainer({
               <View style={tw`h-full overflow-scroll w-full`}>
                 <ScrollView ref={sv}>
                   {warDerived.sortedTiles.map((t) => (
-                    <TileListItem id={t.id} name={t.name} raised={t.raised} />
+                    <TileListItem
+                      key={t.id}
+                      id={t.id}
+                      name={t.name}
+                      raised={t.raised}
+                    />
                   ))}
                 </ScrollView>
               </View>

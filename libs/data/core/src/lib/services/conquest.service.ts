@@ -1,68 +1,87 @@
 import { Tile } from '@end/war/core';
-import { Effect, Context, Layer, pipe } from 'effect';
-import { AuthService } from './auth.service';
+import { Effect, Context, Layer, pipe, Option as O } from 'effect';
 import { FetchService } from './fetch.service';
 import { Planet, War } from '@end/wm/core';
 import { DbService } from './db.service';
 import { BehaviorSubject } from 'rxjs';
-import { io } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 import { ConfigService } from './config.service';
-import { hexasphere } from '@end/shared';
+import { Coords, hexasphere } from '@end/shared';
+import { WarService } from './war.service';
+import { getOrUndefined } from 'effect/Option';
 
 interface Conquest {
+  readonly warLog: BehaviorSubject<string | null>;
   readonly startWar: (
-    planet: {
-      name: string;
-      raised: string;
-      landColor: string;
-      waterColor: string;
-    },
     players: number
-  ) => Effect.Effect<{ warId: string }, Error>;
-  readonly getWar: (warId: string) => Effect.Effect<Response, Error>;
-  readonly connectToWarLog: (warId: string) => BehaviorSubject<string | null>;
-  readonly createWarLogEvent: (warId: string) => void;
+  ) => Effect.Effect<{ warId: string }, string>;
+  readonly getWar: (warId: string) => Effect.Effect<Response, string>;
+  readonly connectToWarLog: (
+    warId: string,
+    callback: (v: string | null) => void
+  ) => () => void;
   readonly attack: (payload: {
     tile1: string;
     tile2: string;
     warId: string;
-  }) => Effect.Effect<Response, Error>;
+  }) => Effect.Effect<Response, string>;
+  readonly deploy: (payload: {
+    tile: string;
+    troopsToDeploy: number;
+    warId: string;
+  }) => Effect.Effect<Response, string>;
+  readonly setPortal: () => Effect.Effect<Response, string>;
+  readonly addPlayer: (payload: {
+    warId: string;
+  }) => Effect.Effect<Response, string>;
   readonly selectFirstTerritory: (payload: {
     id: string;
     warId: string;
-  }) => Effect.Effect<Response, Error>;
+  }) => Effect.Effect<Response, string>;
 }
 
 const ConquestService = Context.GenericTag<Conquest>('conquest-api');
 
-const ConquestLive = Layer.effect(
+export const ConquestLive = Layer.effect(
   ConquestService,
   Effect.gen(function* () {
     const fetch = yield* FetchService;
-    const { getToken } = yield* AuthService;
     const db = yield* DbService;
     const config = yield* ConfigService;
+    const war = yield* WarService;
     const database = yield* db.database();
-    const warLog = new BehaviorSubject<string | null>(null);
-    const socket = io(`${config.webSocketUrl ?? 'localhost:3000'}`, {});
-    socket.on('connect', () => {
-      warLog.next(socket?.id ?? '');
-    });
-    const sender = Math.random();
+    let warLog = new BehaviorSubject<string | null>(null);
 
     return ConquestService.of({
-      startWar: (
-        planet: {
-          name: string;
-          raised: string;
-          landColor: string;
-          waterColor: string;
-        },
-        players: number
-      ) => {
+      warLog,
+      startWar: (players: number) => {
+        const raised = war.store.tiles
+          .filter((tile) => tile.raised)
+          .reduce((acc: Record<string, string>, curr) => {
+            acc[curr.id] = curr.name ?? '';
+            return acc;
+          }, {});
+
+        const required = {
+          landColor: war.store.landColor,
+          waterColor: war.store.waterColor,
+          name: war.store.name,
+        };
+
         return pipe(
-          getToken(),
-          Effect.flatMap((token) => {
+          Effect.flatMap(
+            O.match(O.all(Object.values(required)), {
+              onNone: () =>
+                Effect.fail(
+                  `Missing required properties to start war: ${Object.keys(
+                    required
+                  ).join(', ')}`
+                ),
+              onSome: Effect.succeed,
+            }),
+            Effect.succeed
+          ),
+          Effect.flatMap(([land, water, name]) => {
             return Effect.tryPromise({
               try: async () => {
                 const newPlanet = await new Promise<string>(async (resolve) => {
@@ -70,10 +89,10 @@ const ConquestLive = Layer.effect(
                     const { id } = await database
                       .get<Planet>('planets')
                       .create((p: Planet) => {
-                        p.name = planet.name;
-                        p.landColor = planet.landColor;
-                        p.waterColor = planet.waterColor;
-                        p.raised = planet.raised;
+                        p.name = name;
+                        p.landColor = land;
+                        p.waterColor = water;
+                        p.raised = JSON.stringify(raised);
                       });
                     resolve(id);
                   });
@@ -91,72 +110,78 @@ const ConquestLive = Layer.effect(
                   });
                 });
               },
-              catch: (error) =>
-                new Error(`Error starting war: ${error?.toString()}`),
+              catch: (error) => `Error starting war: ${error?.toString()}`,
             });
           }),
           Effect.flatMap((war) => {
-            return getToken().pipe(Effect.map((token) => ({ war, token })));
-          }),
-          Effect.flatMap(({ war, token }) => {
-            const raised: Record<string, string> = JSON.parse(planet.raised);
-            return fetch.post<{ warId: string }>(
-              '/conquest',
-              {
-                type: 'generate-new-war',
-                warId: war,
-                players: [],
-                tiles: Object.keys(raised).reduce<Record<string, Tile>>(
-                  (acc, id: string) => {
-                    acc[id] = {
-                      id: id,
-                      owner: 0,
-                      troopCount: 0,
-                      habitable: true,
-                      name: raised[id],
-                      neighborIds: hexasphere.tileLookup[id].neighborIds,
-                    };
+            return fetch.post<{ warId: string }>('/conquest', {
+              type: 'generate-new-war',
+              warId: war,
+              players: [],
+              tiles: Object.keys(raised).reduce<Record<string, Tile>>(
+                (acc, id: string) => {
+                  acc[id] = {
+                    id: id,
+                    owner: 0,
+                    troopCount: 0,
+                    habitable: true,
+                    name: raised[id],
+                    neighborIds: hexasphere.tileLookup[id].neighborIds,
+                  };
 
-                    return acc;
-                  },
-                  {}
-                ),
-              },
-              token
-            );
+                  return acc;
+                },
+                {}
+              ),
+            });
           })
         );
       },
       getWar: (warId: string) => fetch.get(`/conquest/war/${warId}`),
-      connectToWarLog: (warId: string) => {
+      connectToWarLog: (
+        warId: string,
+        callback: (v: string | null) => void
+      ) => {
+        const socket = io(`${config.webSocketUrl ?? 'localhost:3000'}`, {});
         socket.emit('joinRoom', { warId: warId });
         socket.on('serverToRoom', (message) => {
           warLog.next(message.toString());
         });
-        return warLog;
-      },
-      createWarLogEvent: (warId: string) => {
-        socket.emit('roomToServer', `${warId}|${sender}|attack-1-2-3}`);
+        const subscription = warLog.subscribe(callback);
+        return function () {
+          subscription.unsubscribe();
+          socket.close();
+          warLog = new BehaviorSubject<string | null>(null);
+        };
       },
       attack: (event: { tile1: string; tile2: string; warId: string }) => {
-        return pipe(
-          getToken(),
-          Effect.flatMap((token) =>
-            fetch.post('/conquest', { type: 'attack', ...event }, token)
-          )
-        );
+        return fetch.post('/conquest', { type: 'attack', ...event });
+      },
+      deploy: (event: {
+        tile: string;
+        troopsToDeploy: number;
+        warId: string;
+      }) => {
+        return fetch.post('/conquest', { type: 'deploy', ...event });
+      },
+      setPortal: () => {
+        if (!getOrUndefined(war.store.warId)) {
+          return Effect.succeed({} as any);
+        }
+        return fetch.post('/conquest', {
+          type: 'set-portal-entry',
+          portal: war.store.portal,
+          warId: getOrUndefined(war.store.warId),
+        });
+      },
+      addPlayer: (event: { warId: string }) => {
+        return fetch.post('/conquest', { type: 'add-player', ...event });
       },
       selectFirstTerritory: (event: { id: string; warId: string }) => {
-        return pipe(
-          getToken(),
-          Effect.flatMap((token) =>
-            fetch.post(
-              '/conquest',
-              { type: 'select-first-territory', ...event },
-              token
-            )
-          )
-        );
+        return fetch.post('/conquest', {
+          type: 'select-first-territory',
+          ...event,
+        });
       },
     });
   })

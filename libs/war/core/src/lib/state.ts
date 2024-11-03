@@ -1,5 +1,6 @@
-import { assign, setup } from 'xstate';
+import { assign, setup, StateFrom } from 'xstate';
 import { faker } from '@faker-js/faker';
+import { Coords } from '@end/shared';
 
 export interface Tile {
   habitable: boolean;
@@ -7,27 +8,41 @@ export interface Tile {
   id: string;
   troopCount: number;
   owner: number;
-  name: string
+  name: string;
 }
 
 interface Context {
-  players: string[];
+  players: [string, string][];
   turn: number;
+  round: number;
   tiles: Record<string, Tile>;
-  selectedTerritory1?: string;
-  selectedTerritory2?: string;
+  portal: [Coords?, Coords?];
 }
 
 export type Event =
   | {
       type: 'generate-new-war';
-      players: string[];
+      players: [string, string][];
       tiles: Record<string, Tile>;
       warId: string;
     }
-  | { type: 'attack'; tile1: string; tile2: string; warId: string }
-  | { type: 'select-first-territory'; id: string; warId: string }
-  | { type: 'select-second-territory'; id: string };
+  | {
+      type: 'deploy';
+      tile: string;
+      troopsToDeploy: number;
+      warId: string;
+    }
+  | {
+      type: 'set-portal-entry';
+      portal: [Coords?, Coords?];
+      warId: string;
+    }
+  | {
+      type: 'complete-turn';
+      warId: string;
+    }
+  | { type: 'add-player'; warId: string; player: [string, string] }
+  | { type: 'attack'; tile1: string; tile2: string; warId: string };
 
 export const warMachine = (
   warId: string,
@@ -42,6 +57,7 @@ export const warMachine = (
     actions: {
       'generate-new-war': assign({
         turn: () => 1,
+        round: () => 1,
         tiles: ({ context, event }) => {
           if (event.type !== 'generate-new-war') return context.tiles;
 
@@ -61,6 +77,12 @@ export const warMachine = (
           return event.players;
         },
       }),
+      // setWarContext: assign({
+      //   round: () => 1,
+      // }),
+    },
+    guards: {
+      hasEnoughPlayers: ({ context }) => context.players.length >= 2,
     },
   }).createMachine({
     id: `war-${warId}`,
@@ -70,31 +92,59 @@ export const warMachine = (
       ({
         players: [],
         turn: 0,
+        round: 0,
         tiles: {} as Record<string, Tile>,
+        portal: [undefined, undefined],
       } as Context),
     states: {
       'war-created': {
         on: {
           'generate-new-war': {
             actions: 'generate-new-war',
-            target: 'war-in-progress',
+            target: 'searching-for-players',
           },
         },
       },
       'war-complete': {},
-      'war-in-progress': {
+      'searching-for-players': {
         on: {
-          'select-first-territory': {
+          'add-player': {
             actions: assign({
-              selectedTerritory1: ({ context, event }) => {
-                return event.id;
+              players: ({ context, event }) => {
+                const newPlayers = [...context['players']];
+                newPlayers.push(event.player);
+                return newPlayers;
               },
             }),
           },
-          'select-second-territory': {
+        },
+        always: [
+          {
+            target: 'war-in-progress',
+            guard: 'hasEnoughPlayers',
+          },
+        ],
+      },
+      'war-in-progress': {
+        on: {
+        //   'complete-turn': {
+        //     actions: assign({
+        //       turn: ({ context, event }) => {
+        //         return context.turn > context.players.length + 1
+        //           ? 1
+        //           : context.turn + 1;
+        //       },
+        //       round: ({ context }) => {
+        //         return context.turn > context.players.length + 1
+        //           ? context.round + 1
+        //           : context.round;
+        //       },
+        //     }),
+        //   },
+          'set-portal-entry': {
             actions: assign({
-              selectedTerritory2: ({ context, event }) => {
-                return event.id;
+              portal: ({ context, event }) => {
+                return event.portal;
               },
             }),
           },
@@ -103,12 +153,19 @@ export const warMachine = (
               tiles: ({ context, event }) => {
                 let { troopCount: tile1TroopCount } =
                   context.tiles[event.tile1];
+                let { troopCount: tile2TroopCount } =
+                  context.tiles[event.tile2];
                 // let { troopCount: tile2TroopCount } =
                 //   context.tiles[event.tile2];
 
                 context.tiles[event.tile1] = {
                   ...context.tiles[event.tile1],
                   troopCount: tile1TroopCount - 1,
+                };
+
+                context.tiles[event.tile2] = {
+                  ...context.tiles[event.tile2],
+                  troopCount: tile2TroopCount - 1,
                 };
                 // context.tiles[event.tile2] = {
                 //   ...context.tiles[event.tile2],
@@ -119,7 +176,23 @@ export const warMachine = (
               },
             }),
           },
+          deploy: {
+            actions: assign({
+              tiles: ({ context, event }) => {
+                let { troopCount } = context.tiles[event.tile];
+
+                context.tiles[event.tile] = {
+                  ...context.tiles[event.tile],
+                  troopCount: troopCount + event.troopsToDeploy,
+                };
+
+                return context.tiles;
+              },
+            }),
+          },
         },
       },
     },
   });
+
+export type WarState = StateFrom<typeof warMachine>['value'];

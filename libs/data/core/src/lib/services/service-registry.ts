@@ -8,7 +8,8 @@ import { ConfigServiceFactory } from './config.service';
 import { FetchLivePipe } from './fetch.service';
 import { ConquestPipe, ConquestService } from './conquest.service';
 import { HexaPipe, HexaService } from './hexa.service';
-import { WarPipe, WarService } from './war.service';
+import { WarLivePipe, WarService } from './war.service';
+import { Option } from 'effect/Option';
 
 export const program = Effect.gen(function* () {
   return yield* Effect.succeed({
@@ -20,7 +21,7 @@ export const program = Effect.gen(function* () {
   });
 });
 const servicesFactory = (
-  getToken: () => Promise<string | null>,
+  getToken: () => Effect.Effect<Option<string>>,
   databaseAdapter: DatabaseAdapter,
   apiUrl: string,
   webSocketUrl: string
@@ -34,7 +35,7 @@ const servicesFactory = (
     SyncLivePipe,
     ConquestPipe,
     HexaPipe,
-    WarPipe
+    WarLivePipe
   );
 
   return Effect.runSync(
@@ -45,7 +46,8 @@ const servicesFactory = (
           Layer.provide(FetchLivePipe),
           Layer.provide(ConfigLivePipe),
           Layer.provide(DbLivePipe),
-          Layer.provideMerge(AuthLivePipe)
+          Layer.provideMerge(AuthLivePipe),
+          Layer.provideMerge(WarLivePipe)
         )
       )
     )

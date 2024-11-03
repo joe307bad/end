@@ -1,4 +1,4 @@
-import { H4, View, XStack } from 'tamagui';
+import { H4, View, XStack, Text } from 'tamagui';
 import { useEndApi } from '@end/data/web';
 import React, { ComponentType, useEffect, useMemo, useState } from 'react';
 import { useSnapshot } from 'valtio/react';
@@ -9,6 +9,7 @@ import { Canvas } from '@react-three/fiber';
 import { PortalPath, useResponsive, GameTabsV2 } from '@end/components';
 import { OrbitControls } from '@react-three/drei';
 import { useWindowDimensions } from 'react-native';
+import { Option as O } from 'effect';
 import { getOrUndefined } from 'effect/Option';
 import { execute } from '@end/data/core';
 import { useParams } from 'react-router-dom';
@@ -23,7 +24,6 @@ import { War } from '@end/wm/core';
 import { MarkerType, Node, Position, ReactFlow } from '@xyflow/react';
 import { Option } from 'effect/Option';
 import '@xyflow/react/dist/style.css';
-
 
 const initialNodes = [
   {
@@ -183,9 +183,9 @@ function AttackDialog({
                   marginRight: 10,
                 }}
               >
-                {selectedTile.name}
+                <Text>{selectedTile.name}</Text>
               </View>
-              <View> / {selectedTile.troopCount}</View>
+              <Text whiteSpace="nowrap">/ {selectedTile.troopCount}</Text>
             </XStack>
           ),
         },
@@ -221,9 +221,9 @@ function AttackDialog({
                   marginRight: 10,
                 }}
               >
-                {tile.name}
+                <Text>{tile.name}</Text>
               </View>
-              <View> / {tile.troopCount}</View>
+              <Text whiteSpace="nowrap">/ {tile.troopCount}</Text>
             </XStack>
           ),
         },
@@ -258,13 +258,18 @@ function AttackDialog({
         troopCount: 0,
         id: '',
       };
+
+      if (tile?.troopCount === 0) {
+        return n;
+      }
+
       n[9] = {
         ...initialNodes[7],
         tileId: portalCoord,
         data: {
           label: (
             <XStack>
-              <View
+              <Text
                 flex={1}
                 style={{
                   textOverflow: 'ellipsis',
@@ -274,8 +279,8 @@ function AttackDialog({
                 }}
               >
                 {tile.name}
-              </View>
-              <View> / {tile.troopCount}</View>
+              </Text>
+              <Text whiteSpace="nowrap">/ {tile.troopCount}</Text>
             </XStack>
           ),
         },
@@ -346,7 +351,7 @@ function WarComponent({
   setTitle?: (title?: string) => void;
 }) {
   const { services } = useEndApi();
-  const { warService } = services;
+  const { warService, conquestService } = services;
   const warStore = useSnapshot(warService.store);
   const { width } = useWindowDimensions();
 
@@ -373,6 +378,7 @@ function WarComponent({
   const [menuOpen, setMenuOpen] = useState(true);
   let params = useParams();
   const [loaded, setLoaded] = useState(false);
+
   useEffect(() => {
     if (!params.id) {
       return () => {};
@@ -382,37 +388,47 @@ function WarComponent({
       war.planet.fetch(),
       execute(services.conquestService.getWar(params.id)).then((r) => r.json()),
     ]).then(([local, remote]) => {
-      const tiles: Record<string, any> = JSON.parse(remote.war.state).context
-        .tiles;
+      const war = JSON.parse(remote.war.state);
+      const players = war.context.players;
+      const portal = war.context.portal;
+      const state = war.value;
+      const turn = war.context.turn;
+      const round = war.context.round;
+
+      const tiles: Record<string, any> = war.context.tiles;
       const raised: Record<string, string> = JSON.parse(local.raised);
-      const owners = new Map();
-      warService.setLandAndWaterColors(local.waterColor, local.landColor);
-      warService.setTiles(raised, tiles);
       setLoaded(true);
 
       const title = `The War of ${local.name}`;
-      warService.setName(title);
       st?.(title);
+
+      warService.begin(
+        params.id ? O.some(params.id) : O.none(),
+        title,
+        state,
+        raised,
+        tiles,
+        local.waterColor,
+        local.landColor,
+        players,
+        portal,
+        turn,
+        round
+      );
     });
 
-    services.conquestService.connectToWarLog(params.id).subscribe((r) => {
-      // try {
-      //   if (r) {
-      //     const s = JSON.parse(
-      //       JSON.parse(r).updateDescription.updatedFields.state
-      //     );
-      //
-      //     const tile = getProxy().tiles.find((tile) => tile.id === tile1);
-      //
-      //     if (tile) {
-      //       tile.troopCount = s.context.tiles[tile1].troopCount;
-      //     }
-      //   }
-      // } catch (e) {}
-    });
+    const unsubscribe = services.conquestService.connectToWarLog(
+      params.id,
+      (r) => execute(services.warService.handleWarLogEntry(r))
+    );
 
     return () => {
-      warService.onTileSelection(null);
+      warService.onTileSelection(null).then(async (settingPortal) => {
+        if (settingPortal) {
+          await execute(conquestService.setPortal());
+        }
+      });
+      unsubscribe();
     };
   }, []);
 
@@ -471,6 +487,5 @@ const EnhancedWarComponent = compose(
 
 export default function WarRouteComponent() {
   const params = useParams();
-
   return <EnhancedWarComponent warId={params.id} />;
 }

@@ -39,6 +39,7 @@ import v from 'voca';
 import { useEndApi } from '@end/data/web';
 import { getOrUndefined } from 'effect/Option';
 import { Option as O } from 'effect';
+import { execute } from '@end/data/core';
 
 function getPointInBetweenByPerc(
   pointA: THREE.Vector3,
@@ -90,37 +91,6 @@ function convertToRoman(num: number) {
 
   return str;
 }
-
-export const getRandomName = () => {
-  const words = [
-    faker.lorem.word(),
-    faker.word.noun(),
-    faker.person.lastName(),
-    faker.science.chemicalElement().name,
-  ];
-  const word1 = words[faker.number.int({ min: 0, max: words.length - 1 })];
-
-  function findWord2() {
-    const word2 = words[faker.number.int({ min: 0, max: words.length - 1 })];
-    if (word2 === word1) {
-      return findWord2();
-    }
-
-    return word2;
-  }
-
-  function addRomanNumeral() {
-    const show = faker.datatype.boolean();
-
-    if (!show) {
-      return '';
-    }
-
-    return ` ${convertToRoman(faker.number.int({ min: 1, max: 10 }))}`;
-  }
-
-  return v.titleCase(`${word1} ${findWord2()}`) + addRomanNumeral();
-};
 
 const depthRatio = 1.04;
 
@@ -452,11 +422,8 @@ const geometries = Object.keys(hexasphere.tileLookup).reduce<
 
 const AttackArrow = React.memo(
   ({
-    showAttackArrows,
     centerPoint,
     neighbor,
-    owner,
-    raised,
   }: {
     neighbor: Tile;
     showAttackArrows?: boolean;
@@ -511,7 +478,7 @@ const AttackArrow = React.memo(
             onNone() {
               return undefined;
             },
-            onSome({attacking, selectedId}) {
+            onSome({ attacking, selectedId }) {
               const a = [attacking.x, attacking.y, attacking.z].join(',');
               if (selectedId === cp && s[n] && n === a) {
                 setVisible(true);
@@ -598,8 +565,9 @@ const AttackArrows = React.memo(
     raised?: boolean;
   }) => {
     const neighbors = hexasphere.tileLookup[id].neighbors;
-    return neighbors.map((neighbor) => (
+    return neighbors.map((neighbor, i) => (
       <AttackArrow
+        key={i}
         neighbor={neighbor}
         centerPoint={centerPoint}
         showAttackArrows={showAttackArrows}
@@ -618,7 +586,6 @@ const TileMesh = React.memo(
     troopCount,
     ringColor,
     owner,
-    defending,
   }: {
     id: string;
     selected: boolean;
@@ -629,7 +596,7 @@ const TileMesh = React.memo(
     defending: boolean;
   }) => {
     const { services } = useEndApi();
-    const { warService } = services;
+    const { warService, conquestService } = services;
     const warStore = useSnapshot(warService.store);
 
     const { land, neighbors, water, centerPoint } = useMemo(() => {
@@ -643,11 +610,15 @@ const TileMesh = React.memo(
     const click = useCallback((e: ThreeEvent<MouseEvent>) => {
       e.stopPropagation();
       startTransition(() => {
-        warService.onTileSelection(id, camera.position);
+        warService
+          .onTileSelection(id, camera.position)
+          .then(async (settingPortal) => {
+            if (settingPortal) {
+              await execute(conquestService.setPortal());
+            }
+          });
       });
     }, []);
-
-    // console.log({neighbors});
 
     return (
       <mesh onClick={click}>
@@ -690,7 +661,7 @@ var camPosIndex = 0;
 export const HexasphereV2 = React.memo(
   ({ portalPath: PortalPath }: { portalPath?: ElementType }) => {
     const { services } = useEndApi();
-    const { warService } = services;
+    const { warService, conquestService } = services;
     const warStore = useSnapshot(warService.store);
 
     const mesh: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
@@ -744,7 +715,13 @@ export const HexasphereV2 = React.memo(
               return undefined;
             },
             onSome(value) {
-              warService.onTileSelection(value, camera.position);
+              warService
+                .onTileSelection(value, camera.position)
+                .then(async (settingPortal) => {
+                  if (settingPortal) {
+                    await execute(conquestService.setPortal());
+                  }
+                });
             },
           });
         }
