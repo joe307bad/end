@@ -39,6 +39,7 @@ import { ResponsiveTabs } from './ResponsiveTabs';
 import { LobbyTabs } from './LobbyTabs';
 import { Checkbox } from '../Checkbox/Checkbox';
 import { TurnAction } from '@end/war/core';
+import { PrimaryButton } from '../Display';
 
 export function GameTabsV2({
   menuOpen,
@@ -502,7 +503,7 @@ function TurnActionComponent({
     case 'attack':
       return (
         <YStack height="50%">
-          <XStack>
+          <XStack alignItems="center">
             <V>
               <XStack space="$1" paddingLeft="3px">
                 <XStack alignItems="center">
@@ -547,10 +548,9 @@ function TurnActionComponent({
                 </XStack>
               </XStack>
             </V>
-            <V alignItems="flex-end" flex={1} justifyContent="center">
-              <Pressable onPress={attackTerritory}>
-                <Swords size="$1" />
-              </Pressable>
+            <V flex={1}></V>
+            <V alignItems="flex-end" width="$6" justifyContent="center">
+              <PrimaryButton height="$2">Engage</PrimaryButton>
             </V>
           </XStack>
           {AttackDialog && (

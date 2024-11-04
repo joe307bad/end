@@ -9,6 +9,7 @@ import { ConfigService } from './config.service';
 import { Coords, hexasphere } from '@end/shared';
 import { WarService } from './war.service';
 import { getOrUndefined } from 'effect/Option';
+import { undefined } from 'effect/Match';
 
 interface Conquest {
   readonly warLog: BehaviorSubject<string | null>;
@@ -31,6 +32,7 @@ interface Conquest {
     warId: string;
   }) => Effect.Effect<Response, string>;
   readonly setPortal: () => Effect.Effect<Response, string>;
+  readonly startBattle: () => Effect.Effect<Response, string>;
   readonly addPlayer: (payload: {
     warId: string;
   }) => Effect.Effect<Response, string>;
@@ -156,6 +158,22 @@ export const ConquestLive = Layer.effect(
       },
       attack: (event: { tile1: string; tile2: string; warId: string }) => {
         return fetch.post('/conquest', { type: 'attack', ...event });
+      },
+      startBattle: () => {
+        const [defendingTerritory] = war.tileIdAndCoords(
+          getOrUndefined(war.store.territoryToAttack)
+        );
+        const defender = war.store.tiles.find(
+          (t) => t.id === defendingTerritory
+        )?.owner;
+        return fetch.post('/conquest', {
+          type: 'start-battle',
+          attackingFromTerritory:
+            getOrUndefined(war.store.selectedTileId) ?? '',
+          defendingTerritory,
+          aggressor: war.store.currentUsersTurn,
+          defender: defender?.toString() ?? '',
+        });
       },
       deploy: (event: {
         tile: string;

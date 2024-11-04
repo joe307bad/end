@@ -11,9 +11,8 @@ import {
   getRandomName,
 } from '@end/shared';
 import { faker } from '@faker-js/faker';
-import { WarState } from '@end/war/core';
+import { Battle, WarState } from '@end/war/core';
 import { isRight } from 'effect/Either';
-import { AuthService } from './auth.service';
 
 type Tile = {
   id: string;
@@ -92,6 +91,7 @@ interface WarStore {
   availableTroopsToDeploy: number;
   troopsToDeploy: number;
   territoryToAttack: Option<Coords>;
+  battles?: Battle[];
 }
 
 interface IWarService {
@@ -106,7 +106,8 @@ interface IWarService {
     players: [string, string][],
     portal: [Coords?, Coords?],
     turn: number,
-    round: number
+    round: number,
+    battles?: Battle[]
   ) => void;
   setPlayers: (players: Players) => void;
   store: WarStore;
@@ -171,6 +172,7 @@ const store = proxy<WarStore>({
   availableTroopsToDeploy: 100,
   troopsToDeploy: 0,
   territoryToAttack: O.none(),
+  battles: [],
 });
 
 function sortedTilesList(
@@ -379,7 +381,8 @@ export const WarLive = Layer.effect(
         players: [string, string][],
         portal: [Coords?, Coords?],
         turn: number,
-        round: number
+        round: number,
+        battles: Battle[] | undefined
       ) {
         store.warId = warId;
         this.setWarState(state);
@@ -389,6 +392,7 @@ export const WarLive = Layer.effect(
         this.setPlayers(players);
         store.portal = portal ?? [undefined, undefined];
         this.setCurrentUserTurn(players[turn - 1][0]);
+        // store.battles = battles;
 
         // Effect.match(auth.getUserId(), {
         //   onSuccess: (v) => {
