@@ -367,6 +367,10 @@ function TurnActionComponent({
   //   );
   // }
 
+  const startBattle = useCallback(async () => {
+    await execute(conquestService.startBattle());
+  }, []);
+
   const turnAction: TurnAction = 'attack';
 
   switch (turnAction) {
@@ -550,7 +554,9 @@ function TurnActionComponent({
             </V>
             <V flex={1}></V>
             <V alignItems="flex-end" width="$6" justifyContent="center">
-              <PrimaryButton height="$2">Engage</PrimaryButton>
+              <PrimaryButton onPress={startBattle} height="$2">
+                Engage
+              </PrimaryButton>
             </V>
           </XStack>
           {AttackDialog && (

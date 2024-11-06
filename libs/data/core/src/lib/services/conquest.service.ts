@@ -124,7 +124,7 @@ export const ConquestLive = Layer.effect(
                 (acc, id: string) => {
                   acc[id] = {
                     id: id,
-                    owner: 0,
+                    owner: 'null',
                     troopCount: 0,
                     habitable: true,
                     name: raised[id],
@@ -173,6 +173,7 @@ export const ConquestLive = Layer.effect(
           defendingTerritory,
           aggressor: war.store.currentUsersTurn,
           defender: defender?.toString() ?? '',
+          warId: getOrUndefined(war.store.warId),
         });
       },
       deploy: (event: {
@@ -184,6 +185,9 @@ export const ConquestLive = Layer.effect(
       },
       setPortal: () => {
         if (!getOrUndefined(war.store.warId)) {
+          return Effect.succeed({} as any);
+        }
+        if (!war.store.portal[0] || !war.store.portal[1]) {
           return Effect.succeed({} as any);
         }
         return fetch.post('/conquest', {

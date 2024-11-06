@@ -14,15 +14,28 @@ import { faker } from '@faker-js/faker';
 import { Battle, WarState } from '@end/war/core';
 import { isRight } from 'effect/Either';
 
-type Tile = {
-  id: string;
-  selected: boolean;
-  defending: boolean;
-  raised: boolean;
-  name: string;
-  troopCount: number;
-  owner: number;
+type Mutable<T> = {
+  -readonly [P in keyof T]: T[P];
 };
+
+const STile = S.Struct({
+  id: S.String,
+  selected: S.Boolean,
+  defending: S.Boolean,
+  raised: S.Boolean,
+  name: S.String,
+  troopCount: S.Number,
+  owner: S.String,
+});
+
+const WarStartedTile = S.Struct({
+  id: S.String,
+  name: S.String,
+  troopCount: S.Number,
+  owner: S.String,
+});
+
+type Tile = Mutable<S.Schema.Type<typeof STile>>;
 
 const AttackSchema = S.Struct({
   type: S.Literal('attack'),
@@ -51,7 +64,30 @@ const DeploySchema = S.Struct({
 
 const PlayerJoinedSchema = S.Struct({
   type: S.Literal('player-joined'),
-  players: S.Array(S.Tuple(S.String, S.String)),
+  players: S.Array(
+    S.Struct({ userName: S.String, id: S.String, color: S.String })
+  ),
+});
+
+const WarStartedSchema = S.Struct({
+  type: S.Literal('war-started'),
+  war: S.Struct({
+    players: S.Array(
+      S.Struct({ userName: S.String, id: S.String, color: S.String })
+    ),
+    tiles: S.Record({ key: S.String, value: WarStartedTile }),
+    playerLimit: S.Number,
+    battleLimit: S.Number,
+    turn: S.Number,
+    portal: S.Tuple(
+      S.Union(ObjectSchema, S.Null),
+      S.Union(ObjectSchema, S.Null)
+    ),
+  }),
+});
+
+const BattleStartedSchema = S.Struct({
+  type: S.Literal('battle-started'),
 });
 
 type PlayerJoined = S.Schema.Type<typeof PlayerJoinedSchema>;
@@ -62,7 +98,9 @@ const ResultSchema = S.Union(
   AttackSchema,
   PlayerJoinedSchema,
   DeploySchema,
-  PortalSetSchema
+  PortalSetSchema,
+  BattleStartedSchema,
+  WarStartedSchema
 );
 
 type Result = S.Schema.Type<typeof ResultSchema>;
@@ -103,7 +141,7 @@ interface IWarService {
     tiles: Record<string, Tile>,
     waterColor: string,
     landColor: string,
-    players: [string, string][],
+    players: { id: string; userName: string; color: string }[],
     portal: [Coords?, Coords?],
     turn: number,
     round: number,
@@ -202,9 +240,9 @@ function sortedTilesList(
         case 'all':
           return true;
         case 'mine':
-          return t.owner === 1;
+          return true;
         case 'opponents':
-          return t.owner === 2;
+          return true;
       }
 
       return true;
@@ -262,7 +300,7 @@ const derived = derive({
       onNone: () => ({} as Record<string, number>),
       onSome: (id) => {
         const neighbors = hexasphere.tileLookup[id].neighbors;
-        return neighbors.reduce((acc: Record<string, number>, tile) => {
+        return neighbors.reduce((acc: Record<string, string>, tile) => {
           const [id] = tileIdAndCoords(tile.centerPoint);
           const t = tiles.find((t) => t.id === id);
 
@@ -274,7 +312,7 @@ const derived = derive({
             return acc;
           }
 
-          acc[id] = typeof t.owner !== 'undefined' ? t.owner : 0;
+          acc[id] = typeof t.owner !== 'undefined' ? t.owner : '0';
           return acc;
         }, {});
       },
@@ -355,7 +393,7 @@ export const WarLive = Layer.effect(
         raised: false,
         name: '',
         troopCount: 0,
-        owner: 0,
+        owner: '',
       };
     });
     // const auth = yield* AuthService;
@@ -378,7 +416,7 @@ export const WarLive = Layer.effect(
         tiles: Record<string, Tile>,
         waterColor: string,
         landColor: string,
-        players: [string, string][],
+        players: { id: string; userName: string; color: string }[],
         portal: [Coords?, Coords?],
         turn: number,
         round: number,
@@ -391,7 +429,7 @@ export const WarLive = Layer.effect(
         this.setName(title);
         this.setPlayers(players);
         store.portal = portal ?? [undefined, undefined];
-        this.setCurrentUserTurn(players[turn - 1][0]);
+        this.setCurrentUserTurn(players[turn - 1].id);
         // store.battles = battles;
 
         // Effect.match(auth.getUserId(), {
@@ -573,6 +611,7 @@ export const WarLive = Layer.effect(
           Effect.flatMap((parsed) => {
             const valid = S.decodeEither(ResultSchema)(parsed);
 
+            debugger;
             if (isRight(valid)) {
               return Effect.succeed(valid.right);
             }
@@ -592,6 +631,15 @@ export const WarLive = Layer.effect(
           Effect.match({
             onSuccess: (result) => {
               switch (result.type) {
+                case 'war-started':
+                  debugger;
+                  // TODO populate tiles with owners and troop counts
+                  return 'War started event';
+                  break;
+                case 'battle-started':
+                  debugger;
+                  return 'Battle started event';
+                  break;
                 case 'attack':
                   const tile1 = store.tiles.find((t) => t.id === result.tile1);
                   const tile2 = store.tiles.find((t) => t.id === result.tile2);

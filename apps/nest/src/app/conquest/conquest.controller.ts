@@ -6,6 +6,8 @@ import { Model, ObjectId } from 'mongoose';
 import { Entity } from '../sync/sync.service';
 import { ConquestService } from './conquest.service';
 import { JwtService } from '@nestjs/jwt';
+import { v6 as uuidv6 } from 'uuid';
+import { faker } from '@faker-js/faker';
 
 @Schema({ strict: false })
 export class War {
@@ -56,7 +58,16 @@ export class ConquestController {
 
         const warActor = createActor(warMachine(event.warId));
         warActor.start();
-        warActor.send({ ...event, players: [[userId, username]] });
+        warActor.send({
+          ...event,
+          players: [
+            {
+              id: userId,
+              userName: username,
+              color: faker.color.rgb({ format: 'hex' }),
+            },
+          ],
+        });
         const state = warActor.getSnapshot();
         await this.warModel
           .create({ state: JSON.stringify(state), warId: event.warId })
@@ -68,6 +79,7 @@ export class ConquestController {
       case 'add-player':
       case 'deploy':
       case 'set-portal-entry':
+      case 'start-battle':
       case 'attack':
         try {
           const war = await this.warModel
@@ -83,7 +95,18 @@ export class ConquestController {
             const { userId, username } = getUserInfo(this.jwtService)(request);
             event = {
               ...event,
-              player: [userId, username],
+              player: {
+                id: userId,
+                userName: username,
+                color: faker.color.rgb({ format: 'hex' }),
+              },
+            };
+          }
+
+          if (event.type === 'start-battle') {
+            event = {
+              ...event,
+              id: uuidv6(),
             };
           }
 
@@ -97,7 +120,6 @@ export class ConquestController {
                   context: existingWarState.context,
                   value: existingWarState.value,
                 }),
-                warId: event.warId,
               }
             )
             .then((r) => {
@@ -119,11 +141,33 @@ export class ConquestController {
             });
           }
 
+          if (event.type === 'start-battle') {
+            this.conquest.next({
+              type: 'battle-started',
+              warId: event.warId,
+              battle:
+                existingWarState.context.turns[existingWarState.context.turn]
+                  .battles[0],
+            });
+          }
+
           if (event.type === 'add-player') {
             this.conquest.next({
               type: 'player-joined',
               warId: event.warId,
               players: existingWarState.context.players,
+            });
+          }
+
+          if (
+            event.type === 'add-player' &&
+            existingWarState.context.players.length >=
+              existingWarState.context.playerLimit
+          ) {
+            this.conquest.next({
+              type: 'war-started',
+              warId: event.warId,
+              war: existingWarState.context,
             });
           }
 
@@ -144,7 +188,6 @@ export class ConquestController {
               warId: event.warId,
             });
           }
-
 
           return { state: existingWarState, warId: event.warId };
         } catch (e) {

@@ -32,9 +32,9 @@ export function LobbyTabs() {
       padding="$1"
     >
       <View flex={1} space="$1">
-        {warStore.players.map(([userId, userName], i) => (
+        {warStore.players.map(({ id, userName }, i) => (
           <View
-            key={`${userId}_${i}`}
+            key={`${id}_${i}`}
             flexDirection="row"
             alignItems="center"
             space="$1"
@@ -49,7 +49,7 @@ export function LobbyTabs() {
               textOverflow="ellipsis"
               width={100}
             >
-              {userId}
+              {id}
             </Text>
           </View>
         ))}

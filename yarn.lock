@@ -2258,6 +2258,7 @@ __metadata:
     twrnc: "npm:^3.6.8"
     typescript: "npm:~5.2.2"
     url-loader: "npm:^4.1.1"
+    uuid: "npm:^11.0.2"
     valtio: "npm:^1.13.2"
     voca: "npm:^1.4.1"
     webpack-merge: "npm:^5.10.0"
@@ -25265,6 +25266,15 @@ __metadata:
   bin:
     uuid: dist/bin/uuid
   checksum: 1607dd32ac7fc22f2d8f77051e6a64845c9bce5cd3dd8aa0070c074ec73e666a1f63c7b4e0f4bf2bc8b9d59dc85a15e17807446d9d2b17c8485fbc2147b27f9b
+  languageName: node
+  linkType: hard
+
+"uuid@npm:^11.0.2":
+  version: 11.0.2
+  resolution: "uuid@npm:11.0.2"
+  bin:
+    uuid: dist/esm/bin/uuid
+  checksum: bd0670a0d6f77f1932da7544c51c32ceb467f3835382df2265f3275c4981d32c136a08a4369fb027ecfffd0b2ae48f19a28266ef636c7347264d5720e85d5ba0
   languageName: node
   linkType: hard
 
