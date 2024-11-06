@@ -22,7 +22,6 @@ import React, {
   useCallback,
   useEffect,
   useRef,
-  useState,
 } from 'react';
 import { useResponsive } from '../Layout';
 import { SelectDemoItem } from '../Select';
@@ -38,6 +37,9 @@ import { useParams } from 'react-router-dom';
 import { execute } from '@end/data/core';
 import { ResponsiveTabs } from './ResponsiveTabs';
 import { LobbyTabs } from './LobbyTabs';
+import { Checkbox } from '../Checkbox/Checkbox';
+import { TurnAction } from '@end/war/core';
+import { PrimaryButton } from '../Display';
 
 export function GameTabsV2({
   menuOpen,
@@ -135,7 +137,7 @@ export function GameTabsV2({
                 name="form"
                 // @ts-ignore
                 onValueChange={warService.setTurnAction}
-                value={warStore.turnAction}
+                value={'attack'}
               >
                 <XStack paddingLeft="$0.75" space="$1">
                   <XStack alignItems="center">
@@ -356,16 +358,22 @@ function TurnActionComponent({
     );
   }, [warStore.troopsToDeploy, warStore.deployTo]);
 
-  if (warStore.currentUsersTurn !== warStore.userId) {
-    return (
-      <View>
-        <H4>Current Turn: {warStore.currentUsersTurn}</H4>
-        <H4>Current Round: {warStore.round}</H4>
-      </View>
-    );
-  }
+  // if (warStore.currentUsersTurn !== warStore.userId) {
+  //   return (
+  //     <View>
+  //       <H4>Current Turn: {warStore.currentUsersTurn}</H4>
+  //       <H4>Current Round: {warStore.round}</H4>
+  //     </View>
+  //   );
+  // }
 
-  switch (warStore.turnAction) {
+  const startBattle = useCallback(async () => {
+    await execute(conquestService.startBattle());
+  }, []);
+
+  const turnAction: TurnAction = 'attack';
+
+  switch (turnAction) {
     case 'portal':
       return (
         <YStack style={{ display: 'flex', width: '100%' }}>
@@ -498,12 +506,57 @@ function TurnActionComponent({
       );
     case 'attack':
       return (
-        <YStack id="where-is-this" height="50%">
-          <XStack>
-            <V alignItems="flex-end" width={'100%'} justifyContent="center">
-              <Pressable onPress={attackTerritory}>
-                <Swords size="$1" />
-              </Pressable>
+        <YStack height="50%">
+          <XStack alignItems="center">
+            <V>
+              <XStack space="$1" paddingLeft="3px">
+                <XStack alignItems="center">
+                  <RadioGroup
+                    aria-labelledby="Select one item"
+                    name="form"
+                    // @ts-ignore
+                    onValueChange={warService.setTurnAction}
+                    value={'attack'}
+                  >
+                    <XStack space="$1">
+                      <XStack alignItems="center">
+                        <RadioGroup.Item value={'portal'} id={'b1'} size={'$3'}>
+                          <RadioGroup.Indicator />
+                        </RadioGroup.Item>
+                        <Label
+                          style={{ lineHeight: 0 }}
+                          lineHeight={0}
+                          paddingLeft="$0.5"
+                          size={'$3'}
+                          htmlFor={'1'}
+                        >
+                          B1
+                        </Label>
+                      </XStack>
+                      <XStack alignItems="center">
+                        <RadioGroup.Item value={'portal'} id={'b2'} size={'$3'}>
+                          <RadioGroup.Indicator />
+                        </RadioGroup.Item>
+                        <Label
+                          style={{ lineHeight: 0 }}
+                          lineHeight={0}
+                          paddingLeft="$0.5"
+                          size={'$3'}
+                          htmlFor={'1'}
+                        >
+                          B2
+                        </Label>
+                      </XStack>
+                    </XStack>
+                  </RadioGroup>
+                </XStack>
+              </XStack>
+            </V>
+            <V flex={1}></V>
+            <V alignItems="flex-end" width="$6" justifyContent="center">
+              <PrimaryButton onPress={startBattle} height="$2">
+                Engage
+              </PrimaryButton>
             </V>
           </XStack>
           {AttackDialog && (

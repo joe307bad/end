@@ -1,4 +1,4 @@
-import { Button, Spinner, Text } from 'tamagui';
+import { Button, SizeTokens, Spinner, Text } from 'tamagui';
 import React, { ReactNode } from 'react';
 
 export function PrimaryButton({
@@ -6,16 +6,19 @@ export function PrimaryButton({
   disabled,
   loading,
   children,
+  height,
 }: {
   onPress?: () => void;
   disabled?: boolean;
   loading?: boolean;
   children: ReactNode;
+  height?: SizeTokens;
 }) {
   return (
     <Button
       onPress={onPress}
       borderRadius={0}
+      {...(!height ? {} : { height })}
       width="100%"
       padding={0}
       disabled={disabled}

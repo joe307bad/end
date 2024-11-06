@@ -1,30 +1,47 @@
 import { assign, setup, StateFrom } from 'xstate';
 import { faker } from '@faker-js/faker';
 import { Coords } from '@end/shared';
+import { undefined } from 'effect/Match';
+import { Battle } from './interfaces/Battle';
 
 export interface Tile {
   habitable: boolean;
   neighborIds: string[];
   id: string;
   troopCount: number;
-  owner: number;
+  owner: string;
   name: string;
 }
 
 interface Context {
-  players: [string, string][];
+  players: { id: string; userName: string; color: string }[];
+  playerLimit: 2;
+  battleLimit: 2;
   turn: number;
-  round: number;
   tiles: Record<string, Tile>;
   portal: [Coords?, Coords?];
+  turns: Record<string, Turn>;
+}
+
+interface Turn {
+  battles: Battle[];
 }
 
 export type Event =
   | {
       type: 'generate-new-war';
-      players: [string, string][];
+      players: { id: string; userName: string; color: string }[];
       tiles: Record<string, Tile>;
       warId: string;
+    }
+  | {
+      type: 'start-battle';
+      aggressor: string;
+      defender: string;
+      attackingFromTerritory: string;
+      defendingTerritory: string;
+      warId: string;
+      id?: string;
     }
   | {
       type: 'deploy';
@@ -41,7 +58,11 @@ export type Event =
       type: 'complete-turn';
       warId: string;
     }
-  | { type: 'add-player'; warId: string; player: [string, string] }
+  | {
+      type: 'add-player';
+      warId: string;
+      player: { id: string; userName: string; color: string };
+    }
   | { type: 'attack'; tile1: string; tile2: string; warId: string };
 
 export const warMachine = (
@@ -55,20 +76,74 @@ export const warMachine = (
       events: {} as Event,
     },
     actions: {
+      assignOwners: ({ context, event }) => {
+        const numberOfPlayers = context.players.length;
+        Object.keys(context.tiles).forEach((tileId) => {
+          context.tiles[tileId].troopCount = faker.number.int({
+            min: 5,
+            max: 99,
+          });
+          context.tiles[tileId].owner =
+            context.players[
+              faker.number.int({
+                min: 0,
+                max: numberOfPlayers - 1,
+              })
+            ].id;
+        });
+        return context.players;
+      },
+      startBattle: assign(({ context, event }) => {
+        if (event.type !== 'start-battle') {
+          return context;
+        }
+
+        const currentTurn: Turn | undefined = context.turns[context.turn];
+        const turn = context.turn;
+        const players = context.players;
+        const round = Math.floor(turn / players.length);
+        const { id: currentUsersTurn } =
+          players[context.turn % context.players.length];
+
+        const e = { date: new Date(), aggressorChange: 0, defenderChange: -1 };
+        const attackingTile = context.tiles[event.attackingFromTerritory];
+        const defendingTile = context.tiles[event.attackingFromTerritory];
+
+        // TODO verify that this is even possible/abiding by the rules
+        const battle: Battle = {
+          attackingFromTerritory: event.attackingFromTerritory,
+          createdDate: new Date(),
+          defender: event.defender,
+          aggressorInitialTroopCount: attackingTile.troopCount,
+          defenderInitialTroopCount: defendingTile.troopCount,
+          defendingTerritory: event.defendingTerritory,
+          aggressor: currentUsersTurn,
+          events: [e],
+          id: event.id,
+        };
+
+        currentTurn.battles = [battle, ...currentTurn.battles];
+
+        debugger;
+
+        context.turns = { ...context.turns, [context.turn]: currentTurn };
+
+        if (attackingTile) {
+          attackingTile.troopCount =
+            attackingTile.troopCount + e.aggressorChange;
+        }
+
+        if (defendingTile) {
+          defendingTile.troopCount =
+            defendingTile.troopCount + e.defenderChange;
+        }
+
+        return context;
+      }),
       'generate-new-war': assign({
         turn: () => 1,
-        round: () => 1,
         tiles: ({ context, event }) => {
           if (event.type !== 'generate-new-war') return context.tiles;
-
-          Object.keys(event.tiles).forEach((tileId) => {
-            event.tiles[tileId].troopCount = faker.number.int({
-              min: 5,
-              max: 99,
-            });
-            event.tiles[tileId].owner = faker.datatype.boolean(0.5) ? 1 : 2;
-          });
-
           return event.tiles;
         },
         players: ({ context, event }) => {
@@ -92,9 +167,11 @@ export const warMachine = (
       ({
         players: [],
         turn: 0,
-        round: 0,
+        playerLimit: 2,
+        battleLimit: 2,
         tiles: {} as Record<string, Tile>,
-        portal: [undefined, undefined],
+        portal: [undefined, undefined] as any,
+        turns: {},
       } as Context),
     states: {
       'war-created': {
@@ -122,25 +199,29 @@ export const warMachine = (
           {
             target: 'war-in-progress',
             guard: 'hasEnoughPlayers',
+            actions: 'assignOwners',
           },
         ],
       },
       'war-in-progress': {
         on: {
-        //   'complete-turn': {
-        //     actions: assign({
-        //       turn: ({ context, event }) => {
-        //         return context.turn > context.players.length + 1
-        //           ? 1
-        //           : context.turn + 1;
-        //       },
-        //       round: ({ context }) => {
-        //         return context.turn > context.players.length + 1
-        //           ? context.round + 1
-        //           : context.round;
-        //       },
-        //     }),
-        //   },
+          //   'complete-turn': {
+          //     actions: assign({
+          //       turn: ({ context, event }) => {
+          //         return context.turn > context.players.length + 1
+          //           ? 1
+          //           : context.turn + 1;
+          //       },
+          //       round: ({ context }) => {
+          //         return context.turn > context.players.length + 1
+          //           ? context.round + 1
+          //           : context.round;
+          //       },
+          //     }),
+          //   },
+          'start-battle': {
+            actions: 'startBattle',
+          },
           'set-portal-entry': {
             actions: assign({
               portal: ({ context, event }) => {

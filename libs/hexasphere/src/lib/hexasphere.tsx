@@ -428,7 +428,7 @@ const AttackArrow = React.memo(
     neighbor: Tile;
     showAttackArrows?: boolean;
     centerPoint: Coords;
-    owner?: number;
+    owner?: string;
     raised?: boolean;
   }) => {
     const { services } = useEndApi();
@@ -561,7 +561,7 @@ const AttackArrows = React.memo(
     neighbors: Tile[];
     showAttackArrows?: boolean;
     centerPoint: Coords;
-    owner?: number;
+    owner?: string;
     raised?: boolean;
   }) => {
     const neighbors = hexasphere.tileLookup[id].neighbors;
@@ -592,7 +592,7 @@ const TileMesh = React.memo(
     raised: boolean;
     troopCount: number;
     ringColor: string;
-    owner: number;
+    owner: string;
     defending: boolean;
   }) => {
     const { services } = useEndApi();
@@ -764,6 +764,13 @@ export const HexasphereV2 = React.memo(
       }
     });
 
+    const colors = useMemo(() => {
+      return warStore.players.reduce((acc: Record<string, string>, curr) => {
+        acc[curr.id] = curr.color;
+        return acc;
+      }, {});
+    }, []);
+
     return (
       <>
         <ambientLight />
@@ -776,7 +783,7 @@ export const HexasphereV2 = React.memo(
               selected={t.selected}
               raised={t.raised}
               troopCount={t.troopCount}
-              ringColor={t.owner === 1 ? 'green' : 'blue'}
+              ringColor={colors[t.owner]}
               owner={t.owner}
               defending={t.defending}
             />
