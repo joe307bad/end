@@ -4,12 +4,11 @@ import { FetchService } from './fetch.service';
 import { Planet, War } from '@end/wm/core';
 import { DbService } from './db.service';
 import { BehaviorSubject } from 'rxjs';
-import { io, Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
 import { ConfigService } from './config.service';
-import { Coords, hexasphere } from '@end/shared';
+import { hexasphere } from '@end/shared';
 import { WarService } from './war.service';
 import { getOrUndefined } from 'effect/Option';
-import { undefined } from 'effect/Match';
 
 interface Conquest {
   readonly warLog: BehaviorSubject<string | null>;

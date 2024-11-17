@@ -394,7 +394,9 @@ function WarComponent({
       const state = war.value;
       const turn = war.context.turn;
       const round = war.context.round;
-      const battles = undefined;
+      const battles = war.context.battles;
+      const battleLimit = war.context.battleLimit;
+      debugger;
 
       const tiles: Record<string, any> = war.context.tiles;
       const raised: Record<string, string> = JSON.parse(local.raised);
@@ -415,7 +417,8 @@ function WarComponent({
         portal,
         turn,
         round,
-        battles
+        battles,
+        battleLimit
       );
     });
 

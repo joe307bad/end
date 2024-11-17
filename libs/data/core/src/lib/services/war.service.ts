@@ -130,6 +130,7 @@ interface WarStore {
   troopsToDeploy: number;
   territoryToAttack: Option<Coords>;
   battles?: Battle[];
+  battleLimit: number;
 }
 
 interface IWarService {
@@ -145,7 +146,8 @@ interface IWarService {
     portal: [Coords?, Coords?],
     turn: number,
     round: number,
-    battles?: Battle[]
+    battles: Battle[],
+    battleLimit: number
   ) => void;
   setPlayers: (players: Players) => void;
   store: WarStore;
@@ -211,6 +213,7 @@ const store = proxy<WarStore>({
   troopsToDeploy: 0,
   territoryToAttack: O.none(),
   battles: [],
+  battleLimit: 0,
 });
 
 function sortedTilesList(
@@ -420,7 +423,8 @@ export const WarLive = Layer.effect(
         portal: [Coords?, Coords?],
         turn: number,
         round: number,
-        battles: Battle[] | undefined
+        battles: Battle[],
+        battleLimit: number
       ) {
         store.warId = warId;
         this.setWarState(state);
@@ -430,7 +434,8 @@ export const WarLive = Layer.effect(
         this.setPlayers(players);
         store.portal = portal ?? [undefined, undefined];
         this.setCurrentUserTurn(players[turn - 1].id);
-        // store.battles = battles;
+        store.battles = battles;
+        store.battleLimit = battleLimit;
 
         // Effect.match(auth.getUserId(), {
         //   onSuccess: (v) => {
