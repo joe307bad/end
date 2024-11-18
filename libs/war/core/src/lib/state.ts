@@ -11,6 +11,7 @@ export interface Tile {
   troopCount: number;
   owner: string;
   name: string;
+
 }
 
 interface Context {
@@ -123,8 +124,6 @@ export const warMachine = (
         };
 
         currentTurn.battles = [battle, ...currentTurn.battles];
-
-        debugger;
 
         context.turns = { ...context.turns, [context.turn]: currentTurn };
 

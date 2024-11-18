@@ -164,10 +164,11 @@ export class ConquestController {
             existingWarState.context.players.length >=
               existingWarState.context.playerLimit
           ) {
+            const id = event.warId;
             this.conquest.next({
               type: 'war-started',
               warId: event.warId,
-              war: existingWarState.context,
+              war: { id, ...existingWarState.context },
             });
           }
 

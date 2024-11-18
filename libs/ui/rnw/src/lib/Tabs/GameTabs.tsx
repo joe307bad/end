@@ -10,8 +10,7 @@ import {
   Input,
   ListItem,
   Text,
-  View as V,
-  H4,
+  View as V
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
 import { Crosshair, Hexagon } from '@tamagui/lucide-icons';
@@ -26,20 +25,18 @@ import React, {
 import { useResponsive } from '../Layout';
 import { SelectDemoItem } from '../Select';
 import { subscribeKey } from 'valtio/utils';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import { useEndApi } from '@end/data/web';
 import { useSnapshot } from 'valtio';
 import { ActivityArrow } from '../ActivityArrow';
-import { Swords } from '@tamagui/lucide-icons';
 import { getOrUndefined } from 'effect/Option';
 import { Effect, Option as O, pipe } from 'effect';
 import { useParams } from 'react-router-dom';
 import { execute } from '@end/data/core';
 import { ResponsiveTabs } from './ResponsiveTabs';
 import { LobbyTabs } from './LobbyTabs';
-import { Checkbox } from '../Checkbox/Checkbox';
 import { TurnAction } from '@end/war/core';
-import { PrimaryButton } from '../Display';
+import { BattleSelection } from '../War/BattleSelection';
 
 export function GameTabsV2({
   menuOpen,
@@ -306,59 +303,6 @@ function TilesList({
         />
       ))}
     </>
-  );
-}
-
-function BattleSelection() {
-  const { services } = useEndApi();
-  const { warService, conquestService } = services;
-  const startBattle = useCallback(async () => {
-    await execute(conquestService.startBattle());
-  }, []);
-  const warStore = useSnapshot(warService.store);
-
-  debugger;
-  return (
-    <XStack alignItems="center">
-      <V>
-        <XStack space="$1" paddingLeft="3px">
-          <XStack alignItems="center">
-            <RadioGroup
-              aria-labelledby="Select one item"
-              name="form"
-              // @ts-ignore
-              onValueChange={warService.setTurnAction}
-              value={'attack'}
-            >
-              <XStack space="$1">
-                {Array.from({ length: warStore.battleLimit }).map((_, i) => (
-                  <XStack alignItems="center">
-                    <RadioGroup.Item value={'portal'} id={'b1'} size={'$3'}>
-                      <RadioGroup.Indicator />
-                    </RadioGroup.Item>
-                    <Label
-                      style={{ lineHeight: 0 }}
-                      lineHeight={0}
-                      paddingLeft="$0.5"
-                      size={'$3'}
-                      htmlFor={'1'}
-                    >
-                      B{i}
-                    </Label>
-                  </XStack>
-                ))}
-              </XStack>
-            </RadioGroup>
-          </XStack>
-        </XStack>
-      </V>
-      <V flex={1}></V>
-      <V alignItems="flex-end" width="$6" justifyContent="center">
-        <PrimaryButton onPress={startBattle} height="$2">
-          Engage
-        </PrimaryButton>
-      </V>
-    </XStack>
   );
 }
 

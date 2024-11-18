@@ -394,9 +394,8 @@ function WarComponent({
       const state = war.value;
       const turn = war.context.turn;
       const round = war.context.round;
-      const battles = war.context.battles;
+      const battles = war.context.battles ?? [];
       const battleLimit = war.context.battleLimit;
-      debugger;
 
       const tiles: Record<string, any> = war.context.tiles;
       const raised: Record<string, string> = JSON.parse(local.raised);
@@ -407,7 +406,6 @@ function WarComponent({
 
       warService.begin(
         params.id ? O.some(params.id) : O.none(),
-        title,
         state,
         raised,
         tiles,
@@ -420,6 +418,7 @@ function WarComponent({
         battles,
         battleLimit
       );
+      warService.setName(title);
     });
 
     const unsubscribe = services.conquestService.connectToWarLog(
