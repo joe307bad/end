@@ -276,7 +276,7 @@ const TroopCount = React.memo(
       if (defendingRing.current) {
         defendingRing.current.rotation.x = MathUtils.degToRad(-90);
       }
-    }, [selected]);
+    }, [selected, troopCount]);
 
     useEffect(() => {
       if (
@@ -620,6 +620,10 @@ const TileMesh = React.memo(
       });
     }, []);
 
+    const color =
+      troopCount > 0 ? ringColor : getOrUndefined(warStore.landColor);
+    debugger;
+
     return (
       <mesh onClick={click}>
         {neighbors && (
@@ -633,7 +637,7 @@ const TileMesh = React.memo(
           />
         )}
         <mesh visible={raised} geometry={land}>
-          <meshStandardMaterial color={getOrUndefined(warStore.landColor)} />
+          <meshStandardMaterial color={color} />
           {centerPoint && (
             <Edges color={selected ? 'yellow' : 'black'} threshold={50} />
           )}
@@ -769,7 +773,8 @@ export const HexasphereV2 = React.memo(
         acc[curr.id] = curr.color;
         return acc;
       }, {});
-    }, []);
+    }, [warStore.players]);
+    debugger;
 
     return (
       <>

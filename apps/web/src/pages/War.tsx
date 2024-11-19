@@ -142,18 +142,16 @@ const initialEdges = [
 ];
 
 function AttackDialog({
-  owner,
   portalCoords,
   setTerritoryToAttack,
   territoryToAttack,
 }: {
   portalCoords?: [Coords?, Coords?];
-  owner: number;
   setTerritoryToAttack: (coords: Coords) => void;
   territoryToAttack: Option<Coords>;
 }) {
   const { services } = useEndApi();
-  const { warService } = services;
+  const { warService, endApi } = services;
   const warStore = useSnapshot(warService.store);
   const warDerived = useSnapshot(warService.derived);
   const [selectedTileId] = warService.tileIdAndCoords(

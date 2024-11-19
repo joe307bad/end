@@ -9,7 +9,6 @@ import { execute } from '@end/data/core';
 import { useNavigate } from 'react-router-dom';
 import { Effect, pipe } from 'effect';
 import { useSnapshot } from 'valtio/react';
-import { Option as O } from 'effect';
 import { getOrUndefined } from 'effect/Option';
 import { hv2 } from '@end/hexasphere';
 import { TabsContainer } from '@end/components';

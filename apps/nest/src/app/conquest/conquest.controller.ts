@@ -64,7 +64,7 @@ export class ConquestController {
             {
               id: userId,
               userName: username,
-              color: faker.color.rgb({ format: 'hex' }),
+              color: 'red' // faker.color.rgb({ format: 'hex' }),
             },
           ],
         });
@@ -98,7 +98,7 @@ export class ConquestController {
               player: {
                 id: userId,
                 userName: username,
-                color: faker.color.rgb({ format: 'hex' }),
+                color: 'blue' // faker.color.rgb({ format: 'hex' }),
               },
             };
           }

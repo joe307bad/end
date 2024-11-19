@@ -9,6 +9,7 @@ import { ConfigService } from './config.service';
 import { hexasphere } from '@end/shared';
 import { WarService } from './war.service';
 import { getOrUndefined } from 'effect/Option';
+import { AuthService } from './auth.service';
 
 interface Conquest {
   readonly warLog: BehaviorSubject<string | null>;

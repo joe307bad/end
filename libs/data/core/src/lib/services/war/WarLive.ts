@@ -260,7 +260,7 @@ export const WarLive = Layer.effect(
             onSuccess: (result) => {
               switch (result.type) {
                 case 'war-started':
-                  // TODO this logic needs fixed
+                  // TODO this logic needs fixe
                   store.warId = O.some(result.war.id);
                   // that.setWarState(state);
                   // that.setLandAndWaterColors(waterColor, landColor);

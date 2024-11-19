@@ -1,6 +1,6 @@
 import { Effect, Layer, pipe } from 'effect';
 import { EndApiPipe, EndApiService } from './end-api.service';
-import { AuthLiveFactory } from './auth.service';
+import { AuthLiveFactory, AuthService } from './auth.service';
 import { DbLiveFactory } from './db.service';
 import { DatabaseAdapter } from '@nozbe/watermelondb';
 import { SyncLivePipe, SyncService } from './sync.service';
@@ -18,6 +18,7 @@ export const program = Effect.gen(function* () {
     conquestService: yield* ConquestService,
     hexaService: yield* HexaService,
     warService: yield* WarService,
+    authService: yield* AuthService,
   });
 });
 const servicesFactory = (

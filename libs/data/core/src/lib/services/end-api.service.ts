@@ -2,6 +2,8 @@ import { Context, Effect, Layer, pipe } from 'effect';
 import { FetchService } from './fetch.service';
 import { Database } from '@nozbe/watermelondb';
 import { DbService } from './db.service';
+import { AuthService } from './auth.service';
+import { WarService } from './war/WarService';
 
 interface EndApi {
   readonly login: (
@@ -24,6 +26,7 @@ const EndApiLive = Layer.effect(
     const fetch = yield* FetchService;
     const db = yield* DbService;
     const database = yield* db.database();
+    const war = yield* WarService;
 
     return EndApiService.of({
       login: (userName: string, password: string) => {

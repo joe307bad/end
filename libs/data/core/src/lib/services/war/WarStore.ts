@@ -1,6 +1,6 @@
 import { proxy } from 'valtio';
 import { Option as O } from 'effect';
-import { Option } from 'effect/Option';
+import { getOrUndefined, Option } from 'effect/Option';
 import { Battle, WarState } from '@end/war/core';
 import * as THREE from 'three';
 import { buildCameraPath, Coords, hexasphere } from '@end/shared';
@@ -67,6 +67,15 @@ export const store = proxy<WarStore>({
 });
 
 export const derived = derive({
+  isOwner: (get) => {
+    const selectedTileId = get(store).selectedTileId;
+    const userId = get(store).userId;
+    const owner = get(store).tiles.find(
+      (t) => t.id === getOrUndefined(selectedTileId)
+    )?.owner;
+    debugger;
+    return owner === userId;
+  },
   cameraPath: (get) => {
     const selectedId = get(store).selectedTileId;
     const cameraPosition = get(store).cameraPosition;

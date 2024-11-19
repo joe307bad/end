@@ -10,7 +10,7 @@ import {
   Input,
   ListItem,
   Text,
-  View as V
+  View as V,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
 import { Crosshair, Hexagon } from '@tamagui/lucide-icons';
@@ -20,7 +20,8 @@ import React, {
   SetStateAction,
   useCallback,
   useEffect,
-  useRef,
+  useMemo,
+  useRef, useState
 } from 'react';
 import { useResponsive } from '../Layout';
 import { SelectDemoItem } from '../Select';
@@ -312,7 +313,7 @@ function TurnActionComponent({
   attackDialog?: ElementType;
 }) {
   const { services } = useEndApi();
-  const { warService, conquestService } = services;
+  const { warService, conquestService, authService } = services;
   const warStore = useSnapshot(warService.store);
   const warDerived = useSnapshot(warService.derived);
   let params = useParams();
@@ -346,6 +347,11 @@ function TurnActionComponent({
   //     </View>
   //   );
   // }
+
+  const [userId, setUserId] = useState<string>();
+  useEffect( () => {
+    execute(authService.getUserId()).then((v) => setUserId(v));
+  }, []);
 
   const turnAction: TurnAction = 'attack';
 
@@ -484,11 +490,10 @@ function TurnActionComponent({
       return (
         <YStack height="50%">
           <BattleSelection />
-          {AttackDialog && (
+          {AttackDialog && warDerived.isOwner && (
             <AttackDialog
               territoryToAttack={warStore.territoryToAttack}
               portalCoords={warStore.portal}
-              owner={1}
               setTerritoryToAttack={warService.setTerritoryToAttack}
             />
           )}
