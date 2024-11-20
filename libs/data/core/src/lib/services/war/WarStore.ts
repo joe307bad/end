@@ -73,7 +73,7 @@ export const derived = derive({
     const owner = get(store).tiles.find(
       (t) => t.id === getOrUndefined(selectedTileId)
     )?.owner;
-    debugger;
+
     return owner === userId;
   },
   cameraPath: (get) => {
@@ -104,23 +104,26 @@ export const derived = derive({
     const sort = get(store).sort;
     const filter = get(store).filter;
     const tiles = get(store).tiles;
+    const userId = get(store).userId;
 
     return O.match(selectedId, {
       onNone: () => undefined,
       onSome: (id) =>
-        sortedTilesList(tiles, sort, filter).findIndex((t) => t.id === id),
+        sortedTilesList(tiles, sort, filter, userId).findIndex((t) => t.id === id),
     });
   },
   sortedTiles: (get) => {
     const sort = get(store).sort;
     const filter = get(store).filter;
     const tiles = get(store).tiles;
+    const userId = get(store).userId;
 
-    return sortedTilesList(tiles, sort, filter);
+    return sortedTilesList(tiles, sort, filter, userId);
   },
   selectedNeighborsOwners: (get) => {
     const selectedId = get(store).selectedTileId;
     const tiles = get(store).tiles;
+    const userId = get(store).userId;
 
     return O.match(selectedId, {
       onNone: () => ({} as Record<string, number>),
@@ -131,6 +134,10 @@ export const derived = derive({
           const t = tiles.find((t) => t.id === id);
 
           if (!t) {
+            return acc;
+          }
+
+          if(t.owner === userId) {
             return acc;
           }
 

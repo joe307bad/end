@@ -433,6 +433,7 @@ const AttackArrow = React.memo(
   }) => {
     const { services } = useEndApi();
     const { warService } = services;
+    const warStore = useSnapshot(warService.store);
 
     const coneInner: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
     const coneRef = useRef<Group<Object3DEventMap>>(null);
@@ -476,6 +477,7 @@ const AttackArrow = React.memo(
 
           O.match(combined, {
             onNone() {
+              setVisible(false);
               return undefined;
             },
             onSome({ attacking, selectedId }) {
@@ -622,7 +624,6 @@ const TileMesh = React.memo(
 
     const color =
       troopCount > 0 ? ringColor : getOrUndefined(warStore.landColor);
-    debugger;
 
     return (
       <mesh onClick={click}>
@@ -774,7 +775,6 @@ export const HexasphereV2 = React.memo(
         return acc;
       }, {});
     }, [warStore.players]);
-    debugger;
 
     return (
       <>

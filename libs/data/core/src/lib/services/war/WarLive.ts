@@ -151,6 +151,8 @@ export const WarLive = Layer.effect(
             break;
         }
 
+        store.territoryToAttack = O.none();
+
         return Promise.resolve(store.turnAction === 'portal');
       },
       setPortal(c) {
@@ -266,23 +268,35 @@ export const WarLive = Layer.effect(
                   // that.setLandAndWaterColors(waterColor, landColor);
                   const raised = Object.values(result.war.tiles).reduce(
                     (acc, curr) => {
-                      acc[curr.id] = curr.owner;
+                      acc[curr.id] = curr.name;
                       return acc;
                     },
                     {} as Record<string, string>
                   );
-                  const tiles = Object.values(result.war.tiles).reduce(
+                  const tiles = Object.values(store.tiles).reduce(
                     (acc, curr) => {
+                      const { owner, troopCount } = (() => {
+                        if (raised[curr.id]) {
+                          const tile = result.war.tiles[curr.id];
+                          return {
+                            owner: tile.owner,
+                            troopCount: tile.troopCount ?? 0,
+                          };
+                        }
+
+                        return { owner: '', troopCount: 0 };
+                      })();
+                      // debugger;
                       acc[curr.id] = {
                         ...curr,
-                        raised: true,
-                        selected: false,
-                        defending: false,
+                        owner,
+                        troopCount,
                       };
                       return acc;
                     },
                     {} as Record<string, Tile>
                   );
+
                   that.setTiles(raised, tiles);
                   that.setPlayers(result.war.players);
                   // store.portal = portal ?? [undefined, undefined];

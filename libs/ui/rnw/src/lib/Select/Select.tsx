@@ -37,7 +37,7 @@ export function SelectDemoItem(
   props: SelectProps & { items: { key: string; value: string }[] }
 ) {
   return (
-    <S size={'$1'} disablePreventBodyScroll {...props}>
+    <S size={'$0.5'} disablePreventBodyScroll {...props}>
       <S.Trigger width={220} iconAfter={ChevronDown}>
         <S.Value placeholder="Something" />
       </S.Trigger>
@@ -101,7 +101,7 @@ export function SelectDemoItem(
           justifyContent="center"
           position="relative"
           width="100%"
-          height="$3"
+          height="$2"
         >
           <YStack zIndex={10}>
             <ChevronDown size={20} />

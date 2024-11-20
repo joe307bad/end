@@ -21,7 +21,8 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
-  useRef, useState
+  useRef,
+  useState,
 } from 'react';
 import { useResponsive } from '../Layout';
 import { SelectDemoItem } from '../Select';
@@ -129,129 +130,144 @@ export function GameTabsV2({
               display: 'flex',
             }}
           >
-            <View style={{ width: '100%' }}>
-              <RadioGroup
-                aria-labelledby="Select one item"
-                name="form"
-                // @ts-ignore
-                onValueChange={warService.setTurnAction}
-                value={'attack'}
-              >
-                <XStack paddingLeft="$0.75" space="$1">
-                  <XStack alignItems="center">
-                    <RadioGroup.Item value={'portal'} id={'1'} size={'$3'}>
-                      <RadioGroup.Indicator />
-                    </RadioGroup.Item>
-                    <Label paddingLeft="$0.5" size={'$3'} htmlFor={'1'}>
-                      Portal
-                    </Label>
-                  </XStack>
-                  <XStack alignItems="center">
-                    <RadioGroup.Item value={'deploy'} id={'2'} size={'$3'}>
-                      <RadioGroup.Indicator />
-                    </RadioGroup.Item>
-
-                    <Label paddingLeft="$0.5" size={'$3'} htmlFor={'2'}>
-                      Deploy
-                    </Label>
-                  </XStack>
-                  <XStack alignItems="center">
-                    <RadioGroup.Item value={'attack'} id={'3'} size={'$3'}>
-                      <RadioGroup.Indicator />
-                    </RadioGroup.Item>
-
-                    <Label paddingLeft="$0.5" size={'$3'} htmlFor={'3'}>
-                      Attack
-                    </Label>
-                  </XStack>
-                  {/*<XStack alignItems="center">*/}
-                  {/*  <RadioGroup.Item value={'reenforce'} id={'4'} size={'$3'}>*/}
-                  {/*    <RadioGroup.Indicator />*/}
-                  {/*  </RadioGroup.Item>*/}
-
-                  {/*  <Label paddingLeft="$0.5" size={'$3'} htmlFor={'4'}>*/}
-                  {/*    Reenforce*/}
-                  {/*  </Label>*/}
-                  {/*</XStack>*/}
-                  <V paddingRight="$0.5" flex={1}>
-                    {/*<ActivityArrow*/}
-                    {/*  loading={loading}*/}
-                    {/*  onPress={() => warService.setTurnAction()}*/}
-                    {/*  open={open}*/}
-                    {/*  message={errorMessage}*/}
-                    {/*/>*/}
-                  </V>
-                </XStack>
-              </RadioGroup>
-            </View>
-            <View
-              style={bp([
-                'w-full',
-                `${warStore.turnAction === 'attack' ? 'max-h-[40%]' : ''}`,
-              ])}
-            >
-              <ScrollView
-                style={{
-                  display: 'flex',
-                  width: '100%',
-                  padding: 5,
-                }}
-              >
-                <TurnActionComponent attackDialog={attackDialog} />
-              </ScrollView>
-            </View>
-            <View
-              style={{
-                flex: 1,
-                width: '100%',
-              }}
-            >
-              <YStack>
-                <XStack>
-                  <XStack
-                    flex={1}
-                    alignItems="center"
-                    justifyContent="flex-end"
+            <Text padding="$0.5" width="100%">
+              Current Turn: {
+                warStore.players.find(
+                  ({ id }) => id === warStore.currentUsersTurn
+                )?.userName
+              }{' '}
+              | Round: {warStore.round}
+            </Text>
+            {warStore.currentUsersTurn === warStore.userId && (
+              <>
+                <View style={{ width: '100%' }}>
+                  <RadioGroup
+                    aria-labelledby="Select one item"
+                    name="form"
+                    // @ts-ignore
+                    onValueChange={warService.setTurnAction}
+                    value={'attack'}
                   >
-                    <XStack minWidth="$1" paddingHorizontal="$0.75">
-                      <Label htmlFor="first">Filter</Label>
+                    <XStack paddingLeft="$0.75" space="$1">
+                      <XStack alignItems="center">
+                        <RadioGroup.Item value={'portal'} id={'1'} size={'$3'}>
+                          <RadioGroup.Indicator />
+                        </RadioGroup.Item>
+                        <Label paddingLeft="$0.5" size={'$3'} htmlFor={'1'}>
+                          Portal
+                        </Label>
+                      </XStack>
+                      <XStack alignItems="center">
+                        <RadioGroup.Item value={'deploy'} id={'2'} size={'$3'}>
+                          <RadioGroup.Indicator />
+                        </RadioGroup.Item>
+
+                        <Label paddingLeft="$0.5" size={'$3'} htmlFor={'2'}>
+                          Deploy
+                        </Label>
+                      </XStack>
+                      <XStack alignItems="center">
+                        <RadioGroup.Item value={'attack'} id={'3'} size={'$3'}>
+                          <RadioGroup.Indicator />
+                        </RadioGroup.Item>
+
+                        <Label paddingLeft="$0.5" size={'$3'} htmlFor={'3'}>
+                          Attack
+                        </Label>
+                      </XStack>
+                      {/*<XStack alignItems="center">*/}
+                      {/*  <RadioGroup.Item value={'reenforce'} id={'4'} size={'$3'}>*/}
+                      {/*    <RadioGroup.Indicator />*/}
+                      {/*  </RadioGroup.Item>*/}
+
+                      {/*  <Label paddingLeft="$0.5" size={'$3'} htmlFor={'4'}>*/}
+                      {/*    Reenforce*/}
+                      {/*  </Label>*/}
+                      {/*</XStack>*/}
+                      <V paddingRight="$0.5" flex={1}>
+                        {/*<ActivityArrow*/}
+                        {/*  loading={loading}*/}
+                        {/*  onPress={() => warService.setTurnAction()}*/}
+                        {/*  open={open}*/}
+                        {/*  message={errorMessage}*/}
+                        {/*/>*/}
+                      </V>
                     </XStack>
-                    <SelectDemoItem
-                      id="sort-1"
-                      onValueChange={warService.setFilter}
-                      items={[
-                        { value: 'all', key: 'All territories' },
-                        { value: 'mine', key: 'My territories' },
-                        { value: 'opponents', key: 'Opponents territories' },
-                      ]}
-                      native
-                    />
-                  </XStack>
-                  <XStack
-                    flex={1}
-                    alignItems="center"
-                    justifyContent="flex-end"
+                  </RadioGroup>
+                </View>
+                <View
+                  style={bp([
+                    'w-full',
+                    `${warStore.turnAction === 'attack' ? 'max-h-[40%]' : ''}`,
+                  ])}
+                >
+                  <ScrollView
+                    style={{
+                      display: 'flex',
+                      width: '100%',
+                      padding: 5,
+                    }}
                   >
-                    <XStack minWidth="$1" paddingHorizontal="$0.75">
-                      <Label htmlFor="first">Sort</Label>
+                    <TurnActionComponent attackDialog={attackDialog} />
+                  </ScrollView>
+                </View>
+                <View
+                  style={{
+                    flex: 1,
+                    width: '100%',
+                  }}
+                >
+                  <YStack>
+                    <XStack>
+                      <XStack
+                        flex={1}
+                        alignItems="center"
+                        justifyContent="flex-end"
+                      >
+                        <XStack minWidth="$1" paddingHorizontal="$0.75">
+                          <Label htmlFor="first">Filter</Label>
+                        </XStack>
+                        <SelectDemoItem
+                          id="sort-1"
+                          onValueChange={warService.setFilter}
+                          items={[
+                            { value: 'all', key: 'All territories' },
+                            { value: 'mine', key: 'My territories' },
+                            {
+                              value: 'opponents',
+                              key: 'Opponents territories',
+                            },
+                          ]}
+                          native
+                        />
+                      </XStack>
+                      <XStack
+                        flex={1}
+                        alignItems="center"
+                        justifyContent="flex-end"
+                      >
+                        <XStack minWidth="$1" paddingHorizontal="$0.75">
+                          <Label htmlFor="first">Sort</Label>
+                        </XStack>
+                        <SelectDemoItem
+                          onValueChange={warService.setSort}
+                          id="sort-2"
+                          items={[
+                            { value: 'alphabetical', key: 'Alphabetical' },
+                            { value: 'most-troops', key: 'Most troops' },
+                            { value: 'least-troops', key: 'Least troops' },
+                          ]}
+                          native
+                        />
+                      </XStack>
                     </XStack>
-                    <SelectDemoItem
-                      onValueChange={warService.setSort}
-                      id="sort-2"
-                      items={[
-                        { value: 'alphabetical', key: 'Alphabetical' },
-                        { value: 'most-troops', key: 'Most troops' },
-                        { value: 'least-troops', key: 'Least troops' },
-                      ]}
-                      native
-                    />
-                  </XStack>
-                </XStack>
-              </YStack>
-              <ScrollView ref={sv}>
-                <TilesList setSelectedTile={setSelectedTile} />
-              </ScrollView>
-            </View>
+                  </YStack>
+                  <ScrollView ref={sv}>
+                    <TilesList setSelectedTile={setSelectedTile} />
+                  </ScrollView>
+                </View>
+              </>
+            )}
           </TabsContent>
         </Tabs>
       )}
@@ -274,35 +290,38 @@ function TilesList({
 
   return (
     <>
-      {warDerived.sortedTiles.map((t) => (
-        <ListItem
-          key={t.id}
-          display={t.raised ? 'flex' : 'none'}
-          padding="0"
-          paddingLeft="$1"
-          paddingRight="$1"
-          hoverTheme
-          icon={Hexagon}
-          title={
-            <View
-              style={{
-                /* @ts-ignore */
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'row',
-              }}
-            >
-              <Text flex={1}>{t.name}</Text>
-              <Text>{t.troopCount}</Text>
-            </View>
-          }
-          pressTheme
-          onPress={() => {
-            setSelectedTile(t.id);
-          }}
-          iconAfter={t.id === selectedTileId ? Crosshair : null}
-        />
-      ))}
+      {warDerived.sortedTiles.map((t) => {
+        console.log(t.name);
+        return (
+          <ListItem
+            key={t.id}
+            display={t.raised ? 'flex' : 'none'}
+            padding="0"
+            paddingLeft="$1"
+            paddingRight="$1"
+            hoverTheme
+            icon={Hexagon}
+            title={
+              <View
+                style={{
+                  /* @ts-ignore */
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'row',
+                }}
+              >
+                <Text flex={1}>{t.name}</Text>
+                <Text>{t.troopCount}</Text>
+              </View>
+            }
+            pressTheme
+            onPress={() => {
+              setSelectedTile(t.id);
+            }}
+            iconAfter={t.id === selectedTileId ? Crosshair : null}
+          />
+        );
+      })}
     </>
   );
 }
@@ -349,7 +368,7 @@ function TurnActionComponent({
   // }
 
   const [userId, setUserId] = useState<string>();
-  useEffect( () => {
+  useEffect(() => {
     execute(authService.getUserId()).then((v) => setUserId(v));
   }, []);
 
@@ -489,13 +508,15 @@ function TurnActionComponent({
     case 'attack':
       return (
         <YStack height="50%">
-          <BattleSelection />
           {AttackDialog && warDerived.isOwner && (
-            <AttackDialog
-              territoryToAttack={warStore.territoryToAttack}
-              portalCoords={warStore.portal}
-              setTerritoryToAttack={warService.setTerritoryToAttack}
-            />
+            <>
+              <BattleSelection />
+              <AttackDialog
+                territoryToAttack={warStore.territoryToAttack}
+                portalCoords={warStore.portal}
+                setTerritoryToAttack={warService.setTerritoryToAttack}
+              />
+            </>
           )}
         </YStack>
       );

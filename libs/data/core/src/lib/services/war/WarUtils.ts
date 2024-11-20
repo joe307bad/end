@@ -7,7 +7,8 @@ import { Option as O } from 'effect';
 export function sortedTilesList(
   tiles: Tile[],
   sort: 'most-troops' | 'least-troops' | 'alphabetical' | string,
-  filter: 'all' | 'mine' | 'opponents' | 'bordering' | string
+  filter: 'all' | 'mine' | 'opponents' | 'bordering' | string,
+  userId: string
 ) {
   return [...tiles]
     .sort((a, b) => {
@@ -31,16 +32,18 @@ export function sortedTilesList(
         case 'all':
           return true;
         case 'mine':
-          return true;
+          return t.owner === userId;
         case 'opponents':
-          return true;
+          return t.owner !== userId;
       }
 
       return true;
     });
 }
 
-export function tileIdAndCoords(tile: string | Coords | undefined): [string, Coords] {
+export function tileIdAndCoords(
+  tile: string | Coords | undefined
+): [string, Coords] {
   if (!tile) {
     return ['', { x: 0, y: 0, z: 0 }];
   }
@@ -85,12 +88,12 @@ export function selectTile(id: string, cameraPosition: THREE.Vector3) {
     const neighbors = hexasphere.tileLookup[newSelected.id].neighborIds;
 
     newSelected.raised &&
-    neighbors.forEach((neighborTileId) => {
-      const neighbor = store.tiles.find((tile) => tile.id === neighborTileId);
-      if (neighbor) {
-        neighbor.defending = true;
-      }
-    });
+      neighbors.forEach((neighborTileId) => {
+        const neighbor = store.tiles.find((tile) => tile.id === neighborTileId);
+        if (neighbor) {
+          neighbor.defending = true;
+        }
+      });
   }
 
   return currentlySelected;

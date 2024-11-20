@@ -11,7 +11,6 @@ export interface Tile {
   troopCount: number;
   owner: string;
   name: string;
-
 }
 
 interface Context {
@@ -99,7 +98,7 @@ export const warMachine = (
           return context;
         }
 
-        const currentTurn: Turn | undefined = context.turns[context.turn];
+        let currentTurn: Turn | undefined = context.turns[context.turn];
         const turn = context.turn;
         const players = context.players;
         const round = Math.floor(turn / players.length);
@@ -123,7 +122,13 @@ export const warMachine = (
           id: event.id,
         };
 
-        currentTurn.battles = [battle, ...currentTurn.battles];
+        if (!currentTurn) {
+          currentTurn = {
+            battles: [],
+          };
+        }
+
+        currentTurn.battles = [battle, ...(currentTurn?.battles ?? [])];
 
         context.turns = { ...context.turns, [context.turn]: currentTurn };
 
