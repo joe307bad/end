@@ -160,19 +160,21 @@ export const ConquestLive = Layer.effect(
         return fetch.post('/conquest', { type: 'attack', ...event });
       },
       startBattle: () => {
-        const [defendingTerritory] = war.tileIdAndCoords(
+        const [defendingTerritoryId] = war.tileIdAndCoords(
           getOrUndefined(war.store.territoryToAttack)
         );
+        const [attackingTerritoryId] = war.tileIdAndCoords(
+          getOrUndefined(war.store.selectedTileId)
+        );
         const defender = war.store.tiles.find(
-          (t) => t.id === defendingTerritory
-        )?.owner;
+          (t) => t.id === defendingTerritoryId
+        );
         return fetch.post('/conquest', {
           type: 'start-battle',
-          attackingFromTerritory:
-            getOrUndefined(war.store.selectedTileId) ?? '',
-          defendingTerritory,
+          attackingFromTerritory: attackingTerritoryId,
+          defendingTerritory: defendingTerritoryId,
           aggressor: war.store.currentUsersTurn,
-          defender: defender?.toString() ?? '',
+          defender: defender?.owner?.toString() ?? '',
           warId: getOrUndefined(war.store.warId),
         });
       },

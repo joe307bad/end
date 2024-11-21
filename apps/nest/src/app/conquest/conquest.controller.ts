@@ -8,6 +8,7 @@ import { ConquestService } from './conquest.service';
 import { JwtService } from '@nestjs/jwt';
 import { v6 as uuidv6 } from 'uuid';
 import { faker } from '@faker-js/faker';
+import * as S from '@effect/schema/Schema';
 
 @Schema({ strict: false })
 export class War {
@@ -64,7 +65,7 @@ export class ConquestController {
             {
               id: userId,
               userName: username,
-              color: 'red' // faker.color.rgb({ format: 'hex' }),
+              color: 'red', // faker.color.rgb({ format: 'hex' }),
             },
           ],
         });
@@ -96,9 +97,9 @@ export class ConquestController {
             event = {
               ...event,
               player: {
-                id: userId,
-                userName: username,
-                color: 'blue' // faker.color.rgb({ format: 'hex' }),
+                id: '6725967b9cd8969c26ec53ed',
+                userName: 'user2',
+                color: 'blue', // faker.color.rgb({ format: 'hex' }),
               },
             };
           }
@@ -142,12 +143,29 @@ export class ConquestController {
           }
 
           if (event.type === 'start-battle') {
+            const battle =
+              existingWarState.context.turns[existingWarState.context.turn]
+                .battles[0];
+            const defendingTroopCount =
+              existingWarState.context.tiles[battle.defendingTerritory]
+                .troopCount;
+            const attackingTroopCount =
+              existingWarState.context.tiles[battle.attackingFromTerritory]
+                .troopCount;
             this.conquest.next({
               type: 'battle-started',
               warId: event.warId,
-              battle:
-                existingWarState.context.turns[existingWarState.context.turn]
-                  .battles[0],
+              troopUpdates: {
+                [battle.defendingTerritory]: defendingTroopCount,
+                [battle.attackingFromTerritory]: attackingTroopCount,
+              },
+              battle: {
+                id: battle.id,
+                aggressor: battle.aggressor,
+                defender: battle.defender,
+                attackingFromTerritory: battle.attackingFromTerritory,
+                defendingTerritory: battle.defendingTerritory,
+              },
             });
           }
 

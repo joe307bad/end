@@ -58,6 +58,7 @@ export const WarLive = Layer.effect(
         this.setPlayers(players);
         store.portal = portal ?? [undefined, undefined];
         this.setCurrentUserTurn(players[turn - 1].id);
+        debugger;
         store.battles = battles;
         store.battleLimit = battleLimit;
 
@@ -303,23 +304,25 @@ export const WarLive = Layer.effect(
                   this.setCurrentUserTurn(
                     result.war.players[result.war.turn - 1].id
                   );
-                  store.battles = [];
+                  // store.battles = [];
                   store.battleLimit = result.war.battleLimit;
 
                   // TODO populate tiles with owners and troop counts
                   return 'War started event';
                   break;
                 case 'battle-started':
-                  // debugger;
-                  return 'Battle started event';
-                  break;
                 case 'attack':
-                  const tile1 = store.tiles.find((t) => t.id === result.tile1);
-                  const tile2 = store.tiles.find((t) => t.id === result.tile2);
+                  const [tile1Id, tile2Id] = Object.keys(result.troopUpdates);
+                  const tile1 = store.tiles.find((t) => t.id === tile1Id);
+                  const tile2 = store.tiles.find((t) => t.id === tile2Id);
 
                   if (tile1 && tile2) {
-                    tile1.troopCount = result.tile1TroopCount;
-                    tile2.troopCount = result.tile2TroopCount;
+                    tile1.troopCount = result.troopUpdates[tile1Id];
+                    tile2.troopCount = result.troopUpdates[tile2Id];
+                  }
+
+                  if(result.type === 'battle-started') {
+                    store.activeBattle = O.some(result.battle.id);
                   }
 
                   return 'Attack event';

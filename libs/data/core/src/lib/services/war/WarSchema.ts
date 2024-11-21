@@ -25,10 +25,14 @@ export type Tile = Mutable<S.Schema.Type<typeof STile>>;
 
 const AttackSchema = S.Struct({
   type: S.Literal('attack'),
-  tile1: S.String,
-  tile2: S.String,
-  tile1TroopCount: S.Number,
-  tile2TroopCount: S.Number,
+  troopUpdates: S.Record({ key: S.String, value: S.Number }),
+  battle: S.Struct({
+    id: S.String,
+    aggressor: S.String,
+    defender: S.String,
+    attackingFromTerritory: S.String,
+    defendingTerritory: S.String,
+  }),
 });
 
 const ObjectSchema = S.Struct({
@@ -75,6 +79,14 @@ const WarStartedSchema = S.Struct({
 
 const BattleStartedSchema = S.Struct({
   type: S.Literal('battle-started'),
+  troopUpdates: S.Record({ key: S.String, value: S.Number }),
+  battle: S.Struct({
+    id: S.String,
+    aggressor: S.String,
+    defender: S.String,
+    attackingFromTerritory: S.String,
+    defendingTerritory: S.String,
+  }),
 });
 
 type PlayerJoined = S.Schema.Type<typeof PlayerJoinedSchema>;

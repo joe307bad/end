@@ -291,7 +291,6 @@ function TilesList({
   return (
     <>
       {warDerived.sortedTiles.map((t) => {
-        console.log(t.name);
         return (
           <ListItem
             key={t.id}
