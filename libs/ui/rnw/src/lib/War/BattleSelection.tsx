@@ -6,16 +6,24 @@ import { useEndApi } from '@end/data/web';
 import { execute } from '@end/data/core';
 import { SelectDemoItem } from '@end/components';
 import { CheckCheck, XCircle } from '@tamagui/lucide-icons';
+import { Option as O } from 'effect';
 import { getOrUndefined, isSome } from 'effect/Option';
 import { isRight } from 'effect/Either';
 
 export function BattleSelection() {
   const { services } = useEndApi();
   const { warService, conquestService } = services;
-  const startBattle = useCallback(async () => {
-    await execute(conquestService.startBattle());
-  }, []);
   const warStore = useSnapshot(warService.store);
+  const engage = useCallback(async () => {
+    await O.match(warStore.activeBattle, {
+      onNone: async () => {
+        await execute(conquestService.startBattle());
+      },
+      onSome: async () => {
+        await execute(conquestService.attack());
+      },
+    });
+  }, [warStore.activeBattle]);
   const warDerived = useSnapshot(warService.derived);
   const enabled =
     isSome(warStore.territoryToAttack) && isSome(warStore.selectedTileId);
@@ -46,7 +54,7 @@ export function BattleSelection() {
       <V alignItems="flex-end" width="$6" justifyContent="center">
         <PrimaryButton
           disabled={!enabled}
-          onPress={startBattle}
+          onPress={engage}
           height="$2"
           withIcon={true}
         >

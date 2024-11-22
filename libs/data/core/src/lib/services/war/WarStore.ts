@@ -45,7 +45,7 @@ export const store = proxy<WarStore>({
   state: O.none(),
   players: [],
   active: true,
-  filter: 'all',
+  filter: 'mine',
   cameraPosition: O.none(),
   landColor: O.none(),
   selectedTileId: O.none(),

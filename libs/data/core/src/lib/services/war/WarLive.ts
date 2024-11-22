@@ -321,8 +321,9 @@ export const WarLive = Layer.effect(
                     tile2.troopCount = result.troopUpdates[tile2Id];
                   }
 
-                  if(result.type === 'battle-started') {
+                  if (result.type === 'battle-started') {
                     store.activeBattle = O.some(result.battle.id);
+                    store.battles = [...store.battles, result.battle];
                   }
 
                   return 'Attack event';

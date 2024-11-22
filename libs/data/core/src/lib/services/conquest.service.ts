@@ -21,11 +21,7 @@ interface Conquest {
     warId: string,
     callback: (v: string | null) => void
   ) => () => void;
-  readonly attack: (payload: {
-    tile1: string;
-    tile2: string;
-    warId: string;
-  }) => Effect.Effect<Response, string>;
+  readonly attack: () => Effect.Effect<Response, string>;
   readonly deploy: (payload: {
     tile: string;
     troopsToDeploy: number;
@@ -156,8 +152,12 @@ export const ConquestLive = Layer.effect(
           warLog = new BehaviorSubject<string | null>(null);
         };
       },
-      attack: (event: { tile1: string; tile2: string; warId: string }) => {
-        return fetch.post('/conquest', { type: 'attack', ...event });
+      attack: () => {
+        return fetch.post('/conquest', {
+          type: 'attack',
+          battleId: getOrUndefined(war.store.activeBattle),
+          warId: getOrUndefined(war.store.warId),
+        });
       },
       startBattle: () => {
         const [defendingTerritoryId] = war.tileIdAndCoords(

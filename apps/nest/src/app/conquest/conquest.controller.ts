@@ -128,21 +128,36 @@ export class ConquestController {
             });
 
           if (event.type === 'attack') {
+            const battle = existingWarState.context.turns[
+              existingWarState.context.turn
+              // @ts-ignore
+            ].battles.find((b) => b.id === event.battleId);
+
+            if (!battle) {
+              return existingWarState.context.tiles;
+            }
             const tile1TroopCount =
-              // @ts-ignore
-              existingWarState.context.tiles[event.tile1].troopCount;
+              existingWarState.context.tiles[battle.defendingTerritory].troopCount;
             const tile2TroopCount =
-              // @ts-ignore
-              existingWarState.context.tiles[event.tile2].troopCount;
+              existingWarState.context.tiles[battle.attackingFromTerritory].troopCount;
 
             this.conquest.next({
               type: 'attack',
-              ...event,
-              ...{ tile1TroopCount, tile2TroopCount },
+              warId: event.warId,
+              troopUpdates: {
+                [battle.defendingTerritory]: tile1TroopCount,
+                [battle.attackingFromTerritory]: tile2TroopCount,
+              },
+              battle: {
+                id: battle.id,
+                createdDate: battle.createdDate,
+                aggressor: battle.aggressor,
+                defender: battle.defender,
+                attackingFromTerritory: battle.attackingFromTerritory,
+                defendingTerritory: battle.defendingTerritory,
+              },
             });
-          }
-
-          if (event.type === 'start-battle') {
+          } else if (event.type === 'start-battle') {
             const battle =
               existingWarState.context.turns[existingWarState.context.turn]
                 .battles[0];
@@ -161,6 +176,7 @@ export class ConquestController {
               },
               battle: {
                 id: battle.id,
+                createdDate: battle.createdDate,
                 aggressor: battle.aggressor,
                 defender: battle.defender,
                 attackingFromTerritory: battle.attackingFromTerritory,

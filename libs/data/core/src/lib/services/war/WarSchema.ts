@@ -82,6 +82,7 @@ const BattleStartedSchema = S.Struct({
   troopUpdates: S.Record({ key: S.String, value: S.Number }),
   battle: S.Struct({
     id: S.String,
+    createdDate: S.Date,
     aggressor: S.String,
     defender: S.String,
     attackingFromTerritory: S.String,

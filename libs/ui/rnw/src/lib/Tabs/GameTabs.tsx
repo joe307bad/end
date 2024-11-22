@@ -39,6 +39,7 @@ import { ResponsiveTabs } from './ResponsiveTabs';
 import { LobbyTabs } from './LobbyTabs';
 import { TurnAction } from '@end/war/core';
 import { BattleSelection } from '../War/BattleSelection';
+import ActiveBattle from '../War/ActiveBattle';
 
 export function GameTabsV2({
   menuOpen,
@@ -131,7 +132,8 @@ export function GameTabsV2({
             }}
           >
             <Text padding="$0.5" width="100%">
-              Current Turn: {
+              Current Turn:{' '}
+              {
                 warStore.players.find(
                   ({ id }) => id === warStore.currentUsersTurn
                 )?.userName
@@ -229,6 +231,7 @@ export function GameTabsV2({
                         </XStack>
                         <SelectDemoItem
                           id="sort-1"
+                          value={warStore.filter}
                           onValueChange={warService.setFilter}
                           items={[
                             { value: 'all', key: 'All territories' },
@@ -510,11 +513,15 @@ function TurnActionComponent({
           {AttackDialog && warDerived.isOwner && (
             <>
               <BattleSelection />
-              <AttackDialog
-                territoryToAttack={warStore.territoryToAttack}
-                portalCoords={warStore.portal}
-                setTerritoryToAttack={warService.setTerritoryToAttack}
-              />
+              {!getOrUndefined(warStore.activeBattle) ? (
+                <AttackDialog
+                  territoryToAttack={warStore.territoryToAttack}
+                  portalCoords={warStore.portal}
+                  setTerritoryToAttack={warService.setTerritoryToAttack}
+                />
+              ) : (
+                <ActiveBattle battleId={getOrUndefined(warStore.activeBattle)} />
+              )}
             </>
           )}
         </YStack>

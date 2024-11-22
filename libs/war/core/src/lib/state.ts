@@ -63,7 +63,7 @@ export type Event =
       warId: string;
       player: { id: string; userName: string; color: string };
     }
-  | { type: 'attack'; tile1: string; tile2: string; warId: string };
+  | { type: 'attack'; battleId: string; warId: string };
 
 export const warMachine = (
   warId: string,
@@ -236,26 +236,32 @@ export const warMachine = (
           attack: {
             actions: assign({
               tiles: ({ context, event }) => {
+                const battle = context.turns[context.turn].battles.find(
+                  (b) => b.id === event.battleId
+                );
+
+                if (!battle) {
+                  return context.tiles;
+                }
+
+                const { defendingTerritory, attackingFromTerritory } = battle;
+
                 let { troopCount: tile1TroopCount } =
-                  context.tiles[event.tile1];
+                  context.tiles[defendingTerritory];
                 let { troopCount: tile2TroopCount } =
-                  context.tiles[event.tile2];
+                  context.tiles[attackingFromTerritory];
                 // let { troopCount: tile2TroopCount } =
                 //   context.tiles[event.tile2];
 
-                context.tiles[event.tile1] = {
-                  ...context.tiles[event.tile1],
+                context.tiles[defendingTerritory] = {
+                  ...context.tiles[defendingTerritory],
                   troopCount: tile1TroopCount - 1,
                 };
 
-                context.tiles[event.tile2] = {
-                  ...context.tiles[event.tile2],
+                context.tiles[attackingFromTerritory] = {
+                  ...context.tiles[attackingFromTerritory],
                   troopCount: tile2TroopCount - 1,
                 };
-                // context.tiles[event.tile2] = {
-                //   ...context.tiles[event.tile2],
-                //   // troopCount: tile2TroopCount - 1,
-                // };
 
                 return context.tiles;
               },

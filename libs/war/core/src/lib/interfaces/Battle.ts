@@ -1,6 +1,6 @@
 export type Battle = {
   id?: string;
-  createdDate: Date;
+  createdDate?: Date;
   aggressor: string;
   defender: string;
   attackingFromTerritory: string;
