@@ -193,7 +193,7 @@ function AttackDialog({
     for (let i = 1; i <= 7; i++) {
       const tiles = Object.keys(warDerived.selectedNeighborsOwners);
       const tile = warStore.tiles.find((t) => t.id == tiles[i - 1]);
-      const tileOwner = warDerived.selectedNeighborsOwners[tile?.id ?? -1];
+      const tileOwner: string | undefined = (warDerived.selectedNeighborsOwners[tile?.id ?? -1] ?? {}).owner;
 
       if (!tile || !tileOwner) {
         continue;

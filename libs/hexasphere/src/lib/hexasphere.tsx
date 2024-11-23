@@ -482,7 +482,8 @@ const AttackArrow = React.memo(
             },
             onSome({ attacking, selectedId }) {
               const a = [attacking.x, attacking.y, attacking.z].join(',');
-              if (selectedId === cp && s[n] && n === a) {
+              const owner = s[n]?.owner;
+              if (selectedId === cp && owner && n === a) {
                 setVisible(true);
               } else {
                 setVisible(false);

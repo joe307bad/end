@@ -57,7 +57,7 @@ export const store = proxy<WarStore>({
   settingPortalCoords: 'first',
   portal: [undefined, undefined],
   deployTo: O.none(),
-  turnAction: 'portal',
+  turnAction: 'attack',
   availableTroopsToDeploy: 100,
   troopsToDeploy: 0,
   territoryToAttack: O.none(),
@@ -126,10 +126,10 @@ export const derived = derive({
     const userId = get(store).userId;
 
     return O.match(selectedId, {
-      onNone: () => ({} as Record<string, number>),
+      onNone: () => ({} as Record<string, Tile>),
       onSome: (id) => {
         const neighbors = hexasphere.tileLookup[id].neighbors;
-        return neighbors.reduce((acc: Record<string, string>, tile) => {
+        return neighbors.reduce((acc: Record<string, Tile>, tile) => {
           const [id] = tileIdAndCoords(tile.centerPoint);
           const t = tiles.find((t) => t.id === id);
 
@@ -145,7 +145,7 @@ export const derived = derive({
             return acc;
           }
 
-          acc[id] = typeof t.owner !== 'undefined' ? t.owner : '0';
+          acc[id] = t;
           return acc;
         }, {});
       },

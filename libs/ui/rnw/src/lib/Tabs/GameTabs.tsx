@@ -13,7 +13,7 @@ import {
   View as V,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
-import { Crosshair, Hexagon } from '@tamagui/lucide-icons';
+import { CheckCheck, Crosshair, Hexagon, XCircle } from '@tamagui/lucide-icons';
 import React, {
   Dispatch,
   ElementType,
@@ -40,6 +40,7 @@ import { LobbyTabs } from './LobbyTabs';
 import { TurnAction } from '@end/war/core';
 import { BattleSelection } from '../War/BattleSelection';
 import ActiveBattle from '../War/ActiveBattle';
+import { Badge, PrimaryButton } from '../Display';
 
 export function GameTabsV2({
   menuOpen,
@@ -131,26 +132,29 @@ export function GameTabsV2({
               display: 'flex',
             }}
           >
-            <Text padding="$0.5" width="100%">
-              Current Turn:{' '}
-              {
-                warStore.players.find(
-                  ({ id }) => id === warStore.currentUsersTurn
-                )?.userName
-              }{' '}
-              | Round: {warStore.round}
-            </Text>
-            {warStore.currentUsersTurn === warStore.userId && (
+            {warStore.currentUsersTurn === warStore.userId ? (
               <>
-                <View style={{ width: '100%' }}>
+                <V display="flex" style={bp(['', 'flex-column', 'flex-row-reverse'])} width="100%">
+                <V
+                  style={bp(['', 'w-full justify-center', 'flex-1'])}
+                  space="$0.5"
+                  justifyContent="flex-end"
+                  alignItems="center"
+                  flexDirection="row"
+                >
+                  <Badge title="joebad" />
+                  <Badge color="green" title="3/50" />
+                  <Badge color="red" title="1,569" />
+                </V>
+                <View style={bp(['', 'w-full items-center', 'flex'])}>
                   <RadioGroup
                     aria-labelledby="Select one item"
                     name="form"
                     // @ts-ignore
                     onValueChange={warService.setTurnAction}
-                    value={'attack'}
+                    value={warStore.turnAction}
                   >
-                    <XStack paddingLeft="$0.75" space="$1">
+                    <XStack space="$1">
                       <XStack alignItems="center">
                         <RadioGroup.Item value={'portal'} id={'1'} size={'$3'}>
                           <RadioGroup.Indicator />
@@ -197,6 +201,7 @@ export function GameTabsV2({
                     </XStack>
                   </RadioGroup>
                 </View>
+                </V>
                 <View
                   style={bp([
                     'w-full',
@@ -207,7 +212,7 @@ export function GameTabsV2({
                     style={{
                       display: 'flex',
                       width: '100%',
-                      padding: 5,
+                      // padding: 5,
                     }}
                   >
                     <TurnActionComponent attackDialog={attackDialog} />
@@ -270,6 +275,13 @@ export function GameTabsV2({
                   </ScrollView>
                 </View>
               </>
+            ) : (
+              <View style={{ width: '100%', display: 'flex' }}>
+                <V flex={1} alignItems="flex-end">
+                  <Badge title="joebad" />
+                  <Badge color="green" title="3/50" />
+                </V>
+              </View>
             )}
           </TabsContent>
         </Tabs>
@@ -291,37 +303,114 @@ function TilesList({
     getOrUndefined(warStore.selectedTileId)
   );
 
+  const colors = useMemo(() => {
+    return warStore.players.reduce((acc: Record<string, string>, curr) => {
+      acc[curr.id] = curr.color;
+      return acc;
+    }, {});
+  }, [warStore.players]);
+
   return (
     <>
       {warDerived.sortedTiles.map((t) => {
         return (
-          <ListItem
-            key={t.id}
-            display={t.raised ? 'flex' : 'none'}
-            padding="0"
-            paddingLeft="$1"
-            paddingRight="$1"
-            hoverTheme
-            icon={Hexagon}
-            title={
-              <View
-                style={{
-                  /* @ts-ignore */
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'row',
-                }}
-              >
-                <Text flex={1}>{t.name}</Text>
-                <Text>{t.troopCount}</Text>
-              </View>
-            }
-            pressTheme
-            onPress={() => {
-              setSelectedTile(t.id);
-            }}
-            iconAfter={t.id === selectedTileId ? Crosshair : null}
-          />
+          <>
+            <ListItem
+              key={t.id}
+              display={t.raised ? 'flex' : 'none'}
+              padding="0"
+              paddingLeft="$1"
+              paddingRight="$1"
+              hoverTheme
+              icon={() => <Hexagon color={colors[t.owner]} />}
+              title={
+                <View
+                  style={{
+                    /* @ts-ignore */
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'row',
+                  }}
+                >
+                  <Text flex={1}>{t.name}</Text>
+                  <Text>{t.troopCount}</Text>
+                </View>
+              }
+              pressTheme
+              onPress={() => {
+                setSelectedTile(t.id);
+              }}
+              iconAfter={t.id === selectedTileId ? Crosshair : null}
+            />
+            {t.id === selectedTileId &&
+            Object.values(warDerived.selectedNeighborsOwners).length > 0 &&
+            t.owner === warStore.userId ? (
+              <V padding="$0.75">
+                {Object.values(warDerived.selectedNeighborsOwners).map(
+                  (tile) => (
+                    <ListItem
+                      key={`neighbor-${tile.id}`}
+                      display={tile.raised ? 'flex' : 'none'}
+                      padding="0"
+                      paddingLeft="$1"
+                      paddingRight="$1"
+                      hoverTheme
+                      icon={() => <Hexagon color={colors[tile.owner]} />}
+                      title={
+                        <View
+                          style={{
+                            /* @ts-ignore */
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'row',
+                          }}
+                        >
+                          <Text flex={1}>{tile.name}</Text>
+                          <Text>{tile.troopCount}</Text>
+                        </View>
+                      }
+                      pressTheme
+                      onPress={() => {
+                        const [_, coords] = warService.tileIdAndCoords(tile.id);
+                        warService.setTerritoryToAttack(coords);
+                      }}
+                      iconAfter={
+                        tile.id ===
+                        warService.tileIdAndCoords(
+                          getOrUndefined(warStore.territoryToAttack)
+                        )[0] ? (
+                          <PrimaryButton
+                            // disabled={!enabled}
+                            onPress={() => {}}
+                            height="$2"
+                            withIcon={true}
+                          >
+                            <V
+                              flexDirection="row"
+                              space="$0.5"
+                              alignItems="center"
+                              padding="$1"
+                            >
+                              {/*{enabled ? (*/}
+                              {/*  <CheckCheck size={'$1'} color={'green'} />*/}
+                              {/*) : (*/}
+                              {/*  <XCircle size={'$1'} color={'red'} />*/}
+                              {/*)}*/}
+                              <Text>Engage</Text>
+                            </V>
+                          </PrimaryButton>
+                        ) : (
+                          <></>
+                        )
+                      }
+                    />
+                  )
+                )}
+              </V>
+            ) : (
+              <></>
+            )}
+          </>
         );
       })}
     </>
@@ -374,7 +463,7 @@ function TurnActionComponent({
     execute(authService.getUserId()).then((v) => setUserId(v));
   }, []);
 
-  const turnAction: TurnAction = 'attack';
+  const turnAction: TurnAction = warStore.turnAction;
 
   switch (turnAction) {
     case 'portal':
@@ -512,16 +601,16 @@ function TurnActionComponent({
         <YStack height="50%">
           {AttackDialog && warDerived.isOwner && (
             <>
-              <BattleSelection />
-              {!getOrUndefined(warStore.activeBattle) ? (
-                <AttackDialog
-                  territoryToAttack={warStore.territoryToAttack}
-                  portalCoords={warStore.portal}
-                  setTerritoryToAttack={warService.setTerritoryToAttack}
-                />
-              ) : (
-                <ActiveBattle battleId={getOrUndefined(warStore.activeBattle)} />
-              )}
+              {/*<BattleSelection />*/}
+              {/*{!getOrUndefined(warStore.activeBattle) ? (*/}
+              {/*  <AttackDialog*/}
+              {/*    territoryToAttack={warStore.territoryToAttack}*/}
+              {/*    portalCoords={warStore.portal}*/}
+              {/*    setTerritoryToAttack={warService.setTerritoryToAttack}*/}
+              {/*  />*/}
+              {/*) : (*/}
+              {/*  <ActiveBattle battleId={getOrUndefined(warStore.activeBattle)} />*/}
+              {/*)}*/}
             </>
           )}
         </YStack>
