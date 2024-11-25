@@ -134,73 +134,89 @@ export function GameTabsV2({
           >
             {warStore.currentUsersTurn === warStore.userId ? (
               <>
-                <V display="flex" style={bp(['', 'flex-column', 'flex-row-reverse'])} width="100%">
                 <V
-                  style={bp(['', 'w-full justify-center', 'flex-1'])}
-                  space="$0.5"
-                  justifyContent="flex-end"
-                  alignItems="center"
-                  flexDirection="row"
+                  display="flex"
+                  style={bp(['', 'flex-column', 'flex-row-reverse'])}
+                  width="100%"
                 >
-                  <Badge title="joebad" />
-                  <Badge color="green" title="3/50" />
-                  <Badge color="red" title="1,569" />
-                </V>
-                <View style={bp(['', 'w-full items-center', 'flex'])}>
-                  <RadioGroup
-                    aria-labelledby="Select one item"
-                    name="form"
-                    // @ts-ignore
-                    onValueChange={warService.setTurnAction}
-                    value={warStore.turnAction}
+                  <V
+                    style={bp(['', 'w-full justify-center', 'flex-1'])}
+                    space="$0.5"
+                    justifyContent="flex-end"
+                    alignItems="center"
+                    flexDirection="row"
                   >
-                    <XStack space="$1">
-                      <XStack alignItems="center">
-                        <RadioGroup.Item value={'portal'} id={'1'} size={'$3'}>
-                          <RadioGroup.Indicator />
-                        </RadioGroup.Item>
-                        <Label paddingLeft="$0.5" size={'$3'} htmlFor={'1'}>
-                          Portal
-                        </Label>
-                      </XStack>
-                      <XStack alignItems="center">
-                        <RadioGroup.Item value={'deploy'} id={'2'} size={'$3'}>
-                          <RadioGroup.Indicator />
-                        </RadioGroup.Item>
+                    <Badge title="joebad" />
+                    <Badge color="green" title="3/50" />
+                    <Badge color="red" title="1,569" />
+                  </V>
+                  <View style={bp(['', 'w-full items-center', 'flex'])}>
+                    <RadioGroup
+                      aria-labelledby="Select one item"
+                      name="form"
+                      // @ts-ignore
+                      onValueChange={warService.setTurnAction}
+                      value={warStore.turnAction}
+                    >
+                      <XStack space="$1">
+                        <XStack alignItems="center">
+                          <RadioGroup.Item
+                            value={'portal'}
+                            id={'1'}
+                            size={'$3'}
+                          >
+                            <RadioGroup.Indicator />
+                          </RadioGroup.Item>
+                          <Label paddingLeft="$0.5" size={'$3'} htmlFor={'1'}>
+                            Portal
+                          </Label>
+                        </XStack>
+                        <XStack alignItems="center">
+                          <RadioGroup.Item
+                            value={'deploy'}
+                            id={'2'}
+                            size={'$3'}
+                          >
+                            <RadioGroup.Indicator />
+                          </RadioGroup.Item>
 
-                        <Label paddingLeft="$0.5" size={'$3'} htmlFor={'2'}>
-                          Deploy
-                        </Label>
-                      </XStack>
-                      <XStack alignItems="center">
-                        <RadioGroup.Item value={'attack'} id={'3'} size={'$3'}>
-                          <RadioGroup.Indicator />
-                        </RadioGroup.Item>
+                          <Label paddingLeft="$0.5" size={'$3'} htmlFor={'2'}>
+                            Deploy
+                          </Label>
+                        </XStack>
+                        <XStack alignItems="center">
+                          <RadioGroup.Item
+                            value={'attack'}
+                            id={'3'}
+                            size={'$3'}
+                          >
+                            <RadioGroup.Indicator />
+                          </RadioGroup.Item>
 
-                        <Label paddingLeft="$0.5" size={'$3'} htmlFor={'3'}>
-                          Attack
-                        </Label>
-                      </XStack>
-                      {/*<XStack alignItems="center">*/}
-                      {/*  <RadioGroup.Item value={'reenforce'} id={'4'} size={'$3'}>*/}
-                      {/*    <RadioGroup.Indicator />*/}
-                      {/*  </RadioGroup.Item>*/}
+                          <Label paddingLeft="$0.5" size={'$3'} htmlFor={'3'}>
+                            Attack
+                          </Label>
+                        </XStack>
+                        {/*<XStack alignItems="center">*/}
+                        {/*  <RadioGroup.Item value={'reenforce'} id={'4'} size={'$3'}>*/}
+                        {/*    <RadioGroup.Indicator />*/}
+                        {/*  </RadioGroup.Item>*/}
 
-                      {/*  <Label paddingLeft="$0.5" size={'$3'} htmlFor={'4'}>*/}
-                      {/*    Reenforce*/}
-                      {/*  </Label>*/}
-                      {/*</XStack>*/}
-                      <V paddingRight="$0.5" flex={1}>
-                        {/*<ActivityArrow*/}
-                        {/*  loading={loading}*/}
-                        {/*  onPress={() => warService.setTurnAction()}*/}
-                        {/*  open={open}*/}
-                        {/*  message={errorMessage}*/}
-                        {/*/>*/}
-                      </V>
-                    </XStack>
-                  </RadioGroup>
-                </View>
+                        {/*  <Label paddingLeft="$0.5" size={'$3'} htmlFor={'4'}>*/}
+                        {/*    Reenforce*/}
+                        {/*  </Label>*/}
+                        {/*</XStack>*/}
+                        <V paddingRight="$0.5" flex={1}>
+                          {/*<ActivityArrow*/}
+                          {/*  loading={loading}*/}
+                          {/*  onPress={() => warService.setTurnAction()}*/}
+                          {/*  open={open}*/}
+                          {/*  message={errorMessage}*/}
+                          {/*/>*/}
+                        </V>
+                      </XStack>
+                    </RadioGroup>
+                  </View>
                 </V>
                 <View
                   style={bp([
@@ -296,7 +312,7 @@ function TilesList({
   setSelectedTile: (id: string) => void;
 }) {
   const { services } = useEndApi();
-  const { warService } = services;
+  const { warService, conquestService } = services;
   const warStore = useSnapshot(warService.store);
   const warDerived = useSnapshot(warService.derived);
   const [selectedTileId] = warService.tileIdAndCoords(
@@ -309,6 +325,17 @@ function TilesList({
       return acc;
     }, {});
   }, [warStore.players]);
+
+  const engage = useCallback(async () => {
+    await O.match(warStore.activeBattle, {
+      onNone: async () => {
+        await execute(conquestService.startBattle());
+      },
+      onSome: async () => {
+        await execute(conquestService.attack());
+      },
+    });
+  }, [warStore.activeBattle]);
 
   return (
     <>
@@ -381,7 +408,7 @@ function TilesList({
                         )[0] ? (
                           <PrimaryButton
                             // disabled={!enabled}
-                            onPress={() => {}}
+                            onPress={engage}
                             height="$2"
                             withIcon={true}
                           >

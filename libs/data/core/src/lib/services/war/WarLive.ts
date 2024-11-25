@@ -58,7 +58,6 @@ export const WarLive = Layer.effect(
         this.setPlayers(players);
         store.portal = portal ?? [undefined, undefined];
         this.setCurrentUserTurn(players[turn - 1].id);
-        debugger;
         store.battles = battles;
         store.battleLimit = battleLimit;
 
@@ -349,7 +348,12 @@ export const WarLive = Layer.effect(
           })
         );
       },
-      setActiveBattle: function (battleId: string): void {
+      setActiveBattle: function (battleId?: string): void {
+        if(!battleId) {
+          store.activeBattle = O.none();
+          return;
+        }
+
         const exists = store.battles.find((b) => b.id == battleId);
 
         if (exists) {

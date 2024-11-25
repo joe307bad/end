@@ -102,23 +102,43 @@ export const warMachine = (
         const turn = context.turn;
         const players = context.players;
         const round = Math.floor(turn / players.length);
-        const { id: currentUsersTurn } =
-          players[context.turn % context.players.length];
+        const { id: currentUsersTurn } = players[context.turn - 1];
 
-        const e = { date: new Date(), aggressorChange: 0, defenderChange: -1 };
         const attackingTile = context.tiles[event.attackingFromTerritory];
-        const defendingTile = context.tiles[event.attackingFromTerritory];
+        const defendingTile = context.tiles[event.defendingTerritory];
+
+        if (attackingTile.troopCount === 1) {
+          return context;
+        }
+
+        const maxDefenderChange = Math.ceil(defendingTile.troopCount / 2);
+        const maxAggressorChange = Math.ceil(attackingTile.troopCount / 2);
+
+        const aggressorChange = faker.number.int({
+          max: 0,
+          min: -maxAggressorChange,
+        });
+        const defenderChange = faker.number.int({
+          max: 0,
+          min: -maxDefenderChange,
+        });
+
+        const battleEvent = {
+          date: new Date(),
+          aggressorChange,
+          defenderChange,
+        };
 
         // TODO verify that this is even possible/abiding by the rules
         const battle: Battle = {
           attackingFromTerritory: event.attackingFromTerritory,
           createdDate: new Date(),
           defender: event.defender,
-          aggressorInitialTroopCount: attackingTile.troopCount,
-          defenderInitialTroopCount: defendingTile.troopCount,
+          aggressorInitialTroopCount: Number(attackingTile.troopCount),
+          defenderInitialTroopCount: Number(defendingTile.troopCount),
           defendingTerritory: event.defendingTerritory,
           aggressor: currentUsersTurn,
-          events: [e],
+          events: [battleEvent],
           id: event.id,
         };
 
@@ -134,13 +154,75 @@ export const warMachine = (
 
         if (attackingTile) {
           attackingTile.troopCount =
-            attackingTile.troopCount + e.aggressorChange;
+            attackingTile.troopCount + battleEvent.aggressorChange;
         }
 
         if (defendingTile) {
           defendingTile.troopCount =
-            defendingTile.troopCount + e.defenderChange;
+            defendingTile.troopCount + battleEvent.defenderChange;
+          defendingTile.troopCount + battleEvent.defenderChange;
         }
+
+        return context;
+      }),
+      attack: assign(({ context, event }) => {
+        if (event.type !== 'attack' || !context.turns[context.turn]?.battles) {
+          return context;
+        }
+        const battle = context.turns[context.turn].battles.find(
+          (b) => b.id === event.battleId
+        );
+        if (!battle) {
+          return context;
+        }
+        const {
+          defendingTerritory,
+          attackingFromTerritory,
+          aggressor,
+          defender,
+        } = battle;
+
+        let { troopCount: tile1TroopCount } = context.tiles[defendingTerritory];
+        let { troopCount: tile2TroopCount } =
+          context.tiles[attackingFromTerritory];
+
+        if (tile2TroopCount === 1) {
+          return context;
+        }
+
+        const maxDefenderChange = Math.ceil(tile1TroopCount / 2);
+        const maxAggressorChange = Math.ceil(tile2TroopCount / 2);
+
+        const aggressorChange = faker.number.int({
+          max: 0,
+          min: -maxAggressorChange,
+        });
+        const defenderChange = faker.number.int({
+          max: 0,
+          min: -maxDefenderChange,
+        });
+
+        const battleEvent = {
+          date: new Date(),
+          aggressorChange,
+          defenderChange,
+        };
+
+        battle.events = [...(battle.events ?? []), battleEvent];
+
+        const newAggressorTroopCount = tile1TroopCount + aggressorChange;
+        const newDefenderTroopCount = tile2TroopCount + defenderChange;
+
+        context.tiles[attackingFromTerritory] = {
+          ...context.tiles[attackingFromTerritory],
+          troopCount: newAggressorTroopCount < 0 ? 1 : newAggressorTroopCount,
+        };
+
+        context.tiles[defendingTerritory] = {
+          ...context.tiles[defendingTerritory],
+          troopCount: newDefenderTroopCount < 0 ? 1 : newDefenderTroopCount,
+          owner: newDefenderTroopCount < 0 ? aggressor : defender,
+        };
 
         return context;
       }),
@@ -234,38 +316,7 @@ export const warMachine = (
             }),
           },
           attack: {
-            actions: assign({
-              tiles: ({ context, event }) => {
-                const battle = context.turns[context.turn].battles.find(
-                  (b) => b.id === event.battleId
-                );
-
-                if (!battle) {
-                  return context.tiles;
-                }
-
-                const { defendingTerritory, attackingFromTerritory } = battle;
-
-                let { troopCount: tile1TroopCount } =
-                  context.tiles[defendingTerritory];
-                let { troopCount: tile2TroopCount } =
-                  context.tiles[attackingFromTerritory];
-                // let { troopCount: tile2TroopCount } =
-                //   context.tiles[event.tile2];
-
-                context.tiles[defendingTerritory] = {
-                  ...context.tiles[defendingTerritory],
-                  troopCount: tile1TroopCount - 1,
-                };
-
-                context.tiles[attackingFromTerritory] = {
-                  ...context.tiles[attackingFromTerritory],
-                  troopCount: tile2TroopCount - 1,
-                };
-
-                return context.tiles;
-              },
-            }),
+            actions: 'attack',
           },
           deploy: {
             actions: assign({

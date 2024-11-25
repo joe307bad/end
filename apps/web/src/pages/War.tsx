@@ -386,7 +386,6 @@ function WarComponent({
       war.planet.fetch(),
       execute(services.conquestService.getWar(params.id)).then((r) => r.json()),
     ]).then(([local, remote]) => {
-      debugger;
       const war = JSON.parse(remote.war.state);
       const players = war.context.players;
       const portal = war.context.portal;
@@ -431,6 +430,7 @@ function WarComponent({
           await execute(conquestService.setPortal());
         }
       });
+      warService.setActiveBattle(undefined);
       unsubscribe();
     };
   }, []);

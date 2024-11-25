@@ -63,7 +63,7 @@ interface IWarService {
   setCurrentUserTurn: (userId: string) => void;
   setRound: (round: number) => void;
   setUserId: (userId: string) => void;
-  setActiveBattle: (battleId: string) => void;
+  setActiveBattle: (battleId?: string) => void;
 }
 
 const WarLivePipe = pipe(WarLive);
