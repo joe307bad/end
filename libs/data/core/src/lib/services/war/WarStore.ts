@@ -109,7 +109,9 @@ export const derived = derive({
     return O.match(selectedId, {
       onNone: () => undefined,
       onSome: (id) =>
-        sortedTilesList(tiles, sort, filter, userId).findIndex((t) => t.id === id),
+        sortedTilesList(tiles, sort, filter, userId).findIndex(
+          (t) => t.id === id
+        ),
     });
   },
   sortedTiles: (get) => {
@@ -137,7 +139,7 @@ export const derived = derive({
             return acc;
           }
 
-          if(t.owner === userId) {
+          if (t.owner === userId) {
             return acc;
           }
 
@@ -164,5 +166,26 @@ export const derived = derive({
         return { id: `B${i + b.length}` } as Battle;
       }),
     ];
+  },
+  battlesByTile: (get) => {
+    const b = get(store).battles;
+    return b.reduce((acc, battle) => {
+      const aggressor = battle.attackingFromTerritory;
+      const defender = battle.defendingTerritory;
+
+      if (acc[aggressor]) {
+        acc[aggressor].push(battle);
+      } else {
+        acc[aggressor] = [battle];
+      }
+
+      if (acc[defender]) {
+        acc[defender].push(battle);
+      } else {
+        acc[defender] = [battle];
+      }
+
+      return acc;
+    }, {} as Record<string, Battle[]>);
   },
 });

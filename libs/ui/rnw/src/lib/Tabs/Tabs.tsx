@@ -33,7 +33,7 @@ export function TabsContainer({
   const { services } = useEndApi();
   const { warService } = services;
   const warDerived = useSnapshot(warService.derived);
-  const { bp } = useResponsive(menuOpen, 1297);
+  const { bp } = useResponsive(menuOpen, 1000);
   const sv = useRef<ScrollView | any>(null);
 
   useEffect(() => {

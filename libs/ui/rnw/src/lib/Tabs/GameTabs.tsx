@@ -13,7 +13,13 @@ import {
   View as V,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
-import { CheckCheck, Crosshair, Hexagon, XCircle } from '@tamagui/lucide-icons';
+import {
+  CheckCheck,
+  Crosshair,
+  Dot,
+  Hexagon,
+  XCircle,
+} from '@tamagui/lucide-icons';
 import React, {
   Dispatch,
   ElementType,
@@ -349,7 +355,25 @@ function TilesList({
               paddingLeft="$1"
               paddingRight="$1"
               hoverTheme
-              icon={() => <Hexagon color={colors[t.owner]} />}
+              icon={() => (
+                <V flexDirection="row">
+                  <Hexagon color={colors[t.owner]} />
+                  {warDerived.battlesByTile[t.id] ? (
+                    warDerived.battlesByTile[t.id].map(() => (
+                      <V
+                        display="flex"
+                        alignItems="center"
+                        width={10}
+                        overflow="hidden"
+                      >
+                        <Dot color="yellow" />
+                      </V>
+                    ))
+                  ) : (
+                    <></>
+                  )}
+                </V>
+              )}
               title={
                 <View
                   style={{
@@ -382,7 +406,25 @@ function TilesList({
                       paddingLeft="$1"
                       paddingRight="$1"
                       hoverTheme
-                      icon={() => <Hexagon color={colors[tile.owner]} />}
+                      icon={() => (
+                        <V flexDirection="row">
+                          <Hexagon color={colors[tile.owner]} />
+                          {warDerived.battlesByTile[tile.id] ? (
+                            warDerived.battlesByTile[tile.id].map(() => (
+                              <V
+                                display="flex"
+                                alignItems="center"
+                                width={10}
+                                overflow="hidden"
+                              >
+                                <Dot color="yellow" />
+                              </V>
+                            ))
+                          ) : (
+                            <></>
+                          )}
+                        </V>
+                      )}
                       title={
                         <View
                           style={{

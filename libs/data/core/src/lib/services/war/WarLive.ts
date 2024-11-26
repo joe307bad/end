@@ -59,6 +59,7 @@ export const WarLive = Layer.effect(
         store.portal = portal ?? [undefined, undefined];
         this.setCurrentUserTurn(players[turn - 1].id);
         store.battles = battles;
+        debugger;
         store.battleLimit = battleLimit;
 
         // Effect.match(auth.getUserId(), {

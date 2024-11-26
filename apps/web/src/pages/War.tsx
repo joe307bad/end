@@ -358,7 +358,7 @@ function WarComponent({
       return [[0, 300, 25], {}];
     }
 
-    if (width < 1297) {
+    if (width < 1000) {
       return [[0, 160, 25], {}];
     }
 
@@ -392,7 +392,7 @@ function WarComponent({
       const state = war.value;
       const turn = war.context.turn;
       const round = war.context.round;
-      const battles = war.context.battles ?? [];
+      const battles = war.context.turns[war.context.turn]?.battles ?? [];
       const battleLimit = war.context.battleLimit;
 
       const tiles: Record<string, any> = war.context.tiles;
