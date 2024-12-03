@@ -26,6 +26,7 @@ export type Tile = Mutable<S.Schema.Type<typeof STile>>;
 const AttackSchema = S.Struct({
   type: S.Literal('attack'),
   troopUpdates: S.Record({ key: S.String, value: S.Number }),
+  ownerUpdates: S.Record({ key: S.String, value: S.String }),
   battle: S.Struct({
     id: S.String,
     aggressor: S.String,

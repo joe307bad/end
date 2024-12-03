@@ -333,15 +333,8 @@ function TilesList({
   }, [warStore.players]);
 
   const engage = useCallback(async () => {
-    await O.match(warStore.activeBattle, {
-      onNone: async () => {
-        await execute(conquestService.startBattle());
-      },
-      onSome: async () => {
-        await execute(conquestService.attack());
-      },
-    });
-  }, [warStore.activeBattle]);
+    await execute(conquestService.engage());
+  }, [])
 
   return (
     <>

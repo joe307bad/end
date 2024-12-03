@@ -137,13 +137,23 @@ export class ConquestController {
               return existingWarState.context.tiles;
             }
             const tile1TroopCount =
-              existingWarState.context.tiles[battle.defendingTerritory].troopCount;
+              existingWarState.context.tiles[battle.defendingTerritory]
+                .troopCount;
             const tile2TroopCount =
-              existingWarState.context.tiles[battle.attackingFromTerritory].troopCount;
+              existingWarState.context.tiles[battle.attackingFromTerritory]
+                .troopCount;
 
             this.conquest.next({
               type: 'attack',
               warId: event.warId,
+              ownerUpdates: {
+                [battle.defendingTerritory]:
+                  existingWarState.context.tiles[battle.defendingTerritory]
+                    .owner,
+                [battle.attackingFromTerritory]:
+                  existingWarState.context.tiles[battle.attackingFromTerritory]
+                    .owner,
+              },
               troopUpdates: {
                 [battle.defendingTerritory]: tile1TroopCount,
                 [battle.attackingFromTerritory]: tile2TroopCount,

@@ -1,4 +1,4 @@
-import { Tile } from '@end/war/core';
+import { Battle, Tile } from '@end/war/core';
 import { Effect, Context, Layer, pipe, Option as O } from 'effect';
 import { FetchService } from './fetch.service';
 import { Planet, War } from '@end/wm/core';
@@ -10,6 +10,13 @@ import { hexasphere } from '@end/shared';
 import { WarService } from './war.service';
 import { getOrUndefined } from 'effect/Option';
 import { AuthService } from './auth.service';
+import { execute } from '@end/data/core';
+
+enum Actions {
+  InvalidTurn,
+  NewBattle,
+  Attack,
+}
 
 interface Conquest {
   readonly warLog: BehaviorSubject<string | null>;
@@ -32,10 +39,7 @@ interface Conquest {
   readonly addPlayer: (payload: {
     warId: string;
   }) => Effect.Effect<Response, string>;
-  readonly selectFirstTerritory: (payload: {
-    id: string;
-    warId: string;
-  }) => Effect.Effect<Response, string>;
+  readonly engage: () => Effect.Effect<Response, string>;
 }
 
 const ConquestService = Context.GenericTag<Conquest>('conquest-api');
@@ -201,12 +205,53 @@ export const ConquestLive = Layer.effect(
       addPlayer: (event: { warId: string }) => {
         return fetch.post('/conquest', { type: 'add-player', ...event });
       },
-      selectFirstTerritory: (event: { id: string; warId: string }) => {
-        return fetch.post('/conquest', {
-          type: 'select-first-territory',
-          ...event,
+      engage: () => {
+        const attacking = war.store.selectedTileId;
+        const defending = war.store.territoryToAttack;
+
+        return O.match(O.all([attacking, defending]), {
+          onNone: () => {
+            return Effect.fail('Selecting attacking and defending tile');
+          },
+          onSome([attacking, d]) {
+            const [defending] = war.tileIdAndCoords(d);
+            const battle = war.store.battles.find((battle) => {
+              return (
+                battle.attackingFromTerritory === attacking &&
+                battle.defendingTerritory === defending
+              );
+            });
+            const defender = war.store.tiles.find((t) => t.id === defending);
+            // debugger;
+
+            if (!battle) {
+              return fetch.post('/conquest', {
+                type: 'start-battle',
+                attackingFromTerritory: attacking,
+                defendingTerritory: defending,
+                aggressor: war.store.currentUsersTurn,
+                defender: defender?.owner?.toString() ?? '',
+                warId: getOrUndefined(war.store.warId),
+              });
+            }
+
+            return fetch.post('/conquest', {
+              type: 'attack',
+              battleId: battle.id,
+              warId: getOrUndefined(war.store.warId),
+            });
+          },
         });
       },
+
+      // return O.match(combined, {
+      //   onNone: () => {
+      //     return Effect.fail("Attacking and defending required");
+      //   },
+      //   onSome: ([attacking, defending]) => {
+      //     return this.attack();
+      //   },
+      // });
     });
   })
 );

@@ -80,8 +80,8 @@ export const warMachine = (
         const numberOfPlayers = context.players.length;
         Object.keys(context.tiles).forEach((tileId) => {
           context.tiles[tileId].troopCount = faker.number.int({
-            min: 5,
-            max: 99,
+            min: 3,
+            max: 15,
           });
           context.tiles[tileId].owner =
             context.players[
@@ -160,7 +160,6 @@ export const warMachine = (
         if (defendingTile) {
           defendingTile.troopCount =
             defendingTile.troopCount + battleEvent.defenderChange;
-          defendingTile.troopCount + battleEvent.defenderChange;
         }
 
         return context;
@@ -182,16 +181,16 @@ export const warMachine = (
           defender,
         } = battle;
 
-        let { troopCount: tile1TroopCount } = context.tiles[defendingTerritory];
-        let { troopCount: tile2TroopCount } =
+        let { troopCount: defendingTroopCount } = context.tiles[defendingTerritory];
+        let { troopCount: attackingTroopCount } =
           context.tiles[attackingFromTerritory];
 
-        if (tile2TroopCount === 1) {
+        if (attackingTroopCount === 1) {
           return context;
         }
 
-        const maxDefenderChange = Math.ceil(tile1TroopCount / 2);
-        const maxAggressorChange = Math.ceil(tile2TroopCount / 2);
+        const maxDefenderChange = defendingTroopCount < 10 ? 5 :Math.ceil(defendingTroopCount / 2);
+        const maxAggressorChange = attackingTroopCount < 10 ? 5 :Math.ceil(attackingTroopCount / 2);
 
         const aggressorChange = faker.number.int({
           max: 0,
@@ -210,18 +209,18 @@ export const warMachine = (
 
         battle.events = [...(battle.events ?? []), battleEvent];
 
-        const newAggressorTroopCount = tile1TroopCount + aggressorChange;
-        const newDefenderTroopCount = tile2TroopCount + defenderChange;
+        const newAggressorTroopCount = Number(attackingTroopCount) + aggressorChange;
+        const newDefenderTroopCount = Number(defendingTroopCount) + defenderChange;
 
         context.tiles[attackingFromTerritory] = {
           ...context.tiles[attackingFromTerritory],
-          troopCount: newAggressorTroopCount < 0 ? 1 : newAggressorTroopCount,
+          troopCount: newAggressorTroopCount < 1 ? 1 : newAggressorTroopCount,
         };
 
         context.tiles[defendingTerritory] = {
           ...context.tiles[defendingTerritory],
-          troopCount: newDefenderTroopCount < 0 ? 1 : newDefenderTroopCount,
-          owner: newDefenderTroopCount < 0 ? aggressor : defender,
+          troopCount: newDefenderTroopCount < 1 ? 1 : newDefenderTroopCount,
+          owner: newDefenderTroopCount < 1 ? aggressor : defender,
         };
 
         return context;

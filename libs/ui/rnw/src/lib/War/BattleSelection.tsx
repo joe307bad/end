@@ -14,16 +14,6 @@ export function BattleSelection() {
   const { services } = useEndApi();
   const { warService, conquestService } = services;
   const warStore = useSnapshot(warService.store);
-  const engage = useCallback(async () => {
-    await O.match(warStore.activeBattle, {
-      onNone: async () => {
-        await execute(conquestService.startBattle());
-      },
-      onSome: async () => {
-        await execute(conquestService.attack());
-      },
-    });
-  }, [warStore.activeBattle]);
   const warDerived = useSnapshot(warService.derived);
   const enabled =
     isSome(warStore.territoryToAttack) && isSome(warStore.selectedTileId);
@@ -54,7 +44,7 @@ export function BattleSelection() {
       <V alignItems="flex-end" width="$6" justifyContent="center">
         <PrimaryButton
           disabled={!enabled}
-          onPress={engage}
+          onPress={conquestService.engage}
           height="$2"
           withIcon={true}
         >

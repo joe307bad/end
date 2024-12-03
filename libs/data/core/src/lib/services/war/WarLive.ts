@@ -59,7 +59,6 @@ export const WarLive = Layer.effect(
         store.portal = portal ?? [undefined, undefined];
         this.setCurrentUserTurn(players[turn - 1].id);
         store.battles = battles;
-        debugger;
         store.battleLimit = battleLimit;
 
         // Effect.match(auth.getUserId(), {
@@ -311,22 +310,39 @@ export const WarLive = Layer.effect(
                   return 'War started event';
                   break;
                 case 'battle-started':
+                  let battleStartedUpdates = Object.keys(result.troopUpdates);
+                  const battleUpdate1 = store.tiles.find(
+                    (t) => t.id === battleStartedUpdates[0]
+                  );
+                  const battleUpdate2 = store.tiles.find(
+                    (t) => t.id === battleStartedUpdates[1]
+                  );
+
+                  if (battleUpdate1 && battleUpdate2) {
+                    battleUpdate1.troopCount =
+                      result.troopUpdates[battleStartedUpdates[0]];
+                    battleUpdate2.troopCount =
+                      result.troopUpdates[battleStartedUpdates[1]];
+                  }
+                  store.activeBattle = O.some(result.battle.id);
+                  store.battles = [...store.battles, result.battle];
+
+                  return 'Attack event';
+                  break;
                 case 'attack':
-                  const [tile1Id, tile2Id] = Object.keys(result.troopUpdates);
+                  let [tile1Id, tile2Id] = Object.keys(result.troopUpdates);
                   const tile1 = store.tiles.find((t) => t.id === tile1Id);
                   const tile2 = store.tiles.find((t) => t.id === tile2Id);
 
+                  debugger;
                   if (tile1 && tile2) {
                     tile1.troopCount = result.troopUpdates[tile1Id];
                     tile2.troopCount = result.troopUpdates[tile2Id];
+                    tile1.owner = result.ownerUpdates[tile1Id];
+                    tile2.owner = result.ownerUpdates[tile2Id];
                   }
 
-                  if (result.type === 'battle-started') {
-                    store.activeBattle = O.some(result.battle.id);
-                    store.battles = [...store.battles, result.battle];
-                  }
-
-                  return 'Attack event';
+                  return 'Battle started event';
                   break;
                 case 'player-joined':
                   this.setPlayers(result.players);
@@ -350,7 +366,7 @@ export const WarLive = Layer.effect(
         );
       },
       setActiveBattle: function (battleId?: string): void {
-        if(!battleId) {
+        if (!battleId) {
           store.activeBattle = O.none();
           return;
         }
