@@ -80,8 +80,8 @@ export const warMachine = (
         const numberOfPlayers = context.players.length;
         Object.keys(context.tiles).forEach((tileId) => {
           context.tiles[tileId].troopCount = faker.number.int({
-            min: 3,
-            max: 15,
+            min: 2,
+            max: 3,
           });
           context.tiles[tileId].owner =
             context.players[
@@ -106,6 +106,16 @@ export const warMachine = (
 
         const attackingTile = context.tiles[event.attackingFromTerritory];
         const defendingTile = context.tiles[event.defendingTerritory];
+
+        const existingBattle = currentTurn?.battles.find(
+          (b) =>
+            b.defendingTerritory === defendingTile.id &&
+            b.attackingFromTerritory === attackingTile.id
+        );
+
+        if(existingBattle) {
+          return context;
+        }
 
         if (attackingTile.troopCount === 1) {
           return context;
@@ -181,7 +191,8 @@ export const warMachine = (
           defender,
         } = battle;
 
-        let { troopCount: defendingTroopCount } = context.tiles[defendingTerritory];
+        let { troopCount: defendingTroopCount } =
+          context.tiles[defendingTerritory];
         let { troopCount: attackingTroopCount } =
           context.tiles[attackingFromTerritory];
 
@@ -189,8 +200,10 @@ export const warMachine = (
           return context;
         }
 
-        const maxDefenderChange = defendingTroopCount < 10 ? 5 :Math.ceil(defendingTroopCount / 2);
-        const maxAggressorChange = attackingTroopCount < 10 ? 5 :Math.ceil(attackingTroopCount / 2);
+        const maxDefenderChange =
+          defendingTroopCount < 10 ? 5 : Math.ceil(defendingTroopCount / 2);
+        const maxAggressorChange =
+          attackingTroopCount < 10 ? 5 : Math.ceil(attackingTroopCount / 2);
 
         const aggressorChange = faker.number.int({
           max: 0,
@@ -209,8 +222,10 @@ export const warMachine = (
 
         battle.events = [...(battle.events ?? []), battleEvent];
 
-        const newAggressorTroopCount = Number(attackingTroopCount) + aggressorChange;
-        const newDefenderTroopCount = Number(defendingTroopCount) + defenderChange;
+        const newAggressorTroopCount =
+          Number(attackingTroopCount) + aggressorChange;
+        const newDefenderTroopCount =
+          Number(defendingTroopCount) + defenderChange;
 
         context.tiles[attackingFromTerritory] = {
           ...context.tiles[attackingFromTerritory],

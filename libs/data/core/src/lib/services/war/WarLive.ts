@@ -10,6 +10,7 @@ import { WarService } from './WarService';
 import { derived, store, WarStore } from './WarStore';
 import { selectTile, tileIdAndCoords } from './WarUtils';
 import { Players, ResultSchema, Tile } from './WarSchema';
+import { prop, uniqBy } from 'remeda';
 
 export const WarLive = Layer.effect(
   WarService,
@@ -325,16 +326,22 @@ export const WarLive = Layer.effect(
                       result.troopUpdates[battleStartedUpdates[1]];
                   }
                   store.activeBattle = O.some(result.battle.id);
-                  store.battles = [...store.battles, result.battle];
 
-                  return 'Attack event';
+                  store.battles = uniqBy(
+                    [...store.battles, result.battle],
+                    (b) => b.id
+                  );
+
+                  debugger;
+                  return 'Battle started event';
                   break;
                 case 'attack':
+                  debugger;
                   let [tile1Id, tile2Id] = Object.keys(result.troopUpdates);
                   const tile1 = store.tiles.find((t) => t.id === tile1Id);
                   const tile2 = store.tiles.find((t) => t.id === tile2Id);
 
-                  debugger;
+                  // debugger;
                   if (tile1 && tile2) {
                     tile1.troopCount = result.troopUpdates[tile1Id];
                     tile2.troopCount = result.troopUpdates[tile2Id];
@@ -342,7 +349,7 @@ export const WarLive = Layer.effect(
                     tile2.owner = result.ownerUpdates[tile2Id];
                   }
 
-                  return 'Battle started event';
+                  return 'Attack event';
                   break;
                 case 'player-joined':
                   this.setPlayers(result.players);

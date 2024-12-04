@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
-import { warMachine, Event } from '@end/war/core';
+import { warMachine, Event, Battle } from '@end/war/core';
 import { createActor } from 'xstate';
 import { InjectModel, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
@@ -107,7 +107,7 @@ export class ConquestController {
           if (event.type === 'start-battle') {
             event = {
               ...event,
-              id: uuidv6(),
+              id: crypto.randomUUID(),
             };
           }
 
@@ -170,7 +170,11 @@ export class ConquestController {
           } else if (event.type === 'start-battle') {
             const battle =
               existingWarState.context.turns[existingWarState.context.turn]
-                .battles[0];
+                ?.battles[0];
+
+            if (!battle) {
+              return existingWarState.context.tiles;
+            }
             const defendingTroopCount =
               existingWarState.context.tiles[battle.defendingTerritory]
                 .troopCount;
