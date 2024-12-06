@@ -124,14 +124,16 @@ export const warMachine = (
         const maxDefenderChange = Math.ceil(defendingTile.troopCount / 2);
         const maxAggressorChange = Math.ceil(attackingTile.troopCount / 2);
 
-        const aggressorChange = faker.number.int({
-          max: 0,
-          min: -maxAggressorChange,
-        });
-        const defenderChange = faker.number.int({
-          max: 0,
-          min: -maxDefenderChange,
-        });
+        const aggressorChange = 0;
+        //   faker.number.int({
+        //   max: 0,
+        //   min: -maxAggressorChange,
+        // });
+        const defenderChange = -1
+        //   faker.number.int({
+        //   max: 0,
+        //   min: -maxDefenderChange,
+        // });
 
         const battleEvent = {
           date: new Date(),
@@ -205,14 +207,16 @@ export const warMachine = (
         const maxAggressorChange =
           attackingTroopCount < 10 ? 5 : Math.ceil(attackingTroopCount / 2);
 
-        const aggressorChange = faker.number.int({
-          max: 0,
-          min: -maxAggressorChange,
-        });
-        const defenderChange = faker.number.int({
-          max: 0,
-          min: -maxDefenderChange,
-        });
+        const aggressorChange = 0;
+        //   faker.number.int({
+        //   max: 0,
+        //   min: -maxAggressorChange,
+        // });
+        const defenderChange = -1;
+        //   faker.number.int({
+        //   max: 0,
+        //   min: -maxDefenderChange,
+        // });
 
         const battleEvent = {
           date: new Date(),

@@ -43,9 +43,7 @@ import { useParams } from 'react-router-dom';
 import { execute } from '@end/data/core';
 import { ResponsiveTabs } from './ResponsiveTabs';
 import { LobbyTabs } from './LobbyTabs';
-import { TurnAction } from '@end/war/core';
-import { BattleSelection } from '../War/BattleSelection';
-import ActiveBattle from '../War/ActiveBattle';
+import { Tile, TurnAction } from '@end/war/core';
 import { Badge, PrimaryButton } from '../Display';
 
 export function GameTabsV2({
@@ -312,6 +310,150 @@ export function GameTabsV2({
   );
 }
 
+function AttackActions({ tile }: { tile: Partial<Tile> }) {
+  const { services } = useEndApi();
+  const { warService, conquestService } = services;
+  const warStore = useSnapshot(warService.store);
+  const warDerived = useSnapshot(warService.derived);
+  const colors = useMemo(() => {
+    return warStore.players.reduce((acc: Record<string, string>, curr) => {
+      acc[curr.id] = curr.color;
+      return acc;
+    }, {});
+  }, [warStore.players]);
+  const engage = useCallback(async () => {
+    await execute(conquestService.engage());
+  }, []);
+  return (
+    <V padding="$0.75">
+      {Object.values(warDerived.selectedNeighborsOwners).map((tile) => (
+        <ListItem
+          key={`neighbor-${tile.id}`}
+          display={tile.raised ? 'flex' : 'none'}
+          padding="0"
+          paddingLeft="$1"
+          paddingRight="$1"
+          hoverTheme
+          icon={() => (
+            <V flexDirection="row">
+              <Hexagon color={colors[tile.owner]} />
+              {warDerived.battlesByTile[tile.id] ? (
+                warDerived.battlesByTile[tile.id].map(() => (
+                  <V
+                    display="flex"
+                    alignItems="center"
+                    width={10}
+                    overflow="hidden"
+                  >
+                    <Dot color="yellow" />
+                  </V>
+                ))
+              ) : (
+                <></>
+              )}
+            </V>
+          )}
+          title={
+            <View
+              style={{
+                /* @ts-ignore */
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'row',
+              }}
+            >
+              <Text flex={1}>{tile.name}</Text>
+              <Text>{tile.troopCount}</Text>
+            </View>
+          }
+          pressTheme
+          onPress={() => {
+            const [_, coords] = warService.tileIdAndCoords(tile.id);
+            warService.setTerritoryToAttack(coords);
+          }}
+          iconAfter={
+            tile.id ===
+            warService.tileIdAndCoords(
+              getOrUndefined(warStore.territoryToAttack)
+            )[0] ? (
+              <PrimaryButton
+                // disabled={!enabled}
+                onPress={engage}
+                height="$2"
+                withIcon={true}
+              >
+                <V
+                  flexDirection="row"
+                  space="$0.5"
+                  alignItems="center"
+                  padding="$1"
+                >
+                  {/*{enabled ? (*/}
+                  {/*  <CheckCheck size={'$1'} color={'green'} />*/}
+                  {/*) : (*/}
+                  {/*  <XCircle size={'$1'} color={'red'} />*/}
+                  {/*)}*/}
+                  <Text>Engage</Text>
+                </V>
+              </PrimaryButton>
+            ) : (
+              <></>
+            )
+          }
+        />
+      ))}
+    </V>
+  );
+}
+
+function TileActions({ tile }: { tile: Partial<Tile> }) {
+  const { services } = useEndApi();
+  const { warService, conquestService } = services;
+  const warDerived = useSnapshot(warService.derived);
+  const warStore = useSnapshot(warService.store);
+  switch (warStore.turnAction) {
+    case 'attack':
+      return Object.values(warDerived.selectedNeighborsOwners).length > 0 &&
+        tile.owner === warStore.userId ? (
+        <AttackActions tile={tile} />
+      ) : (
+        <></>
+      );
+    case 'deploy':
+      return (
+        <V padding="$0.75">
+          <ListItem
+            padding="0"
+            paddingLeft="$1"
+            paddingRight="$1"
+            iconAfter={
+              <V flexDirection="row">
+                <V width="100px">
+                  <Input
+                    placeholder="123"
+                    onChange={() => {}}
+                    padding="$0.25"
+                    width="100%"
+                    height="$2"
+                  />
+                </V>
+                <V width="100px">
+                  <PrimaryButton withIcon height="$2">
+                    Deploy
+                  </PrimaryButton>
+                </V>
+              </V>
+            }
+          >
+            Available: 187
+          </ListItem>
+        </V>
+      );
+    default:
+      return <></>;
+  }
+}
+
 function TilesList({
   setSelectedTile,
 }: {
@@ -334,7 +476,7 @@ function TilesList({
 
   const engage = useCallback(async () => {
     await execute(conquestService.engage());
-  }, [])
+  }, []);
 
   return (
     <>
@@ -386,92 +528,7 @@ function TilesList({
               }}
               iconAfter={t.id === selectedTileId ? Crosshair : null}
             />
-            {t.id === selectedTileId &&
-            Object.values(warDerived.selectedNeighborsOwners).length > 0 &&
-            t.owner === warStore.userId ? (
-              <V padding="$0.75">
-                {Object.values(warDerived.selectedNeighborsOwners).map(
-                  (tile) => (
-                    <ListItem
-                      key={`neighbor-${tile.id}`}
-                      display={tile.raised ? 'flex' : 'none'}
-                      padding="0"
-                      paddingLeft="$1"
-                      paddingRight="$1"
-                      hoverTheme
-                      icon={() => (
-                        <V flexDirection="row">
-                          <Hexagon color={colors[tile.owner]} />
-                          {warDerived.battlesByTile[tile.id] ? (
-                            warDerived.battlesByTile[tile.id].map(() => (
-                              <V
-                                display="flex"
-                                alignItems="center"
-                                width={10}
-                                overflow="hidden"
-                              >
-                                <Dot color="yellow" />
-                              </V>
-                            ))
-                          ) : (
-                            <></>
-                          )}
-                        </V>
-                      )}
-                      title={
-                        <View
-                          style={{
-                            /* @ts-ignore */
-                            cursor: 'pointer',
-                            display: 'flex',
-                            flexDirection: 'row',
-                          }}
-                        >
-                          <Text flex={1}>{tile.name}</Text>
-                          <Text>{tile.troopCount}</Text>
-                        </View>
-                      }
-                      pressTheme
-                      onPress={() => {
-                        const [_, coords] = warService.tileIdAndCoords(tile.id);
-                        warService.setTerritoryToAttack(coords);
-                      }}
-                      iconAfter={
-                        tile.id ===
-                        warService.tileIdAndCoords(
-                          getOrUndefined(warStore.territoryToAttack)
-                        )[0] ? (
-                          <PrimaryButton
-                            // disabled={!enabled}
-                            onPress={engage}
-                            height="$2"
-                            withIcon={true}
-                          >
-                            <V
-                              flexDirection="row"
-                              space="$0.5"
-                              alignItems="center"
-                              padding="$1"
-                            >
-                              {/*{enabled ? (*/}
-                              {/*  <CheckCheck size={'$1'} color={'green'} />*/}
-                              {/*) : (*/}
-                              {/*  <XCircle size={'$1'} color={'red'} />*/}
-                              {/*)}*/}
-                              <Text>Engage</Text>
-                            </V>
-                          </PrimaryButton>
-                        ) : (
-                          <></>
-                        )
-                      }
-                    />
-                  )
-                )}
-              </V>
-            ) : (
-              <></>
-            )}
+            {t.id === selectedTileId ? <TileActions tile={t} /> : <></>}
           </>
         );
       })}
@@ -595,69 +652,70 @@ function TurnActionComponent({
         </YStack>
       );
     case 'deploy':
-      return (
-        <YStack style={{ display: 'flex', width: '100%' }}>
-          <XStack alignItems="center">
-            <XStack minWidth="25%" paddingHorizontal="$0.75">
-              <Label htmlFor="deploy-select">Territory</Label>
-            </XStack>
-            <XStack flex={1} alignItems="center" justifyContent="flex-end">
-              <SelectDemoItem
-                id="deploy-select"
-                value={Object.values(
-                  getOrUndefined(warStore.deployTo) ?? {}
-                ).join(',')}
-                onValueChange={warService.setDeployTo}
-                items={warDerived.raisedTiles.map((t) => ({
-                  key: t.name,
-                  value: t.id,
-                }))}
-                native
-              />
-            </XStack>
-          </XStack>
-          <XStack alignItems="center">
-            <XStack minWidth="$1" paddingHorizontal="$0.75">
-              <Label htmlFor="deploy-change">Troop change</Label>
-            </XStack>
-            <XStack
-              flex={1}
-              alignItems="center"
-              space="$0.75"
-              justifyContent="flex-end"
-            >
-              <V flex={1}>
-                <Input
-                  onChange={(e) => {
-                    const v = !e.nativeEvent.text
-                      ? 0
-                      : parseInt(e.nativeEvent.text);
-                    warService.setTroopsToDeploy?.(v);
-                  }}
-                  value={(warStore.troopsToDeploy ?? 0).toString()}
-                  padding="$0.5"
-                />
-              </V>
-              <V>
-                <Text>{warStore.availableTroopsToDeploy}</Text>
-              </V>
-              <V>
-                <ActivityArrow
-                  loading={false}
-                  // @ts-ignore
-                  onPress={() => {
-                    deploy();
-                    // warService.setAvailableTroopsToDeploy();
-                    // warService.deployToTerritory();
-                  }}
-                  open={false}
-                  message={''}
-                />
-              </V>
-            </XStack>
-          </XStack>
-        </YStack>
-      );
+      // return (
+      //   <YStack style={{ display: 'flex', width: '100%' }}>
+      //     <XStack alignItems="center">
+      //       <XStack minWidth="25%" paddingHorizontal="$0.75">
+      //         <Label htmlFor="deploy-select">Territory</Label>
+      //       </XStack>
+      //       <XStack flex={1} alignItems="center" justifyContent="flex-end">
+      //         <SelectDemoItem
+      //           id="deploy-select"
+      //           value={Object.values(
+      //             getOrUndefined(warStore.deployTo) ?? {}
+      //           ).join(',')}
+      //           onValueChange={warService.setDeployTo}
+      //           items={warDerived.raisedTiles.map((t) => ({
+      //             key: t.name,
+      //             value: t.id,
+      //           }))}
+      //           native
+      //         />
+      //       </XStack>
+      //     </XStack>
+      //     <XStack alignItems="center">
+      //       <XStack minWidth="$1" paddingHorizontal="$0.75">
+      //         <Label htmlFor="deploy-change">Troop change</Label>
+      //       </XStack>
+      //       <XStack
+      //         flex={1}
+      //         alignItems="center"
+      //         space="$0.75"
+      //         justifyContent="flex-end"
+      //       >
+      //         <V flex={1}>
+      //           <Input
+      //             onChange={(e) => {
+      //               const v = !e.nativeEvent.text
+      //                 ? 0
+      //                 : parseInt(e.nativeEvent.text);
+      //               warService.setTroopsToDeploy?.(v);
+      //             }}
+      //             value={(warStore.troopsToDeploy ?? 0).toString()}
+      //             padding="$0.5"
+      //           />
+      //         </V>
+      //         <V>
+      //           <Text>{warStore.availableTroopsToDeploy}</Text>
+      //         </V>
+      //         <V>
+      //           <ActivityArrow
+      //             loading={false}
+      //             // @ts-ignore
+      //             onPress={() => {
+      //               deploy();
+      //               // warService.setAvailableTroopsToDeploy();
+      //               // warService.deployToTerritory();
+      //             }}
+      //             open={false}
+      //             message={''}
+      //           />
+      //         </V>
+      //       </XStack>
+      //     </XStack>
+      //   </YStack>
+      // );
+      return <></>;
     case 'attack':
       return (
         <YStack height="50%">

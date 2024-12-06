@@ -28,7 +28,7 @@ export interface WarStore {
   settingPortalCoords: 'first' | 'second';
   portal: [Coords?, Coords?];
   deployTo: Option<Coords>;
-  turnAction: 'portal' | 'deploy' | 'attack';
+  turnAction: 'portal' | 'deploy' | 'attack' | 'complete';
   availableTroopsToDeploy: number;
   troopsToDeploy: number;
   territoryToAttack: Option<Coords>;

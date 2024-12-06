@@ -209,6 +209,11 @@ export const ConquestLive = Layer.effect(
         const attacking = war.store.selectedTileId;
         const defending = war.store.territoryToAttack;
 
+        if (war.store.turnAction === 'deploy') {
+          alert(war.store.selectedTileId);
+          return Effect.succeed({} as Response);
+        }
+
         return O.match(O.all([attacking, defending]), {
           onNone: () => {
             return Effect.fail('Selecting attacking and defending tile');
