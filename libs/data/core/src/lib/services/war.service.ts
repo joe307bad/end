@@ -24,7 +24,8 @@ interface IWarService {
     turn: number,
     round: number,
     battles: Battle[],
-    battleLimit: number
+    battleLimit: number,
+    availableTroopsToDeploy: number
   ) => void;
   setPlayers: (players: Players) => void;
   store: WarStore;
@@ -50,13 +51,13 @@ interface IWarService {
   ) => void;
   onPortalSetWebSocket: (coords: [Coords?, Coords?]) => void;
   setPortal: (coords: string | Coords) => Promise<true>;
-  setDeployTo: (coords: string | Coords) => void;
+  setDeployTo: (coords?: string | Coords) => void;
   setTurnAction: (action?: WarStore['turnAction'] | undefined) => void;
-  setAvailableTroopsToDeploy: () => void;
+  setAvailableTroopsToDeploy: (availableTroopsToDeploy: number) => void;
   setTroopsToDeploy: (troopsToDeploy: number) => void;
   setTerritoryToAttack: (coords: Coords) => void;
   attackTerritory: () => Effect.Effect<string, string>;
-  deployToTerritory: (tileId: string, troopsCount: number) => void;
+  deployToTerritory: (tileId?: string, troopsCount?: number) => void;
   initializeMap: () => void;
   parseWarLogEntry: (entry: any) => Effect.Effect<Result, string>;
   handleWarLogEntry: (entry: any) => Effect.Effect<string, string>;

@@ -51,6 +51,7 @@ const DeploySchema = S.Struct({
   type: S.Literal('deploy'),
   tile: S.String,
   troopsCount: S.Number,
+  availableTroopsToDeploy: S.Number,
 });
 
 const PlayerJoinedSchema = S.Struct({

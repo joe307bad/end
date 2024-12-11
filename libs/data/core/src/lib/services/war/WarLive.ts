@@ -1,7 +1,7 @@
 import { Effect, Layer, Option as O, pipe } from 'effect';
 import { Coords, getRandomName, hexasphere } from '@end/shared';
 import { Battle, WarState } from '@end/war/core';
-import { Option } from 'effect/Option';
+import { getOrUndefined, Option } from 'effect/Option';
 import { faker } from '@faker-js/faker';
 import * as THREE from 'three';
 import * as S from '@effect/schema/Schema';
@@ -50,7 +50,8 @@ export const WarLive = Layer.effect(
         turn: number,
         round: number,
         battles: Battle[],
-        battleLimit: number
+        battleLimit: number,
+        availableTroopsToDeploy: number
       ) {
         store.warId = warId;
         this.setWarState(state);
@@ -61,6 +62,7 @@ export const WarLive = Layer.effect(
         this.setCurrentUserTurn(players[turn - 1].id);
         store.battles = battles;
         store.battleLimit = battleLimit;
+        this.setAvailableTroopsToDeploy(availableTroopsToDeploy)
 
         // Effect.match(auth.getUserId(), {
         //   onSuccess: (v) => {
@@ -168,6 +170,18 @@ export const WarLive = Layer.effect(
       },
       setDeployTo(c) {
         const [_, coords] = tileIdAndCoords(c);
+
+        if (!c) {
+          O.match(store.selectedTileId, {
+            onNone() {},
+            onSome(selected) {
+              const [_, coords] = tileIdAndCoords(selected);
+              store.deployTo = O.some(coords);
+            },
+          });
+          return;
+        }
+
         store.deployTo = O.some(coords);
       },
       setTurnAction(action: WarStore['turnAction'] | undefined = undefined) {
@@ -190,11 +204,26 @@ export const WarLive = Layer.effect(
           }
         }
       },
-      setAvailableTroopsToDeploy() {
-        store.availableTroopsToDeploy =
-          store.availableTroopsToDeploy - store.troopsToDeploy;
+      setAvailableTroopsToDeploy(availableTroopsToDeploy: number) {
+        store.availableTroopsToDeploy = availableTroopsToDeploy;
       },
-      deployToTerritory(tileId: string, troopsCount: number) {
+      deployToTerritory(tileId?: string, troopsCount?: number) {
+        if ((!tileId && typeof tileId === 'string') || !troopsCount) {
+          O.match(store.selectedTileId, {
+            onNone() {},
+            onSome(selected) {
+              const tile = store.tiles.find((t) => t.id === selected);
+
+              if(!tile) {
+                return;
+              }
+
+              tile.troopCount = tile.troopCount + store.troopsToDeploy;
+            },
+          });
+          return;
+        }
+
         const tile = store.tiles.find((t) => t.id === tileId);
 
         if (tile) {
@@ -358,6 +387,7 @@ export const WarLive = Layer.effect(
                   break;
                 case 'deploy':
                   this.deployToTerritory(result.tile, result.troopsCount);
+                  this.setAvailableTroopsToDeploy(result.availableTroopsToDeploy);
 
                   return 'Deploy event';
                   break;

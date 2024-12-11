@@ -24,6 +24,7 @@ interface Context {
 }
 
 interface Turn {
+  deployedTroops?: number;
   battles: Battle[];
 }
 
@@ -64,6 +65,10 @@ export type Event =
       player: { id: string; userName: string; color: string };
     }
   | { type: 'attack'; battleId: string; warId: string };
+
+export function getPossibleDeployedTroops(context: Context) {
+  return 10;
+}
 
 export const warMachine = (
   warId: string,
@@ -113,7 +118,7 @@ export const warMachine = (
             b.attackingFromTerritory === attackingTile.id
         );
 
-        if(existingBattle) {
+        if (existingBattle) {
           return context;
         }
 
@@ -129,7 +134,7 @@ export const warMachine = (
         //   max: 0,
         //   min: -maxAggressorChange,
         // });
-        const defenderChange = -1
+        const defenderChange = -1;
         //   faker.number.int({
         //   max: 0,
         //   min: -maxDefenderChange,
@@ -174,6 +179,26 @@ export const warMachine = (
             defendingTile.troopCount + battleEvent.defenderChange;
         }
 
+        return context;
+      }),
+      deploy: assign(({ context, event }) => {
+        if (event.type !== 'deploy') {
+          return context;
+        }
+        let { troopCount } = context.tiles[event.tile];
+        const deployedTroops = context.turns[context.turn]?.deployedTroops ?? 0;
+
+        if(!context.turns[context.turn]) {
+          context.turns[context.turn] = { battles: [] };
+        }
+
+        context.turns[context.turn].deployedTroops =
+          deployedTroops + event.troopsToDeploy;
+
+        context.tiles[event.tile] = {
+          ...context.tiles[event.tile],
+          troopCount: troopCount + event.troopsToDeploy,
+        };
         return context;
       }),
       attack: assign(({ context, event }) => {
@@ -262,6 +287,16 @@ export const warMachine = (
     },
     guards: {
       hasEnoughPlayers: ({ context }) => context.players.length >= 2,
+      canDeploy: ({ context, event }) => {
+        if (event.type !== 'deploy') {
+          return false;
+        }
+
+        const possibleTroops = getPossibleDeployedTroops(context);
+        const alreadyDeployed = context.turns[context.turn]?.deployedTroops ?? 0;
+
+        return possibleTroops - alreadyDeployed - event.troopsToDeploy >= 0;
+      },
     },
   }).createMachine({
     id: `war-${warId}`,
@@ -337,18 +372,23 @@ export const warMachine = (
             actions: 'attack',
           },
           deploy: {
-            actions: assign({
-              tiles: ({ context, event }) => {
-                let { troopCount } = context.tiles[event.tile];
-
-                context.tiles[event.tile] = {
-                  ...context.tiles[event.tile],
-                  troopCount: troopCount + event.troopsToDeploy,
-                };
-
-                return context.tiles;
-              },
-            }),
+            actions: 'deploy',
+            guard: 'canDeploy',
+            // actions: assign({
+            //   tiles: ({ context, event }) => {
+            //     let { troopCount } = context.tiles[event.tile];
+            //
+            //
+            //     context.deployedTroops = context.deployedTroops - event.troopsToDeploy
+            //
+            //     context.tiles[event.tile] = {
+            //       ...context.tiles[event.tile],
+            //       troopCount: troopCount + event.troopsToDeploy,
+            //     };
+            //
+            //     return context.tiles;
+            //   },
+            // }),
           },
         },
       },

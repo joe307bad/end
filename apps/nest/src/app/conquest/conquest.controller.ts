@@ -1,5 +1,10 @@
 import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
-import { warMachine, Event, Battle } from '@end/war/core';
+import {
+  warMachine,
+  Event,
+  Battle,
+  getPossibleDeployedTroops,
+} from '@end/war/core';
 import { createActor } from 'xstate';
 import { InjectModel, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
@@ -229,12 +234,19 @@ export class ConquestController {
           }
 
           if (event.type === 'deploy') {
+            const deployedTroops =
+              existingWarState.context.turns[existingWarState.context.turn]
+                ?.deployedTroops ?? 0;
             this.conquest.next({
               type: 'deploy',
               tile: event.tile,
               troopsCount:
                 existingWarState.context.tiles[event.tile].troopCount,
               warId: event.warId,
+              availableTroopsToDeploy:
+                getPossibleDeployedTroops(existingWarState.context) -
+                deployedTroops -
+                event.troopsToDeploy,
             });
           }
 
@@ -252,6 +264,9 @@ export class ConquestController {
         warId: { $eq: params.id },
       })
       .exec();
-    return { war };
+    return {
+      war,
+      availableTroopsToDeploy: getPossibleDeployedTroops({} as any),
+    };
   }
 }

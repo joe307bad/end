@@ -394,6 +394,7 @@ function WarComponent({
       const round = war.context.round;
       const battles = war.context.turns[war.context.turn]?.battles ?? [];
       const battleLimit = war.context.battleLimit;
+      const availableTroopsToDeploy = remote.availableTroopsToDeploy;
 
       const tiles: Record<string, any> = war.context.tiles;
       const raised: Record<string, string> = JSON.parse(local.raised);
@@ -414,7 +415,8 @@ function WarComponent({
         turn,
         round,
         battles,
-        battleLimit
+        battleLimit,
+        availableTroopsToDeploy
       );
       warService.setName(title);
     });

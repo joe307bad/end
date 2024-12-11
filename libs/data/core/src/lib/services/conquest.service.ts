@@ -11,6 +11,7 @@ import { WarService } from './war.service';
 import { getOrUndefined } from 'effect/Option';
 import { AuthService } from './auth.service';
 import { execute } from '@end/data/core';
+import { store } from './war/WarStore';
 
 enum Actions {
   InvalidTurn,
@@ -29,11 +30,7 @@ interface Conquest {
     callback: (v: string | null) => void
   ) => () => void;
   readonly attack: () => Effect.Effect<Response, string>;
-  readonly deploy: (payload: {
-    tile: string;
-    troopsToDeploy: number;
-    warId: string;
-  }) => Effect.Effect<Response, string>;
+  readonly deploy: () => Effect.Effect<Response, string>;
   readonly setPortal: () => Effect.Effect<Response, string>;
   readonly startBattle: () => Effect.Effect<Response, string>;
   readonly addPlayer: (payload: {
@@ -182,11 +179,12 @@ export const ConquestLive = Layer.effect(
           warId: getOrUndefined(war.store.warId),
         });
       },
-      deploy: (event: {
-        tile: string;
-        troopsToDeploy: number;
-        warId: string;
-      }) => {
+      deploy: () => {
+        const event = {
+          tile: getOrUndefined(war.store.selectedTileId),
+          troopsToDeploy: war.store.troopsToDeploy,
+          warId: getOrUndefined(war.store.warId),
+        };
         return fetch.post('/conquest', { type: 'deploy', ...event });
       },
       setPortal: () => {

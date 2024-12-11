@@ -57,7 +57,7 @@ export const store = proxy<WarStore>({
   settingPortalCoords: 'first',
   portal: [undefined, undefined],
   deployTo: O.none(),
-  turnAction: 'attack',
+  turnAction: 'deploy',
   availableTroopsToDeploy: 100,
   troopsToDeploy: 0,
   territoryToAttack: O.none(),

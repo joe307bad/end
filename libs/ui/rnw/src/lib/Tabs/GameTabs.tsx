@@ -13,13 +13,7 @@ import {
   View as V,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
-import {
-  CheckCheck,
-  Crosshair,
-  Dot,
-  Hexagon,
-  XCircle,
-} from '@tamagui/lucide-icons';
+import { Crosshair, Dot, Hexagon } from '@tamagui/lucide-icons';
 import React, {
   Dispatch,
   ElementType,
@@ -36,7 +30,6 @@ import { subscribeKey } from 'valtio/utils';
 import { View } from 'react-native';
 import { useEndApi } from '@end/data/web';
 import { useSnapshot } from 'valtio';
-import { ActivityArrow } from '../ActivityArrow';
 import { getOrUndefined } from 'effect/Option';
 import { Effect, Option as O, pipe } from 'effect';
 import { useParams } from 'react-router-dom';
@@ -411,6 +404,11 @@ function TileActions({ tile }: { tile: Partial<Tile> }) {
   const { warService, conquestService } = services;
   const warDerived = useSnapshot(warService.derived);
   const warStore = useSnapshot(warService.store);
+
+  const deploy = useCallback(async () => {
+    await execute(conquestService.deploy());
+  }, []);
+
   switch (warStore.turnAction) {
     case 'attack':
       return Object.values(warDerived.selectedNeighborsOwners).length > 0 &&
@@ -428,24 +426,26 @@ function TileActions({ tile }: { tile: Partial<Tile> }) {
             paddingRight="$1"
             iconAfter={
               <V flexDirection="row">
-                <V width="100px">
+                <V width="100px" marginRight="$0.5">
                   <Input
                     placeholder="123"
-                    onChange={() => {}}
+                    onChange={(e) =>
+                      warService.setTroopsToDeploy(Number(e.nativeEvent.text))
+                    }
                     padding="$0.25"
                     width="100%"
                     height="$2"
                   />
                 </V>
                 <V width="100px">
-                  <PrimaryButton withIcon height="$2">
+                  <PrimaryButton onPress={deploy} withIcon height="$2">
                     Deploy
                   </PrimaryButton>
                 </V>
               </V>
             }
           >
-            Available: 187
+            <Text>Available: {warStore.availableTroopsToDeploy}</Text>
           </ListItem>
         </V>
       );
@@ -546,27 +546,6 @@ function TurnActionComponent({
   const warStore = useSnapshot(warService.store);
   const warDerived = useSnapshot(warService.derived);
   let params = useParams();
-
-  const deploy = useCallback(async () => {
-    await execute(
-      pipe(
-        warStore.deployTo,
-        O.match({
-          onNone() {
-            return Effect.fail('Select a territory before deploying');
-          },
-          onSome(d) {
-            const [tile] = warService.tileIdAndCoords(d);
-            return conquestService.deploy({
-              tile,
-              troopsToDeploy: warStore.troopsToDeploy,
-              warId: params['id'] ?? '',
-            });
-          },
-        })
-      )
-    );
-  }, [warStore.troopsToDeploy, warStore.deployTo]);
 
   // if (warStore.currentUsersTurn !== warStore.userId) {
   //   return (
