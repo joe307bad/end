@@ -217,7 +217,6 @@ export const ConquestLive = Layer.effect(
             return Effect.fail('Selecting attacking and defending tile');
           },
           onSome([attacking, d]) {
-            debugger;
             const [defending] = war.tileIdAndCoords(d);
             const battle = war.store.battles.find((battle) => {
               return (

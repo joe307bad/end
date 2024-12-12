@@ -316,7 +316,7 @@ export const WarLive = Layer.effect(
 
                         return { owner: '', troopCount: 0 };
                       })();
-                      // debugger;
+
                       acc[curr.id] = {
                         ...curr,
                         owner,
@@ -361,11 +361,9 @@ export const WarLive = Layer.effect(
                     (b) => b.id
                   );
 
-                  debugger;
                   return 'Battle started event';
                   break;
                 case 'attack':
-                  debugger;
                   let [tile1Id, tile2Id] = Object.keys(result.troopUpdates);
                   const tile1 = store.tiles.find((t) => t.id === tile1Id);
                   const tile2 = store.tiles.find((t) => t.id === tile2Id);
