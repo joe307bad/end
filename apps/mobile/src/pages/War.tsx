@@ -36,7 +36,7 @@ export default function War() {
   const cameraPath = useRef<{
     points: THREE.Vector3[];
     tangents: THREE.Vector3[];
-  }>();s
+  }>();
 
   return (
     <View style={{ flex: 1 }} {...events}>
