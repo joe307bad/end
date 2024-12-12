@@ -45,6 +45,7 @@ export function TabsContainer({
           return;
         }
 
+        console.log(selectedTileIndex)
         if (sv.current && selectedTileIndex > -1) {
           sv.current.scrollTo(selectedTileIndex * 67);
         }

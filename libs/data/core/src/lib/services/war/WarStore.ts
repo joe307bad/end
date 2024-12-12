@@ -125,31 +125,61 @@ export const derived = derive({
   selectedNeighborsOwners: (get) => {
     const selectedId = get(store).selectedTileId;
     const tiles = get(store).tiles;
+    const [portal1, portal2] = get(store).portal;
     const userId = get(store).userId;
 
     return O.match(selectedId, {
       onNone: () => ({} as Record<string, Tile>),
       onSome: (id) => {
         const neighbors = hexasphere.tileLookup[id].neighbors;
-        return neighbors.reduce((acc: Record<string, Tile>, tile) => {
-          const [id] = tileIdAndCoords(tile.centerPoint);
-          const t = tiles.find((t) => t.id === id);
 
-          if (!t) {
+        const neighboringTiles = neighbors.reduce(
+          (acc: Record<string, Tile>, tile) => {
+            const [id] = tileIdAndCoords(tile?.centerPoint);
+            const t = tiles.find((t) => t.id === id);
+
+            if (!t) {
+              return acc;
+            }
+
+            if (t.owner === userId) {
+              return acc;
+            }
+
+            if (!t.raised) {
+              return acc;
+            }
+
+            acc[id] = t;
             return acc;
+          },
+          {}
+        );
+
+        const throughPortal: Tile | undefined = (() => {
+          if (!portal1 || !portal2) {
+            return undefined;
           }
 
-          if (t.owner === userId) {
-            return acc;
+          const [portal1Id] = tileIdAndCoords(portal1);
+          const [portal2Id] = tileIdAndCoords(portal2);
+
+          if (portal1Id === id) {
+            return tiles.find((t) => t.id === portal2Id);
           }
 
-          if (!t.raised) {
-            return acc;
+          if (portal2Id === id) {
+            return tiles.find((t) => t.id === portal1Id);
           }
 
-          acc[id] = t;
-          return acc;
-        }, {});
+          return undefined;
+        })();
+
+        if (throughPortal && throughPortal.owner !== userId) {
+          neighboringTiles[throughPortal.id] = throughPortal;
+        }
+
+        return neighboringTiles;
       },
     });
   },

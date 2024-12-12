@@ -237,16 +237,16 @@ export class ConquestController {
             const deployedTroops =
               existingWarState.context.turns[existingWarState.context.turn]
                 ?.deployedTroops ?? 0;
+            const availableTroopsToDeploy =
+              getPossibleDeployedTroops(existingWarState.context) -
+              deployedTroops;
             this.conquest.next({
               type: 'deploy',
               tile: event.tile,
               troopsCount:
                 existingWarState.context.tiles[event.tile].troopCount,
               warId: event.warId,
-              availableTroopsToDeploy:
-                getPossibleDeployedTroops(existingWarState.context) -
-                deployedTroops -
-                event.troopsToDeploy,
+              availableTroopsToDeploy,
             });
           }
 
@@ -264,9 +264,19 @@ export class ConquestController {
         warId: { $eq: params.id },
       })
       .exec();
+    const warState = JSON.parse(war.state);
+    const existingWarActor = createActor(
+      warMachine(war.warId, warState.context, warState.value)
+    );
+    const existingWarState = existingWarActor.getSnapshot();
+    const deployedTroops =
+      existingWarState.context.turns[existingWarState.context.turn]
+        ?.deployedTroops ?? 0;
+    const availableTroopsToDeploy =
+      getPossibleDeployedTroops(existingWarState.context) - deployedTroops;
     return {
       war,
-      availableTroopsToDeploy: getPossibleDeployedTroops({} as any),
+      availableTroopsToDeploy,
     };
   }
 }

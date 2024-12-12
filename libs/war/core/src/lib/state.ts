@@ -376,7 +376,7 @@ export const warMachine = (
             guard: 'canDeploy',
             // actions: assign({
             //   tiles: ({ context, event }) => {
-            //     let { troopCount } = context.tiles[event.tile];
+            //     let { troopCount } = conetext.tiles[event.tile];
             //
             //
             //     context.deployedTroops = context.deployedTroops - event.troopsToDeploy

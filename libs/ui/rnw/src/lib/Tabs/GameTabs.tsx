@@ -13,7 +13,7 @@ import {
   View as V,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
-import { Crosshair, Dot, Hexagon } from '@tamagui/lucide-icons';
+import { Dot, Hexagon } from '@tamagui/lucide-icons';
 import React, {
   Dispatch,
   ElementType,
@@ -31,13 +31,13 @@ import { View } from 'react-native';
 import { useEndApi } from '@end/data/web';
 import { useSnapshot } from 'valtio';
 import { getOrUndefined } from 'effect/Option';
-import { Effect, Option as O, pipe } from 'effect';
 import { useParams } from 'react-router-dom';
 import { execute } from '@end/data/core';
 import { ResponsiveTabs } from './ResponsiveTabs';
 import { LobbyTabs } from './LobbyTabs';
 import { Tile, TurnAction } from '@end/war/core';
 import { Badge, PrimaryButton } from '../Display';
+import { Checkbox } from '../Checkbox';
 
 export function GameTabsV2({
   menuOpen,
@@ -60,16 +60,16 @@ export function GameTabsV2({
       warService.derived,
       'selectedTileIndex',
       (selectedTileIndex) => {
-        if (!selectedTileIndex) {
+        if (typeof selectedTileIndex === 'undefined') {
           return;
         }
 
         if (
           sv.current &&
-          selectedTileIndex > -1 &&
+          Number(selectedTileIndex) > -1 &&
           !disableListMovement.current
         ) {
-          sv.current.scrollTo(selectedTileIndex * 44);
+          sv.current.scrollTo(Number(selectedTileIndex) * 44);
         }
 
         if (disableListMovement.current) {
@@ -143,7 +143,6 @@ export function GameTabsV2({
                     alignItems="center"
                     flexDirection="row"
                   >
-                    <Badge title="joebad" />
                     <Badge color="green" title="3/50" />
                     <Badge color="red" title="1,569" />
                   </V>
@@ -409,6 +408,10 @@ function TileActions({ tile }: { tile: Partial<Tile> }) {
     await execute(conquestService.deploy());
   }, []);
 
+  if (tile.owner !== warStore.userId) {
+    return null;
+  }
+
   switch (warStore.turnAction) {
     case 'attack':
       return Object.values(warDerived.selectedNeighborsOwners).length > 0 &&
@@ -454,6 +457,50 @@ function TileActions({ tile }: { tile: Partial<Tile> }) {
   }
 }
 
+function PortalSelection({ tile }: { tile: Partial<Tile> }) {
+  const { services } = useEndApi();
+  const { warService, conquestService } = services;
+  const warStore = useSnapshot(warService.store);
+
+  const [portal1] = warService.tileIdAndCoords(warStore.portal[0]);
+  const [portal2] = warService.tileIdAndCoords(warStore.portal[1]);
+
+  const portal1Change = useCallback(() => {
+    const [_, coords] = warService.tileIdAndCoords(tile.id);
+    warService.setSettingPortalCoords('first');
+    warService.setPortal(coords);
+  }, []);
+
+  const portal2Change = useCallback(() => {
+    const [_, coords] = warService.tileIdAndCoords(tile.id);
+    warService.setSettingPortalCoords('second');
+    warService.setPortal(coords);
+  }, []);
+
+  return (
+    <>
+      <Checkbox
+        id={''}
+        size={'$4'}
+        label=""
+        checkboxProps={{
+          checked: portal1 === tile.id,
+          onCheckedChange: portal1Change,
+        }}
+      />
+      <Checkbox
+        id={''}
+        size={'$4'}
+        label=""
+        checkboxProps={{
+          checked: portal2 === tile.id,
+          onCheckedChange: portal2Change,
+        }}
+      />
+    </>
+  );
+}
+
 function TilesList({
   setSelectedTile,
 }: {
@@ -492,7 +539,10 @@ function TilesList({
               hoverTheme
               icon={() => (
                 <V flexDirection="row">
-                  <Hexagon color={colors[t.owner]} />
+                  <Hexagon
+                    fill={t.id === selectedTileId ? colors[t.owner] : undefined}
+                    color={colors[t.owner]}
+                  />
                   {warDerived.battlesByTile[t.id] ? (
                     warDerived.battlesByTile[t.id].map(() => (
                       <V
@@ -519,14 +569,18 @@ function TilesList({
                   }}
                 >
                   <Text flex={1}>{t.name}</Text>
-                  <Text>{t.troopCount}</Text>
+                  {warStore.turnAction === 'portal' && (
+                    <PortalSelection tile={t} />
+                  )}
+                  <Text textAlign="right" minWidth={20}>
+                    {t.troopCount}
+                  </Text>
                 </View>
               }
               pressTheme
               onPress={() => {
                 setSelectedTile(t.id);
               }}
-              iconAfter={t.id === selectedTileId ? Crosshair : null}
             />
             {t.id === selectedTileId ? <TileActions tile={t} /> : <></>}
           </>
@@ -565,71 +619,72 @@ function TurnActionComponent({
 
   switch (turnAction) {
     case 'portal':
-      return (
-        <YStack style={{ display: 'flex', width: '100%' }}>
-          <RadioGroup
-            defaultValue="first"
-            value={warStore.settingPortalCoords}
-            // @ts-ignore
-            onValueChange={warService.setSettingPortalCoords}
-          >
-            <XStack alignItems="center">
-              <XStack minWidth="$1" paddingHorizontal="$0.75">
-                <Label htmlFor="first">Portal entry #1</Label>
-              </XStack>
-              <XStack flex={1} alignItems="center" justifyContent="flex-end">
-                <SelectDemoItem
-                  value={Object.values(warStore.portal?.[0] ?? {}).join(',')}
-                  onValueChange={(value) => {
-                    warService.setSettingPortalCoords('first');
-                    warService
-                      .setPortal(value)
-                      .then(() => execute(conquestService.setPortal()));
-                  }}
-                  id="first-select"
-                  items={warDerived.raisedTiles.map((t) => ({
-                    key: t.name,
-                    value: t.id,
-                  }))}
-                  native
-                />
-              </XStack>
-              <XStack paddingHorizontal="$0.75">
-                <RadioGroup.Item value={'first'} id={'first'} size={'$3'}>
-                  <RadioGroup.Indicator />
-                </RadioGroup.Item>
-              </XStack>
-            </XStack>
-            <XStack alignItems="center">
-              <XStack minWidth="$1" paddingHorizontal="$0.75">
-                <Label htmlFor="second">Portal entry #2</Label>
-              </XStack>
-              <XStack flex={1} alignItems="center" justifyContent="flex-end">
-                <SelectDemoItem
-                  id="second-select"
-                  value={Object.values(warStore.portal?.[1] ?? {}).join(',')}
-                  onValueChange={(value) => {
-                    warService.setSettingPortalCoords('second');
-                    warService
-                      .setPortal(value)
-                      .then(() => execute(conquestService.setPortal()));
-                  }}
-                  items={warDerived.raisedTiles.map((t) => ({
-                    key: t.name,
-                    value: t.id,
-                  }))}
-                  native
-                />
-              </XStack>
-              <XStack paddingHorizontal="$0.75">
-                <RadioGroup.Item value={'second'} id={'second'} size={'$3'}>
-                  <RadioGroup.Indicator />
-                </RadioGroup.Item>
-              </XStack>
-            </XStack>
-          </RadioGroup>
-        </YStack>
-      );
+      return <></>;
+    // return (
+    //   <YStack style={{ display: 'flex', width: '100%' }}>
+    //     <RadioGroup
+    //       defaultValue="first"
+    //       value={warStore.settingPortalCoords}
+    //       // @ts-ignore
+    //       onValueChange={warService.setSettingPortalCoords}
+    //     >
+    //       <XStack alignItems="center">
+    //         <XStack minWidth="$1" paddingHorizontal="$0.75">
+    //           <Label htmlFor="first">Portal entry #1</Label>
+    //         </XStack>
+    //         <XStack flex={1} alignItems="center" justifyContent="flex-end">
+    //           <SelectDemoItem
+    //             value={Object.values(warStore.portal?.[0] ?? {}).join(',')}
+    //             onValueChange={(value) => {
+    //               warService.setSettingPortalCoords('first');
+    //               warService
+    //                 .setPortal(value)
+    //                 .then(() => execute(conquestService.setPortal()));
+    //             }}
+    //             id="first-select"
+    //             items={warDerived.raisedTiles.map((t) => ({
+    //               key: t.name,
+    //               value: t.id,
+    //             }))}
+    //             native
+    //           />
+    //         </XStack>
+    //         <XStack paddingHorizontal="$0.75">
+    //           <RadioGroup.Item value={'first'} id={'first'} size={'$3'}>
+    //             <RadioGroup.Indicator />
+    //           </RadioGroup.Item>
+    //         </XStack>
+    //       </XStack>
+    //       <XStack alignItems="center">
+    //         <XStack minWidth="$1" paddingHorizontal="$0.75">
+    //           <Label htmlFor="second">Portal entry #2</Label>
+    //         </XStack>
+    //         <XStack flex={1} alignItems="center" justifyContent="flex-end">
+    //           <SelectDemoItem
+    //             id="second-select"
+    //             value={Object.values(warStore.portal?.[1] ?? {}).join(',')}
+    //             onValueChange={(value) => {
+    //               warService.setSettingPortalCoords('second');
+    //               warService
+    //                 .setPortal(value)
+    //                 .then(() => execute(conquestService.setPortal()));
+    //             }}
+    //             items={warDerived.raisedTiles.map((t) => ({
+    //               key: t.name,
+    //               value: t.id,
+    //             }))}
+    //             native
+    //           />
+    //         </XStack>
+    //         <XStack paddingHorizontal="$0.75">
+    //           <RadioGroup.Item value={'second'} id={'second'} size={'$3'}>
+    //             <RadioGroup.Indicator />
+    //           </RadioGroup.Item>
+    //         </XStack>
+    //       </XStack>
+    //     </RadioGroup>
+    //   </YStack>
+    // );
     case 'deploy':
       // return (
       //   <YStack style={{ display: 'flex', width: '100%' }}>

@@ -147,7 +147,7 @@ export const WarLive = Layer.effect(
 
         switch (store.turnAction) {
           case 'portal':
-            this.setPortal(coords);
+            // this.setPortal(coords);
             break;
           case 'deploy':
             this.setDeployTo(coords);
