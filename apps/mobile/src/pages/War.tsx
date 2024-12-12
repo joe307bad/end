@@ -33,19 +33,10 @@ export default function War() {
     []
   );
   const { services } = useEndApi();
-  const { getProxy, getDerived, getColors } = services.hexaService;
   const cameraPath = useRef<{
     points: THREE.Vector3[];
     tangents: THREE.Vector3[];
-  }>();
-
-  useFocusEffect(() => {
-    const unsubscribe = subscribeKey(getDerived(), 'cameraPath', (s) => {
-      cameraPath.current = s;
-    });
-
-    return () => unsubscribe();
-  });
+  }>();s
 
   return (
     <View style={{ flex: 1 }} {...events}>
