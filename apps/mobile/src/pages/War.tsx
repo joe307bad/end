@@ -12,8 +12,6 @@ import { View } from 'react-native';
 import useControls from 'r3f-native-orbitcontrols';
 import * as THREE from 'three';
 import { useEndApi } from '@end/data/rn';
-import { useFocusEffect } from '@react-navigation/native';
-import { subscribeKey } from 'valtio/utils';
 
 export default function War() {
   const [OrbitControls, events] = useControls();

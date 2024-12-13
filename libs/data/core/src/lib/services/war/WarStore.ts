@@ -218,4 +218,24 @@ export const derived = derive({
       return acc;
     }, {} as Record<string, Battle[]>);
   },
+  currentTurnAndRound: (get) => {
+    const players = get(store).players;
+    const currentUsersTurn = get(store).currentUsersTurn;
+    const round = get(store).round;
+
+    const turn = players.findIndex((p) => p.id === currentUsersTurn) + 1;
+    return `${turn} / ${round}`;
+  },
+  remainingTroops: (get) => {
+    const tiles = get(store).tiles;
+    const userId = get(store).userId;
+    return tiles.reduce((acc, curr) => {
+      if (curr.owner === userId) {
+        acc = acc + curr.troopCount;
+        return acc;
+      }
+
+      return acc;
+    }, 0);
+  },
 });

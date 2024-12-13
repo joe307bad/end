@@ -11,6 +11,9 @@ import {
   ListItem,
   Text,
   View as V,
+  H3,
+  H4,
+  H5,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
 import { Dot, Hexagon } from '@tamagui/lucide-icons';
@@ -38,6 +41,80 @@ import { LobbyTabs } from './LobbyTabs';
 import { Tile, TurnAction } from '@end/war/core';
 import { Badge, PrimaryButton } from '../Display';
 import { Checkbox } from '../Checkbox';
+
+function CompleteTurn() {
+  const { services } = useEndApi();
+  const { warService } = services;
+  const warStore = useSnapshot(warService.store);
+
+  return (
+    <V width="100%">
+      <ScrollView space="$1" padding="$0.5">
+        <H5 lineHeight={15} fontWeight="bold">
+          Turn Summary
+        </H5>
+        <YStack space="$1">
+          <V space="$0.5">
+            <H5 lineHeight={15}>Portal</H5>
+            <XStack paddingLeft="$0.5">
+              <Text width="40%">Territory #1</Text>
+              <Text textAlign="center" flex={1}>
+                →
+              </Text>
+              <Text width="40%">Territory #1 </Text>
+              <Text flex={1}></Text>
+            </XStack>
+          </V>
+          <V space="$0.5">
+            <H5 lineHeight={15}>Deployments</H5>
+            <XStack paddingLeft="$0.5">
+              <Text flex={1}>Territory #1</Text>
+              <Text>100</Text>
+            </XStack>
+          </V>
+          <V space="$0.5">
+            <H5 lineHeight={15}>Battles</H5>
+            <YStack paddingLeft="$0.5">
+              {warStore.battles.map((b) => {
+                const attacking = warStore.tiles.find(
+                  (t) => t.id === b.attackingFromTerritory
+                );
+                const defending = warStore.tiles.find(
+                  (t) => t.id === b.defendingTerritory
+                );
+
+                if (!attacking || !defending) {
+                  return <></>;
+                }
+
+                return (
+                  <XStack space="$2">
+                    <Text
+                      overflow="hidden"
+                      whiteSpace="nowrap"
+                      textOverflow="ellipsis"
+                      paddingLeft="$0.5"
+                      width="40%"
+                    >
+                      {attacking.name}
+                    </Text>
+                    <Text textAlign="center" flex={1}>
+                      →
+                    </Text>
+                    <Text width="40%">{defending.name}</Text>
+                    <Text textAlign="right" paddingRight="$0.5" flex={1}>
+                      {b.events?.length}
+                    </Text>
+                  </XStack>
+                );
+              })}
+            </YStack>
+          </V>
+        </YStack>
+      </ScrollView>
+    </V>
+  );
+}
 
 export function GameTabsV2({
   menuOpen,
@@ -133,6 +210,7 @@ export function GameTabsV2({
               <>
                 <V
                   display="flex"
+                  paddingHorizontal="$0.5"
                   style={bp(['', 'flex-column', 'flex-row-reverse'])}
                   width="100%"
                 >
@@ -143,8 +221,7 @@ export function GameTabsV2({
                     alignItems="center"
                     flexDirection="row"
                   >
-                    <Badge color="green" title="3/50" />
-                    <Badge color="red" title="1,569" />
+                    <WarStatusBadges />
                   </V>
                   <View style={bp(['', 'w-full items-center', 'flex'])}>
                     <RadioGroup
@@ -163,7 +240,12 @@ export function GameTabsV2({
                           >
                             <RadioGroup.Indicator />
                           </RadioGroup.Item>
-                          <Label paddingLeft="$0.5" size={'$3'} htmlFor={'1'}>
+                          <Label
+                            lineHeight={0}
+                            paddingLeft="$0.5"
+                            size={'$3'}
+                            htmlFor={'1'}
+                          >
                             Portal
                           </Label>
                         </XStack>
@@ -176,7 +258,12 @@ export function GameTabsV2({
                             <RadioGroup.Indicator />
                           </RadioGroup.Item>
 
-                          <Label paddingLeft="$0.5" size={'$3'} htmlFor={'2'}>
+                          <Label
+                            lineHeight={0}
+                            paddingLeft="$0.5"
+                            size={'$3'}
+                            htmlFor={'2'}
+                          >
                             Deploy
                           </Label>
                         </XStack>
@@ -189,8 +276,31 @@ export function GameTabsV2({
                             <RadioGroup.Indicator />
                           </RadioGroup.Item>
 
-                          <Label paddingLeft="$0.5" size={'$3'} htmlFor={'3'}>
+                          <Label
+                            lineHeight={0}
+                            paddingLeft="$0.5"
+                            size={'$3'}
+                            htmlFor={'3'}
+                          >
                             Attack
+                          </Label>
+                        </XStack>
+                        <XStack alignItems="center">
+                          <RadioGroup.Item
+                            value={'complete'}
+                            id={'4'}
+                            size={'$3'}
+                          >
+                            <RadioGroup.Indicator />
+                          </RadioGroup.Item>
+
+                          <Label
+                            lineHeight={0}
+                            paddingLeft="$0.5"
+                            size={'$3'}
+                            htmlFor={'4'}
+                          >
+                            Complete
                           </Label>
                         </XStack>
                         {/*<XStack alignItems="center">*/}
@@ -214,52 +324,36 @@ export function GameTabsV2({
                     </RadioGroup>
                   </View>
                 </V>
-                <View
-                  style={bp([
-                    'w-full',
-                    `${warStore.turnAction === 'attack' ? 'max-h-[40%]' : ''}`,
-                  ])}
-                >
-                  <ScrollView
-                    style={{
-                      display: 'flex',
-                      width: '100%',
-                      // padding: 5,
-                    }}
-                  >
-                    <TurnActionComponent attackDialog={attackDialog} />
-                  </ScrollView>
-                </View>
-                <View
-                  style={{
-                    flex: 1,
-                    width: '100%',
-                  }}
-                >
-                  <YStack>
-                    <XStack>
+                {warStore.turnAction === 'complete' && <CompleteTurn />}
+                {warStore.turnAction !== 'complete' && (
+                  <V flex={1} width="100%">
+                    <XStack marginBottom="$0.5" paddingHorizontal="$0.5">
                       <XStack
                         flex={1}
                         alignItems="center"
                         justifyContent="flex-end"
                       >
-                        <XStack minWidth="$1" paddingHorizontal="$0.75">
-                          <Label htmlFor="first">Filter</Label>
+                        <XStack minWidth="$1">
+                          <Label lineHeight={0} htmlFor="first">
+                            Filter
+                          </Label>
                         </XStack>
-                        <SelectDemoItem
-                          id="sort-1"
-                          value={warStore.filter}
-                          onValueChange={warService.setFilter}
-                          items={[
-                            { value: 'all', key: 'All territories' },
-                            { value: 'mine', key: 'My territories' },
-                            {
-                              value: 'opponents',
-                              key: 'Opponents territories',
-                            },
-                          ]}
-                          native
-                        />
+                        <V paddingLeft="$0.5" flex={1}>
+                          <SelectDemoItem
+                            id="sort-1"
+                            value={warStore.filter}
+                            onValueChange={warService.setFilter}
+                            items={[
+                              { value: 'all', key: 'All territories' },
+                              { value: 'mine', key: 'My territories' },
+                              {
+                                value: 'opponents',
+                                key: 'Opponents territories',
+                              },
+                            ]}
+                            native
+                          />
+                        </V>
                       </XStack>
                       <XStack
                         flex={1}
@@ -267,7 +361,9 @@ export function GameTabsV2({
                         justifyContent="flex-end"
                       >
                         <XStack minWidth="$1" paddingHorizontal="$0.75">
-                          <Label htmlFor="first">Sort</Label>
+                          <Label lineHeight={0} htmlFor="first">
+                            Sort
+                          </Label>
                         </XStack>
                         <SelectDemoItem
                           onValueChange={warService.setSort}
@@ -281,17 +377,16 @@ export function GameTabsV2({
                         />
                       </XStack>
                     </XStack>
-                  </YStack>
-                  <ScrollView ref={sv}>
-                    <TilesList setSelectedTile={setSelectedTile} />
-                  </ScrollView>
-                </View>
+                    <ScrollView ref={sv}>
+                      <TilesList setSelectedTile={setSelectedTile} />
+                    </ScrollView>
+                  </V>
+                )}
               </>
             ) : (
               <View style={{ width: '100%', display: 'flex' }}>
                 <V flex={1} alignItems="flex-end">
-                  <Badge title="joebad" />
-                  <Badge color="green" title="3/50" />
+                  <WarStatusBadges />
                 </V>
               </View>
             )}
@@ -299,6 +394,19 @@ export function GameTabsV2({
         </Tabs>
       )}
     </ResponsiveTabs>
+  );
+}
+
+function WarStatusBadges() {
+  const { services } = useEndApi();
+  const { warService, conquestService } = services;
+  const warStore = useSnapshot(warService.store);
+  const warDerived = useSnapshot(warService.derived);
+  return (
+    <V flexDirection="row" space="$0.5">
+      <Badge color="green" title={warDerived.currentTurnAndRound} />
+      <Badge color="red" title={warDerived.remainingTroops.toString()} />
+    </V>
   );
 }
 

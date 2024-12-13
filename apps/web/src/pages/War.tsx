@@ -391,7 +391,7 @@ function WarComponent({
       const portal = war.context.portal;
       const state = war.value;
       const turn = war.context.turn;
-      const round = war.context.round;
+      const round = remote.round;
       const battles = war.context.turns[war.context.turn]?.battles ?? [];
       const battleLimit = war.context.battleLimit;
       const availableTroopsToDeploy = remote.availableTroopsToDeploy;

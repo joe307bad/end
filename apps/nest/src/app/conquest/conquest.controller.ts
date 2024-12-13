@@ -277,6 +277,10 @@ export class ConquestController {
     return {
       war,
       availableTroopsToDeploy,
+      round: Math.ceil(
+        Object.keys(existingWarState.context.turns).length /
+          existingWarState.context.players.length
+      ),
     };
   }
 }
