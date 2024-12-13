@@ -2182,6 +2182,7 @@ __metadata:
     babel-preset-expo: "npm:~9.5.2"
     bcrypt: "npm:^5.1.1"
     burnt: "npm:^0.12.2"
+    date-fns: "npm:^4.1.0"
     detox: "npm:^20.11.1"
     dotenv: "npm:^16.3.1"
     eas-cli: "npm:~5.2.0"
@@ -11557,6 +11558,13 @@ __metadata:
     whatwg-mimetype: "npm:^3.0.0"
     whatwg-url: "npm:^11.0.0"
   checksum: 051c3aaaf3e961904f136aab095fcf6dff4db23a7fc759dd8ba7b3e6ba03fc07ef608086caad8ab910d864bd3b5e57d0d2f544725653d77c96a2c971567045f4
+  languageName: node
+  linkType: hard
+
+"date-fns@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "date-fns@npm:4.1.0"
+  checksum: b79ff32830e6b7faa009590af6ae0fb8c3fd9ffad46d930548fbb5acf473773b4712ae887e156ba91a7b3dc30591ce0f517d69fd83bd9c38650fdc03b4e0bac8
   languageName: node
   linkType: hard
 

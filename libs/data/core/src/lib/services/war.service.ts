@@ -10,23 +10,10 @@ import { Players, Result, Tile } from './war/WarSchema';
 import { WarStore, derived } from './war/WarStore';
 import { tileIdAndCoords } from './war/WarUtils';
 import { WarService } from './war/WarService';
+import { Planet } from '@end/wm/core';
 
 interface IWarService {
-  begin: (
-    warId: Option<string>,
-    state: WarState,
-    raised: Record<string, string>,
-    tiles: Record<string, Tile>,
-    waterColor: string,
-    landColor: string,
-    players: { id: string; userName: string; color: string }[],
-    portal: [Coords?, Coords?],
-    turn: number,
-    round: number,
-    battles: Battle[],
-    battleLimit: number,
-    availableTroopsToDeploy: number
-  ) => void;
+  begin: (local: Planet, remote: any, params: any, title: string) => void;
   setPlayers: (players: Players) => void;
   store: WarStore;
   derived: typeof derived;

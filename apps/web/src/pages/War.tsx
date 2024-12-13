@@ -386,39 +386,10 @@ function WarComponent({
       war.planet.fetch(),
       execute(services.conquestService.getWar(params.id)).then((r) => r.json()),
     ]).then(([local, remote]) => {
-      const war = JSON.parse(remote.war.state);
-      const players = war.context.players;
-      const portal = war.context.portal;
-      const state = war.value;
-      const turn = war.context.turn;
-      const round = remote.round;
-      const battles = war.context.turns[war.context.turn]?.battles ?? [];
-      const battleLimit = war.context.battleLimit;
-      const availableTroopsToDeploy = remote.availableTroopsToDeploy;
-
-      const tiles: Record<string, any> = war.context.tiles;
-      const raised: Record<string, string> = JSON.parse(local.raised);
-      setLoaded(true);
-
       const title = `The War of ${local.name}`;
+      warService.begin(local, remote, params, title);
       st?.(title);
-
-      warService.begin(
-        params.id ? O.some(params.id) : O.none(),
-        state,
-        raised,
-        tiles,
-        local.waterColor,
-        local.landColor,
-        players,
-        portal,
-        turn,
-        round,
-        battles,
-        battleLimit,
-        availableTroopsToDeploy
-      );
-      warService.setName(title);
+      setLoaded(true);
     });
 
     const unsubscribe = services.conquestService.connectToWarLog(

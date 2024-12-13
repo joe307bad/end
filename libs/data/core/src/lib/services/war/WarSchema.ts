@@ -63,6 +63,7 @@ const PlayerJoinedSchema = S.Struct({
 
 const WarStartedSchema = S.Struct({
   type: S.Literal('war-started'),
+  round: S.Number,
   war: S.Struct({
     id: S.String,
     players: S.Array(
@@ -71,11 +72,7 @@ const WarStartedSchema = S.Struct({
     tiles: S.Record({ key: S.String, value: WarStartedTile }),
     playerLimit: S.Number,
     battleLimit: S.Number,
-    turn: S.Number,
-    portal: S.Tuple(
-      S.Union(ObjectSchema, S.Null),
-      S.Union(ObjectSchema, S.Null)
-    ),
+    turn: S.Number
   }),
 });
 
@@ -84,7 +81,7 @@ const BattleStartedSchema = S.Struct({
   troopUpdates: S.Record({ key: S.String, value: S.Number }),
   battle: S.Struct({
     id: S.String,
-    createdDate: S.Date,
+    createdDate: S.String,
     aggressor: S.String,
     defender: S.String,
     attackingFromTerritory: S.String,

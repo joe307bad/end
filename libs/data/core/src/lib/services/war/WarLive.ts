@@ -1,6 +1,12 @@
 import { Effect, Layer, Option as O, pipe } from 'effect';
 import { Coords, getRandomName, hexasphere } from '@end/shared';
-import { Battle, WarState } from '@end/war/core';
+import {
+  Battle,
+  getCurrentUsersTurn,
+  getMostRecentPortal,
+  Turn,
+  WarState,
+} from '@end/war/core';
 import { getOrUndefined, Option } from 'effect/Option';
 import { faker } from '@faker-js/faker';
 import * as THREE from 'three';
@@ -38,31 +44,41 @@ export const WarLive = Layer.effect(
       setCurrentUserTurn(userId) {
         store.currentUsersTurn = userId;
       },
-      begin(
-        warId: Option<string>,
-        state: WarState,
-        raised: Record<string, string>,
-        tiles: Record<string, Tile>,
-        waterColor: string,
-        landColor: string,
-        players: { id: string; userName: string; color: string }[],
-        portal: [Coords?, Coords?],
-        turn: number,
-        round: number,
-        battles: Battle[],
-        battleLimit: number,
-        availableTroopsToDeploy: number
-      ) {
-        store.warId = warId;
+      begin(local, remote, params, title) {
+        const war = JSON.parse(remote.war.state);
+        const players = war.context.players;
+        const state = war.value;
+        const turn = war.context.turns[war.context.turn] as Turn;
+        const round = remote.round;
+        const battles = war.context.turns[war.context.turn]?.battles ?? [];
+        const battleLimit = war.context.battleLimit;
+        const availableTroopsToDeploy = remote.availableTroopsToDeploy;
+
+        const tiles: Record<string, any> = war.context.tiles;
+        const raised: Record<string, string> = JSON.parse(local.raised);
+
+        params.id ? O.some(params.id) : O.none();
+        this.setName(title);
+
+        store.warId = params.id ? O.some(params.id) : O.none();
         this.setWarState(state);
-        this.setLandAndWaterColors(waterColor, landColor);
+        this.setLandAndWaterColors(local.waterColor, local.landColor);
         this.setTiles(raised, tiles);
         this.setPlayers(players);
-        store.portal = portal ?? [undefined, undefined];
-        this.setCurrentUserTurn(players[turn - 1].id);
+        const portal = getMostRecentPortal(war.context);
+
+        if (portal) {
+          store.portal = portal;
+        }
+
+        const currentUsersTurn = getCurrentUsersTurn(war.context);
+
+        if (currentUsersTurn) {
+          this.setCurrentUserTurn(currentUsersTurn);
+        }
         store.battles = battles;
         store.battleLimit = battleLimit;
-        this.setAvailableTroopsToDeploy(availableTroopsToDeploy)
+        this.setAvailableTroopsToDeploy(availableTroopsToDeploy);
 
         // Effect.match(auth.getUserId(), {
         //   onSuccess: (v) => {
@@ -214,7 +230,7 @@ export const WarLive = Layer.effect(
             onSome(selected) {
               const tile = store.tiles.find((t) => t.id === selected);
 
-              if(!tile) {
+              if (!tile) {
                 return;
               }
 
@@ -327,16 +343,20 @@ export const WarLive = Layer.effect(
                     {} as Record<string, Tile>
                   );
 
+                  that.setRound(result.round);
                   that.setTiles(raised, tiles);
                   that.setPlayers(result.war.players);
-                  // store.portal = portal ?? [undefined, undefined];
-                  this.setCurrentUserTurn(
-                    result.war.players[result.war.turn - 1].id
-                  );
-                  // store.battles = [];
+
+                  const currentUsersTurn = getCurrentUsersTurn({
+                    players: result.war.players.map((p) => ({ id: p.id })),
+                    turn: result.war.turn,
+                  });
+
+                  if (currentUsersTurn) {
+                    this.setCurrentUserTurn(currentUsersTurn);
+                  }
                   store.battleLimit = result.war.battleLimit;
 
-                  // TODO populate tiles with owners and troop counts
                   return 'War started event';
                   break;
                 case 'battle-started':
@@ -385,7 +405,9 @@ export const WarLive = Layer.effect(
                   break;
                 case 'deploy':
                   this.deployToTerritory(result.tile, result.troopsCount);
-                  this.setAvailableTroopsToDeploy(result.availableTroopsToDeploy);
+                  this.setAvailableTroopsToDeploy(
+                    result.availableTroopsToDeploy
+                  );
 
                   return 'Deploy event';
                   break;

@@ -11,8 +11,6 @@ import {
   ListItem,
   Text,
   View as V,
-  H3,
-  H4,
   H5,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
@@ -47,22 +45,32 @@ function CompleteTurn() {
   const { warService } = services;
   const warStore = useSnapshot(warService.store);
 
+  const portal1 = warStore.portal[0];
+  const portal2 = warStore.portal[1];
+  const portalExists = portal1 && portal2;
+
   return (
-    <V width="100%">
+    <V padding="$0.5" width="100%">
       <ScrollView space="$1" padding="$0.5">
         <H5 lineHeight={15} fontWeight="bold">
           Turn Summary
         </H5>
-        <YStack space="$1">
+        <YStack space="$2">
           <V space="$0.5">
             <H5 lineHeight={15}>Portal</H5>
             <XStack paddingLeft="$0.5">
-              <Text width="40%">Territory #1</Text>
-              <Text textAlign="center" flex={1}>
-                →
-              </Text>
-              <Text width="40%">Territory #1 </Text>
-              <Text flex={1}></Text>
+              {portalExists ? (
+                <>
+                  <Text width="40%">Territory #1</Text>
+                  <Text textAlign="center" flex={1}>
+                    →
+                  </Text>
+                  <Text width="40%">Territory #1 </Text>
+                  <Text flex={1}></Text>
+                </>
+              ) : (
+                <Text>No portal set</Text>
+              )}
             </XStack>
           </V>
           <V space="$0.5">

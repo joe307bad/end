@@ -1,8 +1,8 @@
 import { assign, setup, StateFrom } from 'xstate';
 import { faker } from '@faker-js/faker';
 import { Coords } from '@end/shared';
-import { undefined } from 'effect/Match';
 import { Battle } from './interfaces/Battle';
+import { compareDesc } from 'date-fns';
 
 export interface Tile {
   habitable: boolean;
@@ -19,12 +19,12 @@ interface Context {
   battleLimit: 2;
   turn: number;
   tiles: Record<string, Tile>;
-  portal: [Coords?, Coords?];
   turns: Record<string, Turn>;
 }
 
-interface Turn {
-  deployedTroops?: number;
+export interface Turn {
+  portals: { coords: [Coords?, Coords?]; date: string }[];
+  deployments: { deployTo: string; troopsToDeploy: number; date: string }[];
   battles: Battle[];
 }
 
@@ -70,6 +70,34 @@ export function getPossibleDeployedTroops(context: Context) {
   return 10;
 }
 
+export function getDeployedTroopsForTurn(turn?: Turn) {
+  if (!turn) {
+    return 0;
+  }
+
+  return Object.values(turn.deployments).reduce((acc, curr) => {
+    acc = acc + curr.troopsToDeploy;
+    return acc;
+  }, 0);
+}
+
+export function getCurrentUsersTurn(context: {
+  players: { id: string }[];
+  turn: number;
+}) {
+  return context.players[(context.turn - 1) % context.players.length]?.id;
+}
+
+export function getMostRecentPortal(context: Context) {
+  const turn = context.turns[context.turn];
+  if (!turn) {
+    return undefined;
+  }
+  return turn.portals.sort((a, b) =>
+    compareDesc(new Date(a.date), new Date(b.date))
+  )?.[0]?.coords;
+}
+
 export const warMachine = (
   warId: string,
   initialContext?: Context,
@@ -81,7 +109,7 @@ export const warMachine = (
       events: {} as Event,
     },
     actions: {
-      assignOwners: ({ context, event }) => {
+      startWar: ({ context, event }) => {
         const numberOfPlayers = context.players.length;
         Object.keys(context.tiles).forEach((tileId) => {
           context.tiles[tileId].troopCount = faker.number.int({
@@ -96,17 +124,31 @@ export const warMachine = (
               })
             ].id;
         });
-        return context.players;
+
+        context.turns = { 1: { battles: [], deployments: [], portals: [] } };
+
+        return context;
       },
+      setPortal: assign(({ context, event }) => {
+        if (event.type !== 'set-portal-entry') {
+          return context;
+        }
+
+        const portals = context.turns[context.turn].portals;
+        context.turns[context.turn].portals = [
+          ...portals,
+          { date: new Date().toUTCString(), coords: event.portal },
+        ];
+
+        return context;
+      }),
       startBattle: assign(({ context, event }) => {
         if (event.type !== 'start-battle') {
           return context;
         }
 
-        let currentTurn: Turn | undefined = context.turns[context.turn];
-        const turn = context.turn;
+        let currentTurn: Turn = context.turns[context.turn];
         const players = context.players;
-        const round = Math.floor(turn / players.length);
         const { id: currentUsersTurn } = players[context.turn - 1];
 
         const attackingTile = context.tiles[event.attackingFromTerritory];
@@ -141,7 +183,7 @@ export const warMachine = (
         // });
 
         const battleEvent = {
-          date: new Date(),
+          date: new Date().toUTCString(),
           aggressorChange,
           defenderChange,
         };
@@ -149,7 +191,7 @@ export const warMachine = (
         // TODO verify that this is even possible/abiding by the rules
         const battle: Battle = {
           attackingFromTerritory: event.attackingFromTerritory,
-          createdDate: new Date(),
+          createdDate: new Date().toUTCString(),
           defender: event.defender,
           aggressorInitialTroopCount: Number(attackingTile.troopCount),
           defenderInitialTroopCount: Number(defendingTile.troopCount),
@@ -158,12 +200,6 @@ export const warMachine = (
           events: [battleEvent],
           id: event.id,
         };
-
-        if (!currentTurn) {
-          currentTurn = {
-            battles: [],
-          };
-        }
 
         currentTurn.battles = [battle, ...(currentTurn?.battles ?? [])];
 
@@ -186,14 +222,16 @@ export const warMachine = (
           return context;
         }
         let { troopCount } = context.tiles[event.tile];
-        const deployedTroops = context.turns[context.turn]?.deployedTroops ?? 0;
 
-        if(!context.turns[context.turn]) {
-          context.turns[context.turn] = { battles: [] };
-        }
-
-        context.turns[context.turn].deployedTroops =
-          deployedTroops + event.troopsToDeploy;
+        const deployments = context.turns[context.turn].deployments;
+        context.turns[context.turn].deployments = [
+          ...deployments,
+          {
+            date: new Date().toUTCString(),
+            troopsToDeploy: event.troopsToDeploy,
+            deployTo: event.tile,
+          },
+        ];
 
         context.tiles[event.tile] = {
           ...context.tiles[event.tile],
@@ -244,7 +282,7 @@ export const warMachine = (
         // });
 
         const battleEvent = {
-          date: new Date(),
+          date: new Date().toUTCString(),
           aggressorChange,
           defenderChange,
         };
@@ -293,7 +331,9 @@ export const warMachine = (
         }
 
         const possibleTroops = getPossibleDeployedTroops(context);
-        const alreadyDeployed = context.turns[context.turn]?.deployedTroops ?? 0;
+        const alreadyDeployed = getDeployedTroopsForTurn(
+          context.turns[context.turn]
+        );
 
         return possibleTroops - alreadyDeployed - event.troopsToDeploy >= 0;
       },
@@ -309,7 +349,6 @@ export const warMachine = (
         playerLimit: 2,
         battleLimit: 2,
         tiles: {} as Record<string, Tile>,
-        portal: [undefined, undefined] as any,
         turns: {},
       } as Context),
     states: {
@@ -338,7 +377,7 @@ export const warMachine = (
           {
             target: 'war-in-progress',
             guard: 'hasEnoughPlayers',
-            actions: 'assignOwners',
+            actions: 'startWar',
           },
         ],
       },
@@ -362,11 +401,12 @@ export const warMachine = (
             actions: 'startBattle',
           },
           'set-portal-entry': {
-            actions: assign({
-              portal: ({ context, event }) => {
-                return event.portal;
-              },
-            }),
+            actions: 'setPortal',
+            // actions: assign({
+            //   portal: ({ context, event }) => {
+            //     return event.portal;
+            //   },
+            // }),
           },
           attack: {
             actions: 'attack',

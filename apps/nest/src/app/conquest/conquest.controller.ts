@@ -4,6 +4,7 @@ import {
   Event,
   Battle,
   getPossibleDeployedTroops,
+  getDeployedTroopsForTurn, getMostRecentPortal
 } from '@end/war/core';
 import { createActor } from 'xstate';
 import { InjectModel, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -221,6 +222,10 @@ export class ConquestController {
             this.conquest.next({
               type: 'war-started',
               warId: event.warId,
+              round: Math.ceil(
+                Object.keys(existingWarState.context.turns).length /
+                  existingWarState.context.players.length
+              ),
               war: { id, ...existingWarState.context },
             });
           }
@@ -229,14 +234,14 @@ export class ConquestController {
             this.conquest.next({
               type: 'portal-entry-set',
               warId: event.warId,
-              portal: existingWarState.context.portal,
+              portal: getMostRecentPortal(existingWarState.context),
             });
           }
 
           if (event.type === 'deploy') {
-            const deployedTroops =
+            const deployedTroops = getDeployedTroopsForTurn(
               existingWarState.context.turns[existingWarState.context.turn]
-                ?.deployedTroops ?? 0;
+            );
             const availableTroopsToDeploy =
               getPossibleDeployedTroops(existingWarState.context) -
               deployedTroops;
@@ -269,9 +274,9 @@ export class ConquestController {
       warMachine(war.warId, warState.context, warState.value)
     );
     const existingWarState = existingWarActor.getSnapshot();
-    const deployedTroops =
+    const deployedTroops = getDeployedTroopsForTurn(
       existingWarState.context.turns[existingWarState.context.turn]
-        ?.deployedTroops ?? 0;
+    );
     const availableTroopsToDeploy =
       getPossibleDeployedTroops(existingWarState.context) - deployedTroops;
     return {
