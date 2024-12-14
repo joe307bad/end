@@ -89,13 +89,13 @@ export function getDeploymentsByTerritory(
   }[],
   tiles: Partial<Tile>[]
 ) {
-  return deployments.reduce((acc: Record<string, [string, number]>, curr) => {
+  return deployments.reduce((acc: Record<string, [string, number, string | undefined]>, curr) => {
     const tile = tiles.find((t) => t.id === curr.deployTo);
     if (tile?.id && tile?.name) {
       if (acc[tile.id]) {
-        acc[tile.id] = [tile.name, acc[tile.id][1] + curr.troopsToDeploy];
+        acc[tile.id] = [tile.name, acc[tile.id][1] + curr.troopsToDeploy, tile.owner];
       } else {
-        acc[tile.id] = [tile.name, curr.troopsToDeploy];
+        acc[tile.id] = [tile.name, curr.troopsToDeploy, tile.owner];
       }
     }
 
@@ -118,6 +118,16 @@ export function getMostRecentPortal(context: Context) {
   return turn.portals.sort((a, b) =>
     compareDesc(new Date(a.date), new Date(b.date))
   )?.[0]?.coords;
+}
+
+export function getMostRecentDeployment(context: Context) {
+  const turn = context.turns[context.turn];
+  if (!turn) {
+    return undefined;
+  }
+  return turn.deployments.sort((a, b) =>
+    compareDesc(new Date(a.date), new Date(b.date))
+  )?.[0];
 }
 
 export const warMachine = (

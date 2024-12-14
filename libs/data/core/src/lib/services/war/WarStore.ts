@@ -58,7 +58,7 @@ export const store = proxy<WarStore>({
   settingPortalCoords: 'first',
   portal: [undefined, undefined],
   deployTo: O.none(),
-  turnAction: 'deploy',
+  turnAction: 'complete',
   availableTroopsToDeploy: 100,
   troopsToDeploy: 0,
   territoryToAttack: O.none(),
@@ -88,7 +88,7 @@ export const derived = derive({
       return undefined;
     }
 
-    return [one.name, two.name];
+    return [[one.name, one.owner], [two.name, two.owner]];
   },
   isOwner: (get) => {
     const selectedTileId = get(store).selectedTileId;

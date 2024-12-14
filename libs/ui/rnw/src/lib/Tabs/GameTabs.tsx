@@ -12,6 +12,7 @@ import {
   Text,
   View as V,
   H5,
+  XStackProps,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
 import { Dot, Hexagon } from '@tamagui/lucide-icons';
@@ -40,6 +41,29 @@ import { Tile, TurnAction } from '@end/war/core';
 import { Badge, PrimaryButton } from '../Display';
 import { Checkbox } from '../Checkbox';
 
+function TileInfo({
+  name,
+  owner,
+  ...rest
+}: { name: string; owner?: string } & XStackProps) {
+  const { services } = useEndApi();
+  const { warService } = services;
+  const warStore = useSnapshot(warService.store);
+
+  const color = warStore.players.find((p) => p.id === owner)?.color;
+
+  return (
+    <XStack {...rest}>
+      <V paddingRight="$0.5">
+        <Hexagon color={color} size="$1" />
+      </V>
+      <Text overflow="hidden" whiteSpace="nowrap" textOverflow="ellipsis">
+        {name}
+      </Text>
+    </XStack>
+  );
+}
+
 function CompleteTurn() {
   const { services } = useEndApi();
   const { warService } = services;
@@ -59,27 +83,52 @@ function CompleteTurn() {
         <YStack space="$2">
           <V space="$0.5">
             <H5 lineHeight={15}>Portal</H5>
-            <XStack paddingLeft="$0.5">
+            <YStack paddingLeft="$0.5">
               {portalExists && warDerived.portalNames ? (
-                <>
-                  <Text width="40%">{warDerived.portalNames[0]}</Text>
+                <XStack>
+                  <TileInfo
+                    width="40%"
+                    owner={warDerived.portalNames[0][1]}
+                    name={warDerived.portalNames[0][0]}
+                  />
+                  {/*<Text width="40%">{warDerived.portalNames[0]}</Text>*/}
                   <Text textAlign="center" flex={1}>
                     →
                   </Text>
-                  <Text width="40%">{warDerived.portalNames[1]}</Text>
+                  <TileInfo
+                    width="40%"
+                    owner={warDerived.portalNames[1][1]}
+                    name={warDerived.portalNames[1][0]}
+                  />
                   <Text flex={1}></Text>
-                </>
+                </XStack>
               ) : (
                 <Text>No portal set</Text>
               )}
-            </XStack>
+            </YStack>
           </V>
           <V space="$0.5">
             <H5 lineHeight={15}>Deployments</H5>
-            <XStack paddingLeft="$0.5">
-              <Text flex={1}>Territory #1</Text>
-              <Text>100</Text>
-            </XStack>
+            <YStack paddingLeft="$0.5">
+              {warStore.deployments.length > 0 ? (
+                Object.values(warDerived.deployments).map(
+                  ([name, troops, owner]) => (
+                    <XStack>
+                      <TileInfo width="40%" owner={owner} name={name} />
+                      <Text textAlign="center" flex={1}>
+                        →
+                      </Text>
+                      <Text textAlign="left" flex={1}>
+                        {troops}
+                      </Text>
+                      <Text width="40%"></Text>
+                    </XStack>
+                  )
+                )
+              ) : (
+                <Text>No deployments</Text>
+              )}
+            </YStack>
           </V>
           <V space="$0.5">
             <H5 lineHeight={15}>Battles</H5>
@@ -97,20 +146,21 @@ function CompleteTurn() {
                 }
 
                 return (
-                  <XStack space="$2">
-                    <Text
-                      overflow="hidden"
-                      whiteSpace="nowrap"
-                      textOverflow="ellipsis"
-                      paddingLeft="$0.5"
+                  <XStack>
+                    <TileInfo
                       width="40%"
-                    >
-                      {attacking.name}
-                    </Text>
+                      owner={attacking.owner}
+                      name={attacking.name}
+                    />
                     <Text textAlign="center" flex={1}>
                       →
                     </Text>
-                    <Text width="40%">{defending.name}</Text>
+                    <TileInfo
+                      width="40%"
+                      // TODO this should remain the original owner even after the defending territory switches owners
+                      owner={defending.owner}
+                      name={defending.name}
+                    />
                     <Text textAlign="right" paddingRight="$0.5" flex={1}>
                       {b.events?.length}
                     </Text>

@@ -48,6 +48,7 @@ export const WarLive = Layer.effect(
         store.currentUsersTurn = userId;
       },
       begin(local, remote, params, title) {
+        debugger;
         const war = JSON.parse(remote.war.state);
         const players = war.context.players;
         const state = war.value;
@@ -412,6 +413,11 @@ export const WarLive = Layer.effect(
                   this.deployToTerritory(result.tile, result.troopsCount);
                   this.setAvailableTroopsToDeploy(
                     result.availableTroopsToDeploy
+                  );
+
+                  store.deployments = uniqBy(
+                    [...store.deployments, result.deployment],
+                    (b) => b.date
                   );
 
                   return 'Deploy event';

@@ -4,7 +4,9 @@ import {
   Event,
   Battle,
   getPossibleDeployedTroops,
-  getDeployedTroopsForTurn, getMostRecentPortal
+  getDeployedTroopsForTurn,
+  getMostRecentPortal,
+  getMostRecentDeployment,
 } from '@end/war/core';
 import { createActor } from 'xstate';
 import { InjectModel, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -239,8 +241,11 @@ export class ConquestController {
           }
 
           if (event.type === 'deploy') {
-            const deployedTroops = getDeployedTroopsForTurn(
-              existingWarState.context.turns[existingWarState.context.turn]
+            const turn =
+              existingWarState.context.turns[existingWarState.context.turn];
+            const deployedTroops = getDeployedTroopsForTurn(turn);
+            const deployment = getMostRecentDeployment(
+              existingWarState.context
             );
             const availableTroopsToDeploy =
               getPossibleDeployedTroops(existingWarState.context) -
@@ -252,6 +257,7 @@ export class ConquestController {
                 existingWarState.context.tiles[event.tile].troopCount,
               warId: event.warId,
               availableTroopsToDeploy,
+              deployment,
             });
           }
 

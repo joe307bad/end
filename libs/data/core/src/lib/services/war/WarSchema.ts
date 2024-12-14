@@ -52,6 +52,11 @@ const DeploySchema = S.Struct({
   tile: S.String,
   troopsCount: S.Number,
   availableTroopsToDeploy: S.Number,
+  deployment: S.Struct({
+    deployTo: S.String,
+    troopsToDeploy: S.Number,
+    date: S.String,
+  }),
 });
 
 const PlayerJoinedSchema = S.Struct({
@@ -72,7 +77,7 @@ const WarStartedSchema = S.Struct({
     tiles: S.Record({ key: S.String, value: WarStartedTile }),
     playerLimit: S.Number,
     battleLimit: S.Number,
-    turn: S.Number
+    turn: S.Number,
   }),
 });
 
