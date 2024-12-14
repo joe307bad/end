@@ -28,6 +28,7 @@ interface IWarService {
   setFilter: (filter: WarStore['filter']) => void;
   setLandAndWaterColors: (water: string, land: string) => void;
   setName: (name: string) => void;
+  setDeployments: (deployments: { deployTo: string; troopsToDeploy: number; date: string }[]) => void;
   setTiles: (
     raisedTiles: Record<string, string>,
     ownedTiles: Record<string, Tile>

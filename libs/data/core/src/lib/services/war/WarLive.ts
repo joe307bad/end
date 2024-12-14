@@ -2,10 +2,10 @@ import { Effect, Layer, Option as O, pipe } from 'effect';
 import { Coords, getRandomName, hexasphere } from '@end/shared';
 import {
   Battle,
-  getCurrentUsersTurn,
+  getCurrentUsersTurn, getDeployedTroopsForTurn, getDeploymentsByTerritory,
   getMostRecentPortal,
   Turn,
-  WarState,
+  WarState
 } from '@end/war/core';
 import { getOrUndefined, Option } from 'effect/Option';
 import { faker } from '@faker-js/faker';
@@ -38,6 +38,9 @@ export const WarLive = Layer.effect(
       store,
       derived,
       tileIdAndCoords,
+      setDeployments(deployments) {
+        store.deployments = deployments;
+      },
       setWarState(state: WarState) {
         store.state = O.some(state);
       },
@@ -50,9 +53,11 @@ export const WarLive = Layer.effect(
         const state = war.value;
         const turn = war.context.turns[war.context.turn] as Turn;
         const round = remote.round;
-        const battles = war.context.turns[war.context.turn]?.battles ?? [];
+        const battles = turn.battles;
         const battleLimit = war.context.battleLimit;
         const availableTroopsToDeploy = remote.availableTroopsToDeploy;
+        const deployments = turn.deployments;
+        this.setDeployments(deployments);
 
         const tiles: Record<string, any> = war.context.tiles;
         const raised: Record<string, string> = JSON.parse(local.raised);

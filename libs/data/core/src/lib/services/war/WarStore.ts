@@ -1,7 +1,7 @@
 import { proxy } from 'valtio';
 import { Option as O } from 'effect';
 import { getOrUndefined, Option } from 'effect/Option';
-import { Battle, WarState } from '@end/war/core';
+import { Battle, getDeploymentsByTerritory, WarState } from '@end/war/core';
 import * as THREE from 'three';
 import { buildCameraPath, Coords, hexasphere } from '@end/shared';
 import { Players, Tile } from './WarSchema';
@@ -35,6 +35,7 @@ export interface WarStore {
   battles: Battle[];
   battleLimit: number;
   activeBattle: Option<string>;
+  deployments: { deployTo: string; troopsToDeploy: number; date: string }[];
 }
 
 export const store = proxy<WarStore>({
@@ -64,9 +65,31 @@ export const store = proxy<WarStore>({
   battles: [],
   battleLimit: 0,
   activeBattle: O.none(),
+  deployments: [],
 });
 
 export const derived = derive({
+  deployments: (get) => {
+    const tiles = get(store).tiles;
+    const deployments = get(store).deployments;
+    return getDeploymentsByTerritory(deployments, tiles);
+  },
+  portalNames: (get) => {
+    const tiles = get(store).tiles;
+    const [portal1, portal2] = get(store).portal;
+
+    const [entry] = tileIdAndCoords(portal1);
+    const [exit] = tileIdAndCoords(portal2);
+
+    const one = tiles.find((t) => t.id === entry);
+    const two = tiles.find((t) => t.id === exit);
+
+    if (!one || !two) {
+      return undefined;
+    }
+
+    return [one.name, two.name];
+  },
   isOwner: (get) => {
     const selectedTileId = get(store).selectedTileId;
     const userId = get(store).userId;

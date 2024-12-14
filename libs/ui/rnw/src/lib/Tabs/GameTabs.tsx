@@ -44,6 +44,7 @@ function CompleteTurn() {
   const { services } = useEndApi();
   const { warService } = services;
   const warStore = useSnapshot(warService.store);
+  const warDerived = useSnapshot(warService.derived);
 
   const portal1 = warStore.portal[0];
   const portal2 = warStore.portal[1];
@@ -59,13 +60,13 @@ function CompleteTurn() {
           <V space="$0.5">
             <H5 lineHeight={15}>Portal</H5>
             <XStack paddingLeft="$0.5">
-              {portalExists ? (
+              {portalExists && warDerived.portalNames ? (
                 <>
-                  <Text width="40%">Territory #1</Text>
+                  <Text width="40%">{warDerived.portalNames[0]}</Text>
                   <Text textAlign="center" flex={1}>
                     →
                   </Text>
-                  <Text width="40%">Territory #1 </Text>
+                  <Text width="40%">{warDerived.portalNames[1]}</Text>
                   <Text flex={1}></Text>
                 </>
               ) : (

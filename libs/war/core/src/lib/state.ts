@@ -81,6 +81,28 @@ export function getDeployedTroopsForTurn(turn?: Turn) {
   }, 0);
 }
 
+export function getDeploymentsByTerritory(
+  deployments: {
+    deployTo: string;
+    troopsToDeploy: number;
+    date: string;
+  }[],
+  tiles: Partial<Tile>[]
+) {
+  return deployments.reduce((acc: Record<string, [string, number]>, curr) => {
+    const tile = tiles.find((t) => t.id === curr.deployTo);
+    if (tile?.id && tile?.name) {
+      if (acc[tile.id]) {
+        acc[tile.id] = [tile.name, acc[tile.id][1] + curr.troopsToDeploy];
+      } else {
+        acc[tile.id] = [tile.name, curr.troopsToDeploy];
+      }
+    }
+
+    return acc;
+  }, {});
+}
+
 export function getCurrentUsersTurn(context: {
   players: { id: string }[];
   turn: number;
