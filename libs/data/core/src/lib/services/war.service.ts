@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import {
   Coords,
 } from '@end/shared';
-import { Battle, WarState } from '@end/war/core';
+import { WarState } from '@end/war/core';
 import { WarLive } from './war/WarLive';
 import { Players, Result, Tile } from './war/WarSchema';
 import { WarStore, derived } from './war/WarStore';
@@ -53,6 +53,10 @@ interface IWarService {
   setRound: (round: number) => void;
   setUserId: (userId: string) => void;
   setActiveBattle: (battleId?: string) => void;
+  setRoundLimit: (roundLimit: string) => void;
+  setPlayerLimit: (playerLimit: string) => void;
+  setBattleLimit: (battleLimit: string) => void;
+  setInactive: () => void;
 }
 
 const WarLivePipe = pipe(WarLive);

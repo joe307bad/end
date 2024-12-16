@@ -33,6 +33,7 @@ export function TabsContainer({
   const { services } = useEndApi();
   const { warService } = services;
   const warDerived = useSnapshot(warService.derived);
+  const warStore = useSnapshot(warService.store);
   const { bp } = useResponsive(menuOpen, 1000);
   const sv = useRef<ScrollView | any>(null);
 
@@ -93,10 +94,30 @@ export function TabsContainer({
             </Tabs.List>
             <Separator />
             <TabsContent value="tab1">
-              <View>
+              <View width="100%">
                 <Select
                   label="Number of players"
-                  items={[2, 3, 4, 5, 6, 7, 8, 9, 10].map((p) => ({
+                  onValueChange={warService.setPlayerLimit}
+                  value={warStore.playerLimit.toString()}
+                  items={[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((p) => ({
+                    key: p.toString(),
+                    value: p.toString(),
+                  }))}
+                />
+                <Select
+                  label="Round limit"
+                  onValueChange={warService.setRoundLimit}
+                  value={warStore.roundLimit.toString()}
+                  items={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((p) => ({
+                    key: p.toString(),
+                    value: p.toString(),
+                  }))}
+                />
+                <Select
+                  label="Battle limit"
+                  onValueChange={warService.setBattleLimit}
+                  value={warStore.battleLimit.toString()}
+                  items={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((p) => ({
                     key: p.toString(),
                     value: p.toString(),
                   }))}

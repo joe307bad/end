@@ -3,6 +3,7 @@ import { faker } from '@faker-js/faker';
 import { Coords } from '@end/shared';
 import { Battle } from './interfaces/Battle';
 import { compareDesc } from 'date-fns';
+import { groupBy, pipe, shuffle, uniqBy } from 'remeda';
 
 export interface Tile {
   habitable: boolean;
@@ -11,15 +12,17 @@ export interface Tile {
   troopCount: number;
   owner: string;
   name: string;
+  originalOwner: string;
 }
 
 interface Context {
   players: { id: string; userName: string; color: string }[];
-  playerLimit: 2;
-  battleLimit: 2;
+  playerLimit: number;
+  battleLimit: number;
   turn: number;
   tiles: Record<string, Tile>;
   turns: Record<string, Turn>;
+  roundLimit: number;
 }
 
 export interface Turn {
@@ -34,6 +37,9 @@ export type Event =
       players: { id: string; userName: string; color: string }[];
       tiles: Record<string, Tile>;
       warId: string;
+      roundLimit: number;
+      battleLimit: number;
+      playerLimit: number;
     }
   | {
       type: 'start-battle';
@@ -42,7 +48,7 @@ export type Event =
       attackingFromTerritory: string;
       defendingTerritory: string;
       warId: string;
-      id?: string;
+      id: string;
     }
   | {
       type: 'deploy';
@@ -64,7 +70,8 @@ export type Event =
       warId: string;
       player: { id: string; userName: string; color: string };
     }
-  | { type: 'attack'; battleId: string; warId: string };
+  | { type: 'attack'; battleId: string; warId: string }
+  | { type: 'begin-turn-number-1'; warId: string };
 
 export function getPossibleDeployedTroops(context: Context) {
   return 10;
@@ -89,25 +96,33 @@ export function getDeploymentsByTerritory(
   }[],
   tiles: Partial<Tile>[]
 ) {
-  return deployments.reduce((acc: Record<string, [string, number, string | undefined]>, curr) => {
-    const tile = tiles.find((t) => t.id === curr.deployTo);
-    if (tile?.id && tile?.name) {
-      if (acc[tile.id]) {
-        acc[tile.id] = [tile.name, acc[tile.id][1] + curr.troopsToDeploy, tile.owner];
-      } else {
-        acc[tile.id] = [tile.name, curr.troopsToDeploy, tile.owner];
+  return deployments.reduce(
+    (acc: Record<string, [string, number, string | undefined]>, curr) => {
+      const tile = tiles.find((t) => t.id === curr.deployTo);
+      if (tile?.id && tile?.name) {
+        if (acc[tile.id]) {
+          acc[tile.id] = [
+            tile.name,
+            acc[tile.id][1] + curr.troopsToDeploy,
+            tile.owner,
+          ];
+        } else {
+          acc[tile.id] = [tile.name, curr.troopsToDeploy, tile.owner];
+        }
       }
-    }
 
-    return acc;
-  }, {});
+      return acc;
+    },
+    {}
+  );
 }
 
 export function getCurrentUsersTurn(context: {
   players: { id: string }[];
   turn: number;
 }) {
-  return context.players[(context.turn - 1) % context.players.length]?.id;
+  const player = context.players[(context.turn - 1) % context.players.length];
+  return player?.id;
 }
 
 export function getMostRecentPortal(context: Context) {
@@ -143,24 +158,31 @@ export const warMachine = (
     actions: {
       startWar: ({ context, event }) => {
         const numberOfPlayers = context.players.length;
-        Object.keys(context.tiles).forEach((tileId) => {
-          context.tiles[tileId].troopCount = faker.number.int({
-            min: 2,
-            max: 3,
-          });
-          context.tiles[tileId].owner =
-            context.players[
-              faker.number.int({
-                min: 0,
-                max: numberOfPlayers - 1,
-              })
-            ].id;
+        shuffle(Object.keys(context.tiles)).forEach((tileId, i) => {
+          context.tiles[tileId].troopCount = 3;
+          const owner = context.players[i % numberOfPlayers].id;
+          context.tiles[tileId].owner = owner;
+          context.tiles[tileId].originalOwner = owner;
         });
 
         context.turns = { 1: { battles: [], deployments: [], portals: [] } };
 
         return context;
       },
+      completeTurn: assign(({ context, event }) => {
+        if (event.type !== 'complete-turn') {
+          return context;
+        }
+
+        context.turn = context.turn + 1;
+        context.turns[context.turn] = {
+          portals: [],
+          battles: [],
+          deployments: [],
+        };
+
+        return context;
+      }),
       setPortal: assign(({ context, event }) => {
         if (event.type !== 'set-portal-entry') {
           return context;
@@ -181,7 +203,7 @@ export const warMachine = (
 
         let currentTurn: Turn = context.turns[context.turn];
         const players = context.players;
-        const { id: currentUsersTurn } = players[context.turn - 1];
+        const currentUsersTurn = getCurrentUsersTurn(context);
 
         const attackingTile = context.tiles[event.attackingFromTerritory];
         const defendingTile = context.tiles[event.defendingTerritory];
@@ -203,16 +225,11 @@ export const warMachine = (
         const maxDefenderChange = Math.ceil(defendingTile.troopCount / 2);
         const maxAggressorChange = Math.ceil(attackingTile.troopCount / 2);
 
-        const aggressorChange = 0;
-        //   faker.number.int({
-        //   max: 0,
-        //   min: -maxAggressorChange,
-        // });
-        const defenderChange = -1;
-        //   faker.number.int({
-        //   max: 0,
-        //   min: -maxDefenderChange,
-        // });
+        const aggressorChange = -1;
+        const defenderChange = faker.number.int({
+          max: 0,
+          min: -1,
+        });
 
         const battleEvent = {
           date: new Date().toUTCString(),
@@ -302,16 +319,14 @@ export const warMachine = (
         const maxAggressorChange =
           attackingTroopCount < 10 ? 5 : Math.ceil(attackingTroopCount / 2);
 
-        const aggressorChange = 0;
-        //   faker.number.int({
-        //   max: 0,
-        //   min: -maxAggressorChange,
-        // });
-        const defenderChange = -1;
-        //   faker.number.int({
-        //   max: 0,
-        //   min: -maxDefenderChange,
-        // });
+        const aggressorChange = faker.number.int({
+          max: 0,
+          min: -1,
+        });
+        const defenderChange = faker.number.int({
+          max: 0,
+          min: -1,
+        });
 
         const battleEvent = {
           date: new Date().toUTCString(),
@@ -339,24 +354,39 @@ export const warMachine = (
 
         return context;
       }),
-      'generate-new-war': assign({
-        turn: () => 1,
-        tiles: ({ context, event }) => {
-          if (event.type !== 'generate-new-war') return context.tiles;
-          return event.tiles;
-        },
-        players: ({ context, event }) => {
-          if (event.type !== 'generate-new-war') return context.players;
+      'generate-new-war': assign(({ context, event }) => {
+        if (event.type !== 'generate-new-war') {
+          return context;
+        }
+        context.turn = 1;
+        context.roundLimit = event.roundLimit;
+        context.battleLimit = event.battleLimit;
+        context.playerLimit = event.playerLimit;
+        context.tiles = event.tiles;
+        context.players = event.players;
 
-          return event.players;
-        },
+        return context;
       }),
-      // setWarContext: assign({
-      //   round: () => 1,
-      // }),
     },
     guards: {
-      hasEnoughPlayers: ({ context }) => context.players.length >= 2,
+      isWarComplete: ({ context }) => {
+        const domination = groupBy(
+          Object.values(context.tiles),
+          (t) => t.owner
+        );
+
+        const round = Math.ceil(
+          Object.keys(context.turns).length / context.players.length
+        );
+
+        return (
+          (context.roundLimit === 0 ? false : round > context.roundLimit) ||
+          Object.keys(domination).length === 1
+        );
+      },
+      hasEnoughPlayers: ({ context }) => {
+        return context.players.length >= context.playerLimit;
+      },
       canDeploy: ({ context, event }) => {
         if (event.type !== 'deploy') {
           return false;
@@ -378,10 +408,11 @@ export const warMachine = (
       ({
         players: [],
         turn: 0,
-        playerLimit: 2,
-        battleLimit: 2,
+        playerLimit: 0,
+        battleLimit: 0,
         tiles: {} as Record<string, Tile>,
         turns: {},
+        roundLimit: 0,
       } as Context),
     states: {
       'war-created': {
@@ -404,6 +435,10 @@ export const warMachine = (
               },
             }),
           },
+          'begin-turn-number-1': {
+            target: 'war-in-progress',
+            actions: 'startWar',
+          },
         },
         always: [
           {
@@ -415,54 +450,37 @@ export const warMachine = (
       },
       'war-in-progress': {
         on: {
-          //   'complete-turn': {
-          //     actions: assign({
-          //       turn: ({ context, event }) => {
-          //         return context.turn > context.players.length + 1
-          //           ? 1
-          //           : context.turn + 1;
-          //       },
-          //       round: ({ context }) => {
-          //         return context.turn > context.players.length + 1
-          //           ? context.round + 1
-          //           : context.round;
-          //       },
-          //     }),
-          //   },
           'start-battle': {
             actions: 'startBattle',
+            target: 'check-war-status',
           },
           'set-portal-entry': {
             actions: 'setPortal',
-            // actions: assign({
-            //   portal: ({ context, event }) => {
-            //     return event.portal;
-            //   },
-            // }),
           },
           attack: {
             actions: 'attack',
+            target: 'check-war-status',
+          },
+          'complete-turn': {
+            actions: 'completeTurn',
+            target: 'check-war-status',
           },
           deploy: {
             actions: 'deploy',
             guard: 'canDeploy',
-            // actions: assign({
-            //   tiles: ({ context, event }) => {
-            //     let { troopCount } = conetext.tiles[event.tile];
-            //
-            //
-            //     context.deployedTroops = context.deployedTroops - event.troopsToDeploy
-            //
-            //     context.tiles[event.tile] = {
-            //       ...context.tiles[event.tile],
-            //       troopCount: troopCount + event.troopsToDeploy,
-            //     };
-            //
-            //     return context.tiles;
-            //   },
-            // }),
           },
         },
+      },
+      'check-war-status': {
+        always: [
+          {
+            target: 'war-complete',
+            guard: 'isWarComplete',
+          },
+          {
+            target: 'war-in-progress',
+          },
+        ],
       },
     },
   });

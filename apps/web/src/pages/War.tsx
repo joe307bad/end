@@ -404,6 +404,9 @@ function WarComponent({
         }
       });
       warService.setActiveBattle(undefined);
+      warService.store.battles = [];
+      warService.store.deployments = [];
+      warService.store.active = true;
       unsubscribe();
     };
   }, []);

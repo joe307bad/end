@@ -12,6 +12,22 @@ const STile = S.Struct({
   name: S.String,
   troopCount: S.Number,
   owner: S.String,
+  originalOwner: S.String,
+});
+
+const SBattle = S.Struct({
+  id: S.String,
+  aggressor: S.String,
+  defender: S.String,
+  attackingFromTerritory: S.String,
+  defendingTerritory: S.String,
+  events: S.Array(
+    S.Struct({
+      date: S.String,
+      defenderChange: S.Number,
+      aggressorChange: S.Number,
+    })
+  ),
 });
 
 const WarStartedTile = S.Struct({
@@ -23,17 +39,13 @@ const WarStartedTile = S.Struct({
 
 export type Tile = Mutable<S.Schema.Type<typeof STile>>;
 
+export type Battle = Mutable<S.Schema.Type<typeof SBattle>>;
+
 const AttackSchema = S.Struct({
   type: S.Literal('attack'),
   troopUpdates: S.Record({ key: S.String, value: S.Number }),
   ownerUpdates: S.Record({ key: S.String, value: S.String }),
-  battle: S.Struct({
-    id: S.String,
-    aggressor: S.String,
-    defender: S.String,
-    attackingFromTerritory: S.String,
-    defendingTerritory: S.String,
-  }),
+  battle: SBattle,
 });
 
 const ObjectSchema = S.Struct({
@@ -45,6 +57,12 @@ const ObjectSchema = S.Struct({
 const PortalSetSchema = S.Struct({
   type: S.Literal('portal-entry-set'),
   portal: S.Tuple(ObjectSchema, ObjectSchema),
+});
+
+const TurnCompletedSchema = S.Struct({
+  type: S.Literal('turn-completed'),
+  currentUsersTurn: S.String,
+  round: S.Number,
 });
 
 const DeploySchema = S.Struct({
@@ -84,14 +102,11 @@ const WarStartedSchema = S.Struct({
 const BattleStartedSchema = S.Struct({
   type: S.Literal('battle-started'),
   troopUpdates: S.Record({ key: S.String, value: S.Number }),
-  battle: S.Struct({
-    id: S.String,
-    createdDate: S.String,
-    aggressor: S.String,
-    defender: S.String,
-    attackingFromTerritory: S.String,
-    defendingTerritory: S.String,
-  }),
+  battle: SBattle,
+});
+
+const WarCompletedSchema = S.Struct({
+  type: S.Literal('war-completed'),
 });
 
 type PlayerJoined = S.Schema.Type<typeof PlayerJoinedSchema>;
@@ -104,7 +119,9 @@ export const ResultSchema = S.Union(
   DeploySchema,
   PortalSetSchema,
   BattleStartedSchema,
-  WarStartedSchema
+  WarStartedSchema,
+  TurnCompletedSchema,
+  WarCompletedSchema
 );
 
 export type Result = S.Schema.Type<typeof ResultSchema>;

@@ -1,10 +1,10 @@
 import { proxy } from 'valtio';
 import { Option as O } from 'effect';
 import { getOrUndefined, Option } from 'effect/Option';
-import { Battle, getDeploymentsByTerritory, WarState } from '@end/war/core';
+import { getDeploymentsByTerritory, WarState } from '@end/war/core';
 import * as THREE from 'three';
 import { buildCameraPath, Coords, hexasphere } from '@end/shared';
-import { Players, Tile } from './WarSchema';
+import { Players, Tile, Battle } from './WarSchema';
 import { derive } from 'valtio/utils';
 import { sortedTilesList, tileIdAndCoords } from './WarUtils';
 
@@ -36,6 +36,8 @@ export interface WarStore {
   battleLimit: number;
   activeBattle: Option<string>;
   deployments: { deployTo: string; troopsToDeploy: number; date: string }[];
+  playerLimit: number;
+  roundLimit: number;
 }
 
 export const store = proxy<WarStore>({
@@ -63,12 +65,78 @@ export const store = proxy<WarStore>({
   troopsToDeploy: 0,
   territoryToAttack: O.none(),
   battles: [],
-  battleLimit: 0,
+  battleLimit: 10,
   activeBattle: O.none(),
   deployments: [],
+  roundLimit: 10,
+  playerLimit: 12
 });
 
 export const derived = derive({
+  scoreboard: (get) => {
+    const tiles = get(store).tiles;
+    const players = get(store).players;
+
+    return players
+      .reduce((acc: { totalTroops: number; userName: string; color: string; }[], curr) => {
+        const owned = tiles.filter((t) => t.owner === curr.id);
+
+        const totalTroops = owned.reduce((acc1, curr1) => {
+          acc1 = acc1 + curr1.troopCount;
+          return acc1;
+        }, 0);
+
+        acc.push({ totalTroops, userName: curr.userName, color: curr.color });
+        return acc;
+      }, [])
+      .sort((a, b) => b.totalTroops - a.totalTroops);
+  },
+  battles: (get) => {
+    const battles = get(store).battles;
+    const tiles = get(store).tiles;
+    return battles.reduce(
+      (
+        acc: {
+          aggressor: string;
+          defender: string;
+          attackingFromTerritory: string;
+          defendingTerritory: string;
+          totalAggressorChange: number;
+          totalDefenderChange: number;
+        }[],
+        curr
+      ) => {
+        const [totalAggressorChange, totalDefenderChange] =
+          curr?.events?.reduce(
+            (acc: [number, number], curr) => {
+              acc[0] = acc[0] + curr.aggressorChange;
+
+              acc[1] = acc[1] + curr.defenderChange;
+
+              return acc;
+            },
+            [0, 0]
+          ) ?? [0, 0];
+
+        const attacking = tiles.find(
+          (t) => t.id === curr.attackingFromTerritory
+        );
+        const defending = tiles.find((t) => t.id === curr.defendingTerritory);
+
+        acc.push({
+          attackingFromTerritory: attacking?.name ?? '',
+          aggressor: attacking?.owner ?? '',
+          defendingTerritory: defending?.name ?? '',
+          defender: defending?.originalOwner ?? '',
+          totalAggressorChange,
+          totalDefenderChange,
+        });
+
+        return acc;
+      },
+      []
+    );
+  },
   deployments: (get) => {
     const tiles = get(store).tiles;
     const deployments = get(store).deployments;
@@ -88,7 +156,10 @@ export const derived = derive({
       return undefined;
     }
 
-    return [[one.name, one.owner], [two.name, two.owner]];
+    return [
+      [one.name, one.owner],
+      [two.name, two.owner],
+    ];
   },
   isOwner: (get) => {
     const selectedTileId = get(store).selectedTileId;
@@ -209,16 +280,6 @@ export const derived = derive({
   raisedTiles: (get) => {
     const tiles = get(store).tiles;
     return tiles.filter((t) => t.raised);
-  },
-  battles: (get) => {
-    const b = get(store).battles;
-    const limit = get(store).battleLimit;
-    return [
-      ...b,
-      ...Array.from({ length: limit - b.length }).map((_, i) => {
-        return { id: `B${i + b.length}` } as Battle;
-      }),
-    ];
   },
   battlesByTile: (get) => {
     const b = get(store).battles;

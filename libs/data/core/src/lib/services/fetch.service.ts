@@ -36,7 +36,9 @@ const FetchLive = Layer.effect(
                     'Content-Type': 'application/json',
                   },
                   body: JSON.stringify(body),
-                }).then((response) => response.json()) as Promise<T>,
+                }).then((response) => {
+                  return response.json();
+                }) as Promise<T>,
               catch: (error) => `Error fetching ${route}: ${error?.toString()}`,
             })
           )

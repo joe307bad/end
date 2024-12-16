@@ -7,6 +7,7 @@ import {
   getDeployedTroopsForTurn,
   getMostRecentPortal,
   getMostRecentDeployment,
+  getCurrentUsersTurn,
 } from '@end/war/core';
 import { createActor } from 'xstate';
 import { InjectModel, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -17,6 +18,21 @@ import { JwtService } from '@nestjs/jwt';
 import { v6 as uuidv6 } from 'uuid';
 import { faker } from '@faker-js/faker';
 import * as S from '@effect/schema/Schema';
+
+const colors: string[] = [
+  '#FF0000', // Red
+  '#FF7F00', // Orange
+  '#FFFF00', // Yellow
+  '#00FF00', // Green
+  '#0000FF', // Blue
+  '#520043', // Cyan
+  '#FF1493', // Deep Pink
+  '#FFD700', // Gold
+  '#008080', // Teal
+  '#800000', // Maroon
+  '#40E0D0', // Turquoise
+  '#8B4513', // Saddle Brown
+];
 
 @Schema({ strict: false })
 export class War {
@@ -73,7 +89,7 @@ export class ConquestController {
             {
               id: userId,
               userName: username,
-              color: 'red', // faker.color.rgb({ format: 'hex' }),
+              color: colors[0],
             },
           ],
         });
@@ -90,6 +106,8 @@ export class ConquestController {
       case 'set-portal-entry':
       case 'start-battle':
       case 'attack':
+      case 'complete-turn':
+      case 'begin-turn-number-1':
         try {
           const war = await this.warModel
             .findOne({ warId: event.warId })
@@ -99,15 +117,16 @@ export class ConquestController {
             warMachine(event.warId, warState.context, warState.value)
           );
           existingWarActor.start();
+          const preActionState = existingWarActor.getSnapshot();
 
           if (event.type === 'add-player') {
             const { userId, username } = getUserInfo(this.jwtService)(request);
             event = {
               ...event,
               player: {
-                id: '6725967b9cd8969c26ec53ed',
-                userName: 'user2',
-                color: 'blue', // faker.color.rgb({ format: 'hex' }),
+                id: userId,
+                userName: username,
+                color: colors[preActionState.context.players.length],
               },
             };
           }
@@ -173,6 +192,7 @@ export class ConquestController {
                 defender: battle.defender,
                 attackingFromTerritory: battle.attackingFromTerritory,
                 defendingTerritory: battle.defendingTerritory,
+                events: battle.events,
               },
             });
           } else if (event.type === 'start-battle') {
@@ -203,6 +223,7 @@ export class ConquestController {
                 defender: battle.defender,
                 attackingFromTerritory: battle.attackingFromTerritory,
                 defendingTerritory: battle.defendingTerritory,
+                events: battle.events,
               },
             });
           }
@@ -215,10 +236,29 @@ export class ConquestController {
             });
           }
 
+          if (event.type === 'complete-turn') {
+            const currentUsersTurn = getCurrentUsersTurn(
+              existingWarState.context
+            );
+            const turn = existingWarState.context.turn;
+            const turns = existingWarState.context.turns;
+            const round = Math.ceil(
+              Object.keys(turns).length /
+                existingWarState.context.players.length
+            );
+            this.conquest.next({
+              type: 'turn-completed',
+              currentUsersTurn,
+              warId: event.warId,
+              round,
+            });
+          }
+
           if (
-            event.type === 'add-player' &&
-            existingWarState.context.players.length >=
-              existingWarState.context.playerLimit
+            (event.type === 'add-player' &&
+              existingWarState.context.players.length >=
+                existingWarState.context.playerLimit) ||
+            event.type === 'begin-turn-number-1'
           ) {
             const id = event.warId;
             this.conquest.next({
@@ -261,6 +301,13 @@ export class ConquestController {
             });
           }
 
+          if (existingWarState.value === 'war-complete') {
+            this.conquest.next({
+              type: 'war-completed',
+              warId: event.warId,
+            });
+          }
+
           return { state: existingWarState, warId: event.warId };
         } catch (e) {
           return e.message;
@@ -292,6 +339,7 @@ export class ConquestController {
         Object.keys(existingWarState.context.turns).length /
           existingWarState.context.players.length
       ),
+      isInactive: existingWarState.value === 'war-complete',
     };
   }
 }

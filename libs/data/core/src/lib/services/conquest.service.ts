@@ -30,6 +30,7 @@ interface Conquest {
     callback: (v: string | null) => void
   ) => () => void;
   readonly attack: () => Effect.Effect<Response, string>;
+  readonly completeTurn: () => Effect.Effect<Response, string>;
   readonly deploy: () => Effect.Effect<Response, string>;
   readonly setPortal: () => Effect.Effect<Response, string>;
   readonly startBattle: () => Effect.Effect<Response, string>;
@@ -37,6 +38,7 @@ interface Conquest {
     warId: string;
   }) => Effect.Effect<Response, string>;
   readonly engage: () => Effect.Effect<Response, string>;
+  readonly beginTurnNumber1: () => Effect.Effect<Response, string>;
 }
 
 const ConquestService = Context.GenericTag<Conquest>('conquest-api');
@@ -117,6 +119,9 @@ export const ConquestLive = Layer.effect(
               type: 'generate-new-war',
               warId: war,
               players: [],
+              playerLimit: store.playerLimit ?? 10,
+              roundLimit: store.roundLimit ?? 10,
+              battleLimit: store.battleLimit ?? 10,
               tiles: Object.keys(raised).reduce<Record<string, Tile>>(
                 (acc, id: string) => {
                   acc[id] = {
@@ -126,6 +131,7 @@ export const ConquestLive = Layer.effect(
                     habitable: true,
                     name: raised[id],
                     neighborIds: hexasphere.tileLookup[id].neighborIds,
+                    originalOwner: 'null',
                   };
 
                   return acc;
@@ -160,7 +166,23 @@ export const ConquestLive = Layer.effect(
           warId: getOrUndefined(war.store.warId),
         });
       },
+      beginTurnNumber1: () => {
+        return fetch.post('/conquest', {
+          type: 'begin-turn-number-1',
+          warId: getOrUndefined(war.store.warId),
+        });
+      },
+      completeTurn: () => {
+        return fetch.post('/conquest', {
+          type: 'complete-turn',
+          warId: getOrUndefined(war.store.warId),
+        });
+      },
       startBattle: () => {
+        if (war.store.battles.length === war.store.battleLimit) {
+          return Effect.succeed(new Response());
+        }
+
         const [defendingTerritoryId] = war.tileIdAndCoords(
           getOrUndefined(war.store.territoryToAttack)
         );
@@ -185,6 +207,11 @@ export const ConquestLive = Layer.effect(
           troopsToDeploy: war.store.troopsToDeploy,
           warId: getOrUndefined(war.store.warId),
         };
+
+        if (war.store.troopsToDeploy <= 0) {
+          return Effect.succeed(new Response());
+        }
+
         return fetch.post('/conquest', { type: 'deploy', ...event });
       },
       setPortal: () => {
@@ -207,11 +234,6 @@ export const ConquestLive = Layer.effect(
         const attacking = war.store.selectedTileId;
         const defending = war.store.territoryToAttack;
 
-        if (war.store.turnAction === 'deploy') {
-          alert(war.store.selectedTileId);
-          return Effect.succeed({} as Response);
-        }
-
         return O.match(O.all([attacking, defending]), {
           onNone: () => {
             return Effect.fail('Selecting attacking and defending tile');
@@ -227,6 +249,10 @@ export const ConquestLive = Layer.effect(
             const defender = war.store.tiles.find((t) => t.id === defending);
 
             if (!battle) {
+              if (war.store.battles.length === war.store.battleLimit) {
+                return Effect.succeed({} as Response);
+              }
+
               return fetch.post('/conquest', {
                 type: 'start-battle',
                 attackingFromTerritory: attacking,

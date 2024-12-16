@@ -1,5 +1,5 @@
 export type Battle = {
-  id?: string;
+  id: string;
   createdDate?: string;
   aggressor: string;
   defender: string;
@@ -7,5 +7,5 @@ export type Battle = {
   defendingTerritory: string;
   aggressorInitialTroopCount?: number;
   defenderInitialTroopCount?: number;
-  events?: { date: string; defenderChange: number; aggressorChange: number }[];
+  events: { date: string; defenderChange: number; aggressorChange: number }[];
 };
