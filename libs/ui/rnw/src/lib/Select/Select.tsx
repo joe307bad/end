@@ -25,7 +25,7 @@ export default function Select({
 } & SelectProps) {
   return (
     <XStack gap="$4">
-      <Label htmlFor="select-demo-2">{label}</Label>
+      <Label width="50%" htmlFor="select-demo-2">{label}</Label>
       <XStack flex={1} alignItems="center" justifyContent="flex-end">
         <SelectDemoItem {...props} id="select-demo-2" items={items} native />
       </XStack>
@@ -37,7 +37,7 @@ export function SelectDemoItem(
   props: SelectProps & { items: { key: string; value: string }[] }
 ) {
   return (
-    <S size={'$1'} disablePreventBodyScroll {...props}>
+    <S size={'$0.5'} disablePreventBodyScroll {...props}>
       <S.Trigger width={220} iconAfter={ChevronDown}>
         <S.Value placeholder="Something" />
       </S.Trigger>
@@ -101,7 +101,7 @@ export function SelectDemoItem(
           justifyContent="center"
           position="relative"
           width="100%"
-          height="$3"
+          height="$2"
         >
           <YStack zIndex={10}>
             <ChevronDown size={20} />

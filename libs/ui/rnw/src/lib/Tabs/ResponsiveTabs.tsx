@@ -14,7 +14,7 @@ export function ResponsiveTabs({
   menuOpen: boolean;
   setMenuOpen: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { bp } = useResponsive(menuOpen, 1297);
+  const { bp } = useResponsive(menuOpen, 1000);
   return (
     <Section
       style={bp([

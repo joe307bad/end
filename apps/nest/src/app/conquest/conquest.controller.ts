@@ -1,11 +1,38 @@
 import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
-import { warMachine, Event } from '@end/war/core';
+import {
+  warMachine,
+  Event,
+  Battle,
+  getPossibleDeployedTroops,
+  getDeployedTroopsForTurn,
+  getMostRecentPortal,
+  getMostRecentDeployment,
+  getCurrentUsersTurn,
+} from '@end/war/core';
 import { createActor } from 'xstate';
 import { InjectModel, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
 import { Entity } from '../sync/sync.service';
 import { ConquestService } from './conquest.service';
 import { JwtService } from '@nestjs/jwt';
+import { v6 as uuidv6 } from 'uuid';
+import { faker } from '@faker-js/faker';
+import * as S from '@effect/schema/Schema';
+
+const colors: string[] = [
+  '#FF0000', // Red
+  '#FF7F00', // Orange
+  '#FFFF00', // Yellow
+  '#00FF00', // Green
+  '#0000FF', // Blue
+  '#520043', // Cyan
+  '#FF1493', // Deep Pink
+  '#FFD700', // Gold
+  '#008080', // Teal
+  '#800000', // Maroon
+  '#40E0D0', // Turquoise
+  '#8B4513', // Saddle Brown
+];
 
 @Schema({ strict: false })
 export class War {
@@ -56,7 +83,16 @@ export class ConquestController {
 
         const warActor = createActor(warMachine(event.warId));
         warActor.start();
-        warActor.send({ ...event, players: [[userId, username]] });
+        warActor.send({
+          ...event,
+          players: [
+            {
+              id: userId,
+              userName: username,
+              color: colors[0],
+            },
+          ],
+        });
         const state = warActor.getSnapshot();
         await this.warModel
           .create({ state: JSON.stringify(state), warId: event.warId })
@@ -68,7 +104,10 @@ export class ConquestController {
       case 'add-player':
       case 'deploy':
       case 'set-portal-entry':
+      case 'start-battle':
       case 'attack':
+      case 'complete-turn':
+      case 'begin-turn-number-1':
         try {
           const war = await this.warModel
             .findOne({ warId: event.warId })
@@ -78,12 +117,24 @@ export class ConquestController {
             warMachine(event.warId, warState.context, warState.value)
           );
           existingWarActor.start();
+          const preActionState = existingWarActor.getSnapshot();
 
           if (event.type === 'add-player') {
             const { userId, username } = getUserInfo(this.jwtService)(request);
             event = {
               ...event,
-              player: [userId, username],
+              player: {
+                id: userId,
+                userName: username,
+                color: colors[preActionState.context.players.length],
+              },
+            };
+          }
+
+          if (event.type === 'start-battle') {
+            event = {
+              ...event,
+              id: crypto.randomUUID(),
             };
           }
 
@@ -97,7 +148,6 @@ export class ConquestController {
                   context: existingWarState.context,
                   value: existingWarState.value,
                 }),
-                warId: event.warId,
               }
             )
             .then((r) => {
@@ -105,17 +155,76 @@ export class ConquestController {
             });
 
           if (event.type === 'attack') {
+            const battle = existingWarState.context.turns[
+              existingWarState.context.turn
+              // @ts-ignore
+            ].battles.find((b) => b.id === event.battleId);
+
+            if (!battle) {
+              return existingWarState.context.tiles;
+            }
             const tile1TroopCount =
-              // @ts-ignore
-              existingWarState.context.tiles[event.tile1].troopCount;
+              existingWarState.context.tiles[battle.defendingTerritory]
+                .troopCount;
             const tile2TroopCount =
-              // @ts-ignore
-              existingWarState.context.tiles[event.tile2].troopCount;
+              existingWarState.context.tiles[battle.attackingFromTerritory]
+                .troopCount;
 
             this.conquest.next({
               type: 'attack',
-              ...event,
-              ...{ tile1TroopCount, tile2TroopCount },
+              warId: event.warId,
+              ownerUpdates: {
+                [battle.defendingTerritory]:
+                  existingWarState.context.tiles[battle.defendingTerritory]
+                    .owner,
+                [battle.attackingFromTerritory]:
+                  existingWarState.context.tiles[battle.attackingFromTerritory]
+                    .owner,
+              },
+              troopUpdates: {
+                [battle.defendingTerritory]: tile1TroopCount,
+                [battle.attackingFromTerritory]: tile2TroopCount,
+              },
+              battle: {
+                id: battle.id,
+                createdDate: battle.createdDate,
+                aggressor: battle.aggressor,
+                defender: battle.defender,
+                attackingFromTerritory: battle.attackingFromTerritory,
+                defendingTerritory: battle.defendingTerritory,
+                events: battle.events,
+              },
+            });
+          } else if (event.type === 'start-battle') {
+            const battle =
+              existingWarState.context.turns[existingWarState.context.turn]
+                ?.battles[0];
+
+            if (!battle) {
+              return existingWarState.context.tiles;
+            }
+            const defendingTroopCount =
+              existingWarState.context.tiles[battle.defendingTerritory]
+                .troopCount;
+            const attackingTroopCount =
+              existingWarState.context.tiles[battle.attackingFromTerritory]
+                .troopCount;
+            this.conquest.next({
+              type: 'battle-started',
+              warId: event.warId,
+              troopUpdates: {
+                [battle.defendingTerritory]: defendingTroopCount,
+                [battle.attackingFromTerritory]: attackingTroopCount,
+              },
+              battle: {
+                id: battle.id,
+                createdDate: battle.createdDate,
+                aggressor: battle.aggressor,
+                defender: battle.defender,
+                attackingFromTerritory: battle.attackingFromTerritory,
+                defendingTerritory: battle.defendingTerritory,
+                events: battle.events,
+              },
             });
           }
 
@@ -127,24 +236,77 @@ export class ConquestController {
             });
           }
 
+          if (event.type === 'complete-turn') {
+            const currentUsersTurn = getCurrentUsersTurn(
+              existingWarState.context
+            );
+            const turn = existingWarState.context.turn;
+            const turns = existingWarState.context.turns;
+            const round = Math.ceil(
+              Object.keys(turns).length /
+                existingWarState.context.players.length
+            );
+            this.conquest.next({
+              type: 'turn-completed',
+              currentUsersTurn,
+              warId: event.warId,
+              round,
+            });
+          }
+
+          if (
+            (event.type === 'add-player' &&
+              existingWarState.context.players.length >=
+                existingWarState.context.playerLimit) ||
+            event.type === 'begin-turn-number-1'
+          ) {
+            const id = event.warId;
+            this.conquest.next({
+              type: 'war-started',
+              warId: event.warId,
+              round: Math.ceil(
+                Object.keys(existingWarState.context.turns).length /
+                  existingWarState.context.players.length
+              ),
+              war: { id, ...existingWarState.context },
+            });
+          }
+
           if (event.type === 'set-portal-entry') {
             this.conquest.next({
               type: 'portal-entry-set',
               warId: event.warId,
-              portal: existingWarState.context.portal,
+              portal: getMostRecentPortal(existingWarState.context),
             });
           }
 
           if (event.type === 'deploy') {
+            const turn =
+              existingWarState.context.turns[existingWarState.context.turn];
+            const deployedTroops = getDeployedTroopsForTurn(turn);
+            const deployment = getMostRecentDeployment(
+              existingWarState.context
+            );
+            const availableTroopsToDeploy =
+              getPossibleDeployedTroops(existingWarState.context) -
+              deployedTroops;
             this.conquest.next({
               type: 'deploy',
               tile: event.tile,
               troopsCount:
                 existingWarState.context.tiles[event.tile].troopCount,
               warId: event.warId,
+              availableTroopsToDeploy,
+              deployment,
             });
           }
 
+          if (existingWarState.value === 'war-complete') {
+            this.conquest.next({
+              type: 'war-completed',
+              warId: event.warId,
+            });
+          }
 
           return { state: existingWarState, warId: event.warId };
         } catch (e) {
@@ -160,6 +322,24 @@ export class ConquestController {
         warId: { $eq: params.id },
       })
       .exec();
-    return { war };
+    const warState = JSON.parse(war.state);
+    const existingWarActor = createActor(
+      warMachine(war.warId, warState.context, warState.value)
+    );
+    const existingWarState = existingWarActor.getSnapshot();
+    const deployedTroops = getDeployedTroopsForTurn(
+      existingWarState.context.turns[existingWarState.context.turn]
+    );
+    const availableTroopsToDeploy =
+      getPossibleDeployedTroops(existingWarState.context) - deployedTroops;
+    return {
+      war,
+      availableTroopsToDeploy,
+      round: Math.ceil(
+        Object.keys(existingWarState.context.turns).length /
+          existingWarState.context.players.length
+      ),
+      isInactive: existingWarState.value === 'war-complete',
+    };
   }
 }

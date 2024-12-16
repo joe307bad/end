@@ -276,7 +276,7 @@ const TroopCount = React.memo(
       if (defendingRing.current) {
         defendingRing.current.rotation.x = MathUtils.degToRad(-90);
       }
-    }, [selected]);
+    }, [selected, troopCount]);
 
     useEffect(() => {
       if (
@@ -428,11 +428,12 @@ const AttackArrow = React.memo(
     neighbor: Tile;
     showAttackArrows?: boolean;
     centerPoint: Coords;
-    owner?: number;
+    owner?: string;
     raised?: boolean;
   }) => {
     const { services } = useEndApi();
     const { warService } = services;
+    const warStore = useSnapshot(warService.store);
 
     const coneInner: React.MutableRefObject<THREE.Mesh | null> = useRef(null);
     const coneRef = useRef<Group<Object3DEventMap>>(null);
@@ -476,11 +477,13 @@ const AttackArrow = React.memo(
 
           O.match(combined, {
             onNone() {
+              setVisible(false);
               return undefined;
             },
             onSome({ attacking, selectedId }) {
               const a = [attacking.x, attacking.y, attacking.z].join(',');
-              if (selectedId === cp && s[n] && n === a) {
+              const owner = s[n]?.owner;
+              if (selectedId === cp && owner && n === a) {
                 setVisible(true);
               } else {
                 setVisible(false);
@@ -561,7 +564,7 @@ const AttackArrows = React.memo(
     neighbors: Tile[];
     showAttackArrows?: boolean;
     centerPoint: Coords;
-    owner?: number;
+    owner?: string;
     raised?: boolean;
   }) => {
     const neighbors = hexasphere.tileLookup[id].neighbors;
@@ -592,7 +595,7 @@ const TileMesh = React.memo(
     raised: boolean;
     troopCount: number;
     ringColor: string;
-    owner: number;
+    owner: string;
     defending: boolean;
   }) => {
     const { services } = useEndApi();
@@ -620,6 +623,9 @@ const TileMesh = React.memo(
       });
     }, []);
 
+    const color =
+      troopCount > 0 ? ringColor : getOrUndefined(warStore.landColor);
+
     return (
       <mesh onClick={click}>
         {neighbors && (
@@ -633,7 +639,7 @@ const TileMesh = React.memo(
           />
         )}
         <mesh visible={raised} geometry={land}>
-          <meshStandardMaterial color={getOrUndefined(warStore.landColor)} />
+          <meshStandardMaterial color={color} />
           {centerPoint && (
             <Edges color={selected ? 'yellow' : 'black'} threshold={50} />
           )}
@@ -764,6 +770,13 @@ export const HexasphereV2 = React.memo(
       }
     });
 
+    const colors = useMemo(() => {
+      return warStore.players.reduce((acc: Record<string, string>, curr) => {
+        acc[curr.id] = curr.color;
+        return acc;
+      }, {});
+    }, [warStore.players]);
+
     return (
       <>
         <ambientLight />
@@ -776,7 +789,7 @@ export const HexasphereV2 = React.memo(
               selected={t.selected}
               raised={t.raised}
               troopCount={t.troopCount}
-              ringColor={t.owner === 1 ? 'green' : 'blue'}
+              ringColor={colors[t.owner]}
               owner={t.owner}
               defending={t.defending}
             />

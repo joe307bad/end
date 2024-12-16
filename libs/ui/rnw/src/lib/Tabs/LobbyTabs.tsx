@@ -19,6 +19,10 @@ export function LobbyTabs() {
     );
   }, []);
 
+  const beginTurnNumber1 = useCallback(async () => {
+    await execute(services.conquestService.beginTurnNumber1());
+  }, []);
+
   return (
     <View
       flexDirection="column"
@@ -32,15 +36,15 @@ export function LobbyTabs() {
       padding="$1"
     >
       <View flex={1} space="$1">
-        {warStore.players.map(([userId, userName], i) => (
+        {warStore.players.map(({ id, userName, color }, i) => (
           <View
-            key={`${userId}_${i}`}
+            key={`${id}_${i}`}
             flexDirection="row"
             alignItems="center"
             space="$1"
           >
             <View>
-              <UserCircle2 />
+              <UserCircle2 color={color} />
             </View>
             <Text flex={1}>{userName}</Text>
             <Text
@@ -49,15 +53,22 @@ export function LobbyTabs() {
               textOverflow="ellipsis"
               width={100}
             >
-              {userId}
+              {id}
             </Text>
           </View>
         ))}
       </View>
       <View paddingTop="$1" width="100%">
-        <View width={100} alignSelf="flex-end">
-          <PrimaryButton onPress={join}>Join</PrimaryButton>
-        </View>
+        {warStore.players.length > 1 && (
+          <View width={100} alignSelf="flex-start">
+            <PrimaryButton onPress={beginTurnNumber1}>Start</PrimaryButton>
+          </View>
+        )}
+        {!warStore.players.find((p) => p.id === warStore.userId) && (
+          <View width={100} alignSelf="flex-end">
+            <PrimaryButton onPress={join}>Join</PrimaryButton>
+          </View>
+        )}
       </View>
     </View>
   );

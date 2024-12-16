@@ -12,8 +12,6 @@ import { View } from 'react-native';
 import useControls from 'r3f-native-orbitcontrols';
 import * as THREE from 'three';
 import { useEndApi } from '@end/data/rn';
-import { useFocusEffect } from '@react-navigation/native';
-import { subscribeKey } from 'valtio/utils';
 
 export default function War() {
   const [OrbitControls, events] = useControls();
@@ -33,19 +31,10 @@ export default function War() {
     []
   );
   const { services } = useEndApi();
-  const { getProxy, getDerived, getColors } = services.hexaService;
   const cameraPath = useRef<{
     points: THREE.Vector3[];
     tangents: THREE.Vector3[];
   }>();
-
-  useFocusEffect(() => {
-    const unsubscribe = subscribeKey(getDerived(), 'cameraPath', (s) => {
-      cameraPath.current = s;
-    });
-
-    return () => unsubscribe();
-  });
 
   return (
     <View style={{ flex: 1 }} {...events}>

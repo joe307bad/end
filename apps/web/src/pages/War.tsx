@@ -142,18 +142,16 @@ const initialEdges = [
 ];
 
 function AttackDialog({
-  owner,
   portalCoords,
   setTerritoryToAttack,
   territoryToAttack,
 }: {
   portalCoords?: [Coords?, Coords?];
-  owner: number;
   setTerritoryToAttack: (coords: Coords) => void;
   territoryToAttack: Option<Coords>;
 }) {
   const { services } = useEndApi();
-  const { warService } = services;
+  const { warService, endApi } = services;
   const warStore = useSnapshot(warService.store);
   const warDerived = useSnapshot(warService.derived);
   const [selectedTileId] = warService.tileIdAndCoords(
@@ -195,7 +193,7 @@ function AttackDialog({
     for (let i = 1; i <= 7; i++) {
       const tiles = Object.keys(warDerived.selectedNeighborsOwners);
       const tile = warStore.tiles.find((t) => t.id == tiles[i - 1]);
-      const tileOwner = warDerived.selectedNeighborsOwners[tile?.id ?? -1];
+      const tileOwner: string | undefined = (warDerived.selectedNeighborsOwners[tile?.id ?? -1] ?? {}).owner;
 
       if (!tile || !tileOwner) {
         continue;
@@ -293,7 +291,7 @@ function AttackDialog({
   return (
     <View
       style={{
-        height: 220,
+        height: 140,
         paddingLeft: 10,
       }}
     >
@@ -360,7 +358,7 @@ function WarComponent({
       return [[0, 300, 25], {}];
     }
 
-    if (width < 1297) {
+    if (width < 1000) {
       return [[0, 160, 25], {}];
     }
 
@@ -388,33 +386,10 @@ function WarComponent({
       war.planet.fetch(),
       execute(services.conquestService.getWar(params.id)).then((r) => r.json()),
     ]).then(([local, remote]) => {
-      const war = JSON.parse(remote.war.state);
-      const players = war.context.players;
-      const portal = war.context.portal;
-      const state = war.value;
-      const turn = war.context.turn;
-      const round = war.context.round;
-
-      const tiles: Record<string, any> = war.context.tiles;
-      const raised: Record<string, string> = JSON.parse(local.raised);
-      setLoaded(true);
-
       const title = `The War of ${local.name}`;
+      warService.begin(local, remote, params, title);
       st?.(title);
-
-      warService.begin(
-        params.id ? O.some(params.id) : O.none(),
-        title,
-        state,
-        raised,
-        tiles,
-        local.waterColor,
-        local.landColor,
-        players,
-        portal,
-        turn,
-        round
-      );
+      setLoaded(true);
     });
 
     const unsubscribe = services.conquestService.connectToWarLog(
@@ -428,6 +403,10 @@ function WarComponent({
           await execute(conquestService.setPortal());
         }
       });
+      warService.setActiveBattle(undefined);
+      warService.store.battles = [];
+      warService.store.deployments = [];
+      warService.store.active = true;
       unsubscribe();
     };
   }, []);

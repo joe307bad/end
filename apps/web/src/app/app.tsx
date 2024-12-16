@@ -115,8 +115,11 @@ const PrivateRoutes = () => {
   useEffect(() => {
     getToken().then((t) => {
       execute(services.syncService.sync())
-        .then((r) => {
+        .then(async (r) => {
           setToken(t);
+          services.warService.store.userId = await execute(
+            services.authService.getUserId()
+          );
         })
         .catch((e) => {
           try {
@@ -126,7 +129,7 @@ const PrivateRoutes = () => {
               setToken(null);
             }
           } catch (e) {
-            setToken(null)
+            setToken(null);
           }
         });
     });
