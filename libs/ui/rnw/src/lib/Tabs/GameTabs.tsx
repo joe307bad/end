@@ -40,7 +40,6 @@ import { LobbyTabs } from './LobbyTabs';
 import { Tile, TurnAction } from '@end/war/core';
 import { Badge, PrimaryButton } from '../Display';
 import { Checkbox } from '../Checkbox';
-import conquest from '../../../../../../apps/web/src/pages/Conquest';
 
 function TileInfo({
   name,

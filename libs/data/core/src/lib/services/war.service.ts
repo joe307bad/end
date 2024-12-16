@@ -1,5 +1,4 @@
 import { Effect,pipe} from 'effect';
-import { Option } from 'effect/Option';
 import * as THREE from 'three';
 import {
   Coords,
