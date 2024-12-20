@@ -1,13 +1,13 @@
 import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
 import {
-  warMachine,
   Event,
-  Battle,
-  getPossibleDeployedTroops,
-  getDeployedTroopsForTurn,
-  getMostRecentPortal,
-  getMostRecentDeployment,
   getCurrentUsersTurn,
+  getDeployedTroopsForTurn,
+  getMostRecentDeployment,
+  getMostRecentPortal,
+  getPossibleDeployedTroops,
+  getScoreboard,
+  warMachine,
 } from '@end/war/core';
 import { createActor } from 'xstate';
 import { InjectModel, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -15,9 +15,7 @@ import { Model, ObjectId } from 'mongoose';
 import { Entity } from '../sync/sync.service';
 import { ConquestService } from './conquest.service';
 import { JwtService } from '@nestjs/jwt';
-import { v6 as uuidv6 } from 'uuid';
-import { faker } from '@faker-js/faker';
-import * as S from '@effect/schema/Schema';
+import { User } from '../users/users.service';
 
 const colors: string[] = [
   '#FF0000', // Red
@@ -62,6 +60,7 @@ export class ConquestController {
   constructor(
     @InjectModel(War.name) private warModel: Model<War>,
     @InjectModel(Entity.name) private entityModel: Model<Entity>,
+    @InjectModel(User.name) private userModel: Model<User>,
     private jwtService: JwtService,
     private conquest: ConquestService
   ) {}
@@ -306,6 +305,16 @@ export class ConquestController {
               type: 'war-completed',
               warId: event.warId,
             });
+
+            const victor = getScoreboard({
+              players: existingWarState.context.players,
+              tiles: Object.values(existingWarState.context.tiles),
+            })[0].id;
+
+            await this.entityModel.updateOne(
+              { table: 'wars', _id: event.warId },
+              { victor, updated_on_server: Date.now() }
+            );
           }
 
           return { state: existingWarState, warId: event.warId };
