@@ -204,7 +204,7 @@ export const CurrentToast = () => {
       animation="medium"
       viewportName={currentToast?.viewportName}
     >
-      <YStack backgroundColor="black" padding="$0.5">
+      <YStack padding="$0.5">
         <Toast.Title>{currentToast?.title}</Toast.Title>
         {!!currentToast?.message && (
           <Toast.Description>{currentToast?.message}</Toast.Description>

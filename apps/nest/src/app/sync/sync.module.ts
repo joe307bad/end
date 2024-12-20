@@ -8,7 +8,7 @@ import { SyncController } from './sync.controller';
     MongooseModule.forFeature([{ name: Entity.name, schema: EntitySchema }]),
   ],
   providers: [SyncService],
-  exports: [SyncService],
+  exports: [SyncService, MongooseModule],
   controllers: [SyncController],
 })
 export class SyncModule {}

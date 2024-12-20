@@ -9,6 +9,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { SyncController } from './sync/sync.controller';
 import { SyncModule } from './sync/sync.module';
 import { ConquestModule } from './conquest/conquest.module';
+import { Entity, EntitySchema } from './sync/sync.service';
+import { User, UserSchema } from './users/users.service';
 
 @Module({
   imports: [
@@ -21,7 +23,6 @@ import { ConquestModule } from './conquest/conquest.module';
       `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_PROD_URL}`,
       { dbName: 'end', directConnection: true }
     ),
-    SyncModule,
   ],
   controllers: [AppController, SyncController],
   providers: [AppService],

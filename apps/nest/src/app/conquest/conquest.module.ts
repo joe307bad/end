@@ -4,9 +4,11 @@ import { ConquestController, War, WarSchema } from './conquest.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Entity, EntitySchema } from '../sync/sync.service';
 import { ConquestService } from './conquest.service';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
+    UsersModule,
     MongooseModule.forFeature([{ name: Entity.name, schema: EntitySchema }]),
     MongooseModule.forFeature([{ name: War.name, schema: WarSchema }]),
   ],

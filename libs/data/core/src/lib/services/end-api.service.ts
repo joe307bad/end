@@ -16,6 +16,7 @@ interface EndApi {
     confirmPassword: string
   ) => Effect.Effect<{ access_token: string }, string>;
   readonly database: Database;
+  readonly leaderboard: () => Effect.Effect<Response, string>;
 }
 
 const EndApiService = Context.GenericTag<EndApi>('end-api');
@@ -26,7 +27,6 @@ const EndApiLive = Layer.effect(
     const fetch = yield* FetchService;
     const db = yield* DbService;
     const database = yield* db.database();
-    const war = yield* WarService;
 
     return EndApiService.of({
       login: (userName: string, password: string) => {
@@ -53,6 +53,9 @@ const EndApiLive = Layer.effect(
             });
           })
         );
+      },
+      leaderboard() {
+        return fetch.get('/leaderboard');
       },
       database,
     });

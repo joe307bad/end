@@ -26,6 +26,8 @@ export class Planet extends Model implements IPlanet {
 
 export class War extends Model implements IWar {
   static override table = 'wars';
+  @field('victor')
+  victor!: string;
   @field('players')
   players!: number;
   @relation('planets', 'planet_id')

@@ -4,6 +4,7 @@ import { Coords } from '@end/shared';
 import { Battle } from './interfaces/Battle';
 import { compareDesc } from 'date-fns';
 import { groupBy, pipe, shuffle, uniqBy } from 'remeda';
+import { Mutable } from 'effect/Types';
 
 export interface Tile {
   habitable: boolean;
@@ -86,6 +87,42 @@ export function getDeployedTroopsForTurn(turn?: Turn) {
     acc = acc + curr.troopsToDeploy;
     return acc;
   }, 0);
+}
+
+export function getScoreboard(context: {
+  players: readonly {
+    readonly id: string;
+    readonly userName: string;
+    readonly color: string;
+  }[];
+  tiles: Partial<Tile>[];
+}) {
+  return context.players
+    .reduce(
+      (
+        acc: { totalTroops: number; userName: string; color: string, id: string }[],
+        curr
+      ) => {
+        const owned = Object.values(context.tiles).filter(
+          (t) => t.owner === curr.id
+        );
+
+        const totalTroops = owned.reduce((acc1, curr1) => {
+          acc1 = acc1 + (curr1?.troopCount ?? 0);
+          return acc1;
+        }, 0);
+
+        acc.push({
+          totalTroops,
+          userName: curr?.userName ?? '',
+          color: curr?.color ?? '',
+          id: curr?.id ?? '',
+        });
+        return acc;
+      },
+      []
+    )
+    .sort((a, b) => b.totalTroops - a.totalTroops);
 }
 
 export function getDeploymentsByTerritory(
