@@ -193,7 +193,9 @@ function AttackDialog({
     for (let i = 1; i <= 7; i++) {
       const tiles = Object.keys(warDerived.selectedNeighborsOwners);
       const tile = warStore.tiles.find((t) => t.id == tiles[i - 1]);
-      const tileOwner: string | undefined = (warDerived.selectedNeighborsOwners[tile?.id ?? -1] ?? {}).owner;
+      const tileOwner: string | undefined = (
+        warDerived.selectedNeighborsOwners[tile?.id ?? -1] ?? {}
+      ).owner;
 
       if (!tile || !tileOwner) {
         continue;
@@ -407,6 +409,7 @@ function WarComponent({
       warService.store.battles = [];
       warService.store.deployments = [];
       warService.store.active = true;
+      warService.resetTiles();
       unsubscribe();
     };
   }, []);

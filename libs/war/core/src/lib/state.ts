@@ -22,7 +22,7 @@ interface Context {
   battleLimit: number;
   turn: number;
   tiles: Record<string, Tile>;
-  turns: Record<string, Turn>;
+  turns?: Record<string, Turn>;
   roundLimit: number;
 }
 
@@ -100,7 +100,12 @@ export function getScoreboard(context: {
   return context.players
     .reduce(
       (
-        acc: { totalTroops: number; userName: string; color: string, id: string }[],
+        acc: {
+          totalTroops: number;
+          userName: string;
+          color: string;
+          id: string;
+        }[],
         curr
       ) => {
         const owned = Object.values(context.tiles).filter(
@@ -163,7 +168,7 @@ export function getCurrentUsersTurn(context: {
 }
 
 export function getMostRecentPortal(context: Context) {
-  const turn = context.turns[context.turn];
+  const turn = context.turns?.[context.turn];
   if (!turn) {
     return undefined;
   }
@@ -173,7 +178,7 @@ export function getMostRecentPortal(context: Context) {
 }
 
 export function getMostRecentDeployment(context: Context) {
-  const turn = context.turns[context.turn];
+  const turn = context.turns?.[context.turn];
   if (!turn) {
     return undefined;
   }
@@ -202,12 +207,13 @@ export const warMachine = (
           context.tiles[tileId].originalOwner = owner;
         });
 
+        context.turn = 1;
         context.turns = { 1: { battles: [], deployments: [], portals: [] } };
 
         return context;
       },
       completeTurn: assign(({ context, event }) => {
-        if (event.type !== 'complete-turn') {
+        if (event.type !== 'complete-turn' || !context.turns) {
           return context;
         }
 
@@ -221,7 +227,7 @@ export const warMachine = (
         return context;
       }),
       setPortal: assign(({ context, event }) => {
-        if (event.type !== 'set-portal-entry') {
+        if (event.type !== 'set-portal-entry' || !context.turns) {
           return context;
         }
 
@@ -234,7 +240,7 @@ export const warMachine = (
         return context;
       }),
       startBattle: assign(({ context, event }) => {
-        if (event.type !== 'start-battle') {
+        if (event.type !== 'start-battle' || !context.turns) {
           return context;
         }
 
@@ -304,7 +310,7 @@ export const warMachine = (
         return context;
       }),
       deploy: assign(({ context, event }) => {
-        if (event.type !== 'deploy') {
+        if (event.type !== 'deploy' || !context.turns) {
           return context;
         }
         let { troopCount } = context.tiles[event.tile];
@@ -326,7 +332,11 @@ export const warMachine = (
         return context;
       }),
       attack: assign(({ context, event }) => {
-        if (event.type !== 'attack' || !context.turns[context.turn]?.battles) {
+        if (
+          event.type !== 'attack' ||
+          !context.turns ||
+          !context.turns[context.turn]?.battles
+        ) {
           return context;
         }
         const battle = context.turns[context.turn].battles.find(
@@ -395,18 +405,23 @@ export const warMachine = (
         if (event.type !== 'generate-new-war') {
           return context;
         }
-        context.turn = 1;
+        context.turn = 0;
         context.roundLimit = event.roundLimit;
         context.battleLimit = event.battleLimit;
         context.playerLimit = event.playerLimit;
         context.tiles = event.tiles;
         context.players = event.players;
+        context.turns = {};
 
         return context;
       }),
     },
     guards: {
       isWarComplete: ({ context }) => {
+        if (!context.turns) {
+          return false;
+        }
+
         const domination = groupBy(
           Object.values(context.tiles),
           (t) => t.owner
@@ -425,7 +440,7 @@ export const warMachine = (
         return context.players.length >= context.playerLimit;
       },
       canDeploy: ({ context, event }) => {
-        if (event.type !== 'deploy') {
+        if (event.type !== 'deploy' || !context.turns) {
           return false;
         }
 

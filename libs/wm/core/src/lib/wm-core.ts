@@ -2,15 +2,16 @@ import 'reflect-metadata';
 import {
   appSchema,
   Database,
-  DatabaseAdapter,
+  DatabaseAdapter, Q,
   Relation,
-  tableSchema,
+  tableSchema
 } from '@nozbe/watermelondb';
 import { schemaMigrations } from '@nozbe/watermelondb/Schema/migrations';
 import { Model } from '@nozbe/watermelondb';
-import { field, relation } from '@nozbe/watermelondb/decorators';
+import { field, lazy, relation } from '@nozbe/watermelondb/decorators';
 import { synchronize } from '@nozbe/watermelondb/sync';
-import { IWar, IPlanet } from '@end/war/core';
+import { IWar, IPlanet, IUser } from '@end/war/core';
+import { Associations } from '@nozbe/watermelondb/Model';
 
 export class Planet extends Model implements IPlanet {
   static override table = 'planets';
@@ -26,18 +27,51 @@ export class Planet extends Model implements IPlanet {
 
 export class War extends Model implements IWar {
   static override table = 'wars';
+
+  static override associations: Associations = {
+    war_users: {
+      type: 'has_many',
+      foreignKey: 'war_id'
+    },
+  };
+
   @field('victor')
   victor!: string;
   @field('players')
   players!: number;
   @relation('planets', 'planet_id')
   planet!: Relation<Planet>;
+
+  @lazy
+  users = this.collections
+    .get<User>('users')
+    .query(Q.on('war_users', 'war_id', this.id));
 }
+
+export class User extends Model implements IUser {
+  static override table = 'users';
+  @field('userName')
+  userName!: string;
+  @field('passwordId')
+  passwordId!: string;
+}
+
+class WarUser extends Model {
+  static override table = 'war_users'
+  static override  associations: Associations = {
+    wars: { type: 'belongs_to', key: 'war_id' },
+    users: { type: 'belongs_to', key: 'user_id' },
+  }
+
+  @relation('wars', 'war_id') war!: IWar
+  @relation('users', 'user_id') user!: IUser
+}
+
 
 export const databaseFactory = (adapter: DatabaseAdapter) =>
   new Database({
     adapter,
-    modelClasses: [Planet, War],
+    modelClasses: [Planet, War, User, WarUser],
   });
 
 export const schema = appSchema({
@@ -60,6 +94,13 @@ export const schema = appSchema({
       columns: [
         { name: 'planet_id', type: 'string' },
         { name: 'players', type: 'number' },
+      ],
+    }),
+    tableSchema({
+      name: 'war_users',
+      columns: [
+        { name: 'user_id', type: 'string' },
+        { name: 'war_id', type: 'string' },
       ],
     }),
   ],

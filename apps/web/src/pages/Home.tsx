@@ -47,6 +47,10 @@ export default function Home() {
 
   useEffect(() => {
     warService.initializeMap();
+
+    return () => {
+      warService.resetTiles();
+    };
   }, []);
 
   const startGame = useCallback(

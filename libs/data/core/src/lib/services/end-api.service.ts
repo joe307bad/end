@@ -40,6 +40,7 @@ const EndApiLive = Layer.effect(
         password: string,
         confirmPassword: string
       ) => {
+        // TODO after registering, store the user in the local-first store
         return pipe(
           Effect.suspend(() =>
             password != '' && confirmPassword === password

@@ -7,7 +7,7 @@ import {
 import { Planet, War } from '@end/wm/core';
 import { Database, Q, Relation } from '@nozbe/watermelondb';
 import { H2, ListItem, Text, YStack, View, H3 } from 'tamagui';
-import { from, Observable } from 'rxjs';
+import { from, map, Observable } from 'rxjs';
 import { ComponentType, useEffect } from 'react';
 import { execute } from '@end/data/core';
 import { useEndApi } from '@end/data/web';
@@ -57,7 +57,7 @@ function Conquest({
           <H2 paddingLeft="$1" borderBottomWidth="1px">
             Wars
           </H2>
-          {wars.reverse().map((war, i) => (
+          {wars.map((war, i) => (
             <ListItem
               cursor="pointer"
               onPress={() => navigate(`/war/${war.id}`)}
@@ -77,7 +77,7 @@ export default compose(
   withObservables(
     [],
     ({ database }: { database: Database }): { wars: Observable<War[]> } => ({
-      wars: database.get<War>('wars').query().observe(),
+      wars: database.get<War>('wars').query().observe().pipe(map(r => r.reverse())),
     })
   ) as (arg0: unknown) => ComponentType
 )(Conquest);

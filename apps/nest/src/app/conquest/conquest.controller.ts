@@ -35,9 +35,6 @@ const colors: string[] = [
 @Schema({ strict: false })
 export class War {
   @Prop({ required: true })
-  state: string;
-
-  @Prop({ required: true })
   warId: string;
 
   _id: ObjectId;
@@ -92,9 +89,9 @@ export class ConquestController {
             },
           ],
         });
-        const state = warActor.getSnapshot();
+        const state = warActor.getSnapshot().toJSON();
         await this.warModel
-          .create({ state: JSON.stringify(state), warId: event.warId })
+          .create({ ...(state as any), warId: event.warId })
           .then((r) => {
             return { id: r._id };
           });
@@ -108,12 +105,12 @@ export class ConquestController {
       case 'complete-turn':
       case 'begin-turn-number-1':
         try {
-          const war = await this.warModel
+          const war = (await this.warModel
             .findOne({ warId: event.warId })
-            .exec();
-          const warState = JSON.parse(war.state);
+            .exec()) as any;
+          // const warState = JSON.parse(war.state);
           const existingWarActor = createActor(
-            warMachine(event.warId, warState.context, warState.value)
+            warMachine(event.warId, war.context, war.value)
           );
           existingWarActor.start();
           const preActionState = existingWarActor.getSnapshot();
@@ -138,15 +135,12 @@ export class ConquestController {
           }
 
           existingWarActor.send(event);
-          const existingWarState = existingWarActor.getSnapshot();
+          const existingWarState = existingWarActor.getSnapshot().toJSON() as any;
           await this.warModel
             .updateOne(
               { warId: event.warId },
               {
-                state: JSON.stringify({
-                  context: existingWarState.context,
-                  value: existingWarState.value,
-                }),
+                ...existingWarState as any,
               }
             )
             .then((r) => {
@@ -326,28 +320,30 @@ export class ConquestController {
 
   @Get('war/:id')
   async war(@Param() params: { id?: string }) {
-    const war = await this.warModel
+    const war = (await this.warModel
       .findOne({
         warId: { $eq: params.id },
       })
-      .exec();
-    const warState = JSON.parse(war.state);
+      .exec()) as any;
+    // const warState = JSON.parse(war.state);
     const existingWarActor = createActor(
-      warMachine(war.warId, warState.context, warState.value)
+      warMachine(war.warId, war.context, war.value)
     );
     const existingWarState = existingWarActor.getSnapshot();
+    const turns = existingWarState.context.turns;
     const deployedTroops = getDeployedTroopsForTurn(
-      existingWarState.context.turns[existingWarState.context.turn]
+      turns?.[existingWarState.context.turn]
     );
     const availableTroopsToDeploy =
       getPossibleDeployedTroops(existingWarState.context) - deployedTroops;
     return {
       war,
       availableTroopsToDeploy,
-      round: Math.ceil(
-        Object.keys(existingWarState.context.turns).length /
-          existingWarState.context.players.length
-      ),
+      round: !turns
+        ? 0
+        : Math.ceil(
+            Object.keys(turns).length / existingWarState.context.players.length
+          ),
       isInactive: existingWarState.value === 'war-complete',
     };
   }
