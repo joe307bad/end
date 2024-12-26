@@ -22,7 +22,7 @@ export function Register({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    toast.hide()
+    toast.hide();
   }, []);
 
   const register = useCallback(() => {
@@ -46,7 +46,12 @@ export function Register({
   }, [userName, password, confirmPassword]);
 
   return (
-    <YStack width="100%" padding="$0.5" space="$0.5" style={{ alignItems: 'center' }}>
+    <YStack
+      width="100%"
+      padding="$0.5"
+      space="$0.5"
+      style={{ alignItems: 'center' }}
+    >
       <Typography.H1>end</Typography.H1>
       <YStack width="100%" space="$0.5">
         <Input

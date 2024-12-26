@@ -97,6 +97,13 @@ export const schema = appSchema({
       ],
     }),
     tableSchema({
+      name: 'users',
+      columns: [
+        { name: 'userName', type: 'string' },
+        { name: 'passwordId', type: 'string' },
+      ],
+    }),
+    tableSchema({
       name: 'war_users',
       columns: [
         { name: 'user_id', type: 'string' },

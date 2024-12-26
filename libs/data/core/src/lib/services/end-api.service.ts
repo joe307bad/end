@@ -4,6 +4,7 @@ import { Database } from '@nozbe/watermelondb';
 import { DbService } from './db.service';
 import { AuthService } from './auth.service';
 import { WarService } from './war/WarService';
+import { Planet, User } from '@end/wm/core';
 
 interface EndApi {
   readonly login: (
@@ -48,9 +49,32 @@ const EndApiLive = Layer.effect(
               : Effect.fail('Password confirmation does not match')
           ),
           Effect.flatMap(() => {
-            return fetch.post('/auth/register', {
-              userName,
-              password,
+            return fetch.post<{ access_token: string; passwordId: string }>(
+              '/auth/register',
+              {
+                userName,
+                password,
+              }
+            );
+          }),
+          Effect.flatMap((data) => {
+            if (!data.access_token) {
+              return Effect.fail((data as any)?.message);
+            }
+            return Effect.tryPromise({
+              try: () =>
+                new Promise<{ access_token: string }>((resolve) => {
+                  database.write(async () => {
+                    const { id } = await database
+                      .get<User>('users')
+                      .create((u: User) => {
+                        u.userName = userName;
+                        u.passwordId = data.passwordId;
+                      });
+                    resolve({ access_token: data.access_token });
+                  });
+                }),
+              catch: () => 'Failed to write user to local store',
             });
           })
         );

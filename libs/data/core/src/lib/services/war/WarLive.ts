@@ -77,7 +77,6 @@ export const WarLive = Layer.effect(
 
         const tiles: Record<string, any> = war.context.tiles;
         const raised: Record<string, string> = JSON.parse(local.raised);
-        debugger;
 
         params.id ? O.some(params.id) : O.none();
         this.setName(title);
@@ -434,7 +433,6 @@ export const WarLive = Layer.effect(
                   const tile1 = store.tiles.find((t) => t.id === tile1Id);
                   const tile2 = store.tiles.find((t) => t.id === tile2Id);
 
-                  // debugger;
                   if (tile1 && tile2) {
                     tile1.troopCount = result.troopUpdates[tile1Id];
                     tile2.troopCount = result.troopUpdates[tile2Id];

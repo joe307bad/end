@@ -30,7 +30,7 @@ export class AuthService {
   async register(
     userName: string,
     password: string
-  ): Promise<{ access_token: string }> {
+  ): Promise<{ access_token: string; passwordId: string; }> {
     const existingUser = await this.usersService.findOne(userName);
 
     if (existingUser) {
@@ -43,6 +43,7 @@ export class AuthService {
       access_token: await this.jwtService.signAsync(payload, {
         secret: process.env.NEST_JWT_SECRET,
       }),
+      passwordId: _id.toString()
     };
   }
 }
