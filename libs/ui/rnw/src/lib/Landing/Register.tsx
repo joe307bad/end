@@ -6,6 +6,7 @@ import { execute, servicesFactory } from '@end/data/core';
 import { useToastController } from '@tamagui/toast';
 import { useAuth } from '@end/auth';
 import { CurrentToast } from '../components';
+import { Effect, pipe } from 'effect';
 
 export function Register({
   goToHome,
@@ -29,6 +30,7 @@ export function Register({
     setLoading(true);
     execute(services.endApi.register(userName, password, confirmPassword))
       .then(async (res: any) => {
+        debugger;
         setLoading(false);
         if (res?.access_token) {
           await setToken(res.access_token);
@@ -53,7 +55,7 @@ export function Register({
       style={{ alignItems: 'center' }}
     >
       <Typography.H1>end</Typography.H1>
-      <YStack width="100%" space="$0.5">
+      <YStack maxWidth={438} width="100%" space="$0.5">
         <Input
           placeholder="Username"
           onChange={(e) => setUserName(e.nativeEvent.text)}

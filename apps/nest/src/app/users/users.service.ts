@@ -1,15 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Model, Types } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import bcrypt from 'bcrypt';
-
-export type UserDocument = HydratedDocument<User>;
+import { Entity } from '../sync/sync.service';
 
 @Schema()
 export class User {
-  @Prop({ required: true, unique: true })
-  userName: string;
-
   @Prop({ required: true })
   password: string;
 
@@ -19,13 +15,15 @@ export class User {
 export const UserSchema = SchemaFactory.createForClass(User);
 
 export class CreateUserDto {
-  readonly userName: string;
   password: string;
 }
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(Entity.name) private entityModel: Model<Entity>
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<{ _id: Types.ObjectId }> {
     createUserDto.password = await bcrypt.hash(createUserDto.password, 10);
@@ -34,7 +32,13 @@ export class UsersService {
     return { _id: created._id };
   }
 
-  async findOne(userName: string): Promise<User | undefined> {
-    return this.userModel.findOne({ userName });
+  async findOne(passwordId: string): Promise<User | undefined> {
+    return this.userModel.findOne({ password_id: passwordId });
+  }
+
+  async checkUsernameAvailability(userName: string): Promise<boolean> {
+    return this.entityModel
+      .findOne({ table: 'users', userName })
+      .then((r) => !!r);
   }
 }

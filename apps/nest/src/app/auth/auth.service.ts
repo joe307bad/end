@@ -1,4 +1,8 @@
-import { HttpException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcrypt';
@@ -11,15 +15,15 @@ export class AuthService {
   ) {}
 
   async signIn(
-    userName: string,
+    passwordId: string,
     pass: string
   ): Promise<{ access_token: string }> {
-    const user = await this.usersService.findOne(userName);
+    const user = await this.usersService.findOne(passwordId);
 
     if (!(await bcrypt.compare(pass, user.password))) {
       throw new UnauthorizedException();
     }
-    const payload = { sub: user._id, username: user.userName };
+    const payload = { sub: user._id };
     return {
       access_token: await this.jwtService.signAsync(payload, {
         secret: process.env.NEST_JWT_SECRET,
@@ -30,20 +34,20 @@ export class AuthService {
   async register(
     userName: string,
     password: string
-  ): Promise<{ access_token: string; passwordId: string; }> {
-    const existingUser = await this.usersService.findOne(userName);
+  ): Promise<{ access_token: string; password_id: string }> {
+    const existingUser = await this.usersService.checkUsernameAvailability(userName);
 
     if (existingUser) {
       throw new HttpException('Username taken', 400);
     }
 
-    const { _id } = await this.usersService.create({ userName, password });
-    const payload = { sub: _id, username: userName };
+    const { _id } = await this.usersService.create({ password });
+    const payload = { sub: _id };
     return {
       access_token: await this.jwtService.signAsync(payload, {
         secret: process.env.NEST_JWT_SECRET,
       }),
-      passwordId: _id.toString()
+      password_id: _id.toString(),
     };
   }
 }

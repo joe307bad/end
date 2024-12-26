@@ -52,8 +52,8 @@ export class User extends Model implements IUser {
   static override table = 'users';
   @field('userName')
   userName!: string;
-  @field('passwordId')
-  passwordId!: string;
+  @field('password_id')
+  password_id!: string;
 }
 
 class WarUser extends Model {
@@ -100,7 +100,7 @@ export const schema = appSchema({
       name: 'users',
       columns: [
         { name: 'userName', type: 'string' },
-        { name: 'passwordId', type: 'string' },
+        { name: 'password_id', type: 'string' },
       ],
     }),
     tableSchema({

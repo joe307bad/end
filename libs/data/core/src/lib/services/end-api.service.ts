@@ -1,10 +1,11 @@
 import { Context, Effect, Layer, pipe } from 'effect';
 import { FetchService } from './fetch.service';
-import { Database } from '@nozbe/watermelondb';
+import { Database, Model, Q } from '@nozbe/watermelondb';
 import { DbService } from './db.service';
 import { AuthService } from './auth.service';
 import { WarService } from './war/WarService';
-import { Planet, User } from '@end/wm/core';
+import { Planet, User, War } from '@end/wm/core';
+import { SyncService } from './sync.service';
 
 interface EndApi {
   readonly login: (
@@ -31,17 +32,39 @@ const EndApiLive = Layer.effect(
 
     return EndApiService.of({
       login: (userName: string, password: string) => {
-        return fetch.post('/auth/login', {
-          userName,
-          password,
-        });
+        const passwordId = () =>
+          Effect.tryPromise({
+            try: () =>
+              database
+                .get('users')
+                .query(Q.where('userName', userName))
+                .fetch(),
+            catch: () => `Failed to get passwordId for user ${userName}`,
+          });
+
+        return pipe(
+          Effect.tryPromise({
+            try: () =>
+              database
+                .get<User>('users')
+                .query(Q.where('userName', userName))
+                .fetch()
+                .then((r) => r[0]),
+            catch: () => `Failed to get passwordId for user ${userName}`,
+          }),
+          Effect.flatMap((result) =>
+            fetch.post<{ access_token: string }>('/auth/login', {
+              passwordId: result?.password_id,
+              password,
+            })
+          )
+        );
       },
       register: (
         userName: string,
         password: string,
         confirmPassword: string
       ) => {
-        // TODO after registering, store the user in the local-first store
         return pipe(
           Effect.suspend(() =>
             password != '' && confirmPassword === password
@@ -49,15 +72,13 @@ const EndApiLive = Layer.effect(
               : Effect.fail('Password confirmation does not match')
           ),
           Effect.flatMap(() => {
-            return fetch.post<{ access_token: string; passwordId: string }>(
+            return fetch.post<{ access_token: string; password_id: string }>(
               '/auth/register',
-              {
-                userName,
-                password,
-              }
+              { userName, password }
             );
           }),
           Effect.flatMap((data) => {
+            debugger;
             if (!data.access_token) {
               return Effect.fail((data as any)?.message);
             }
@@ -69,7 +90,7 @@ const EndApiLive = Layer.effect(
                       .get<User>('users')
                       .create((u: User) => {
                         u.userName = userName;
-                        u.passwordId = data.passwordId;
+                        u.password_id = data.password_id;
                       });
                     resolve({ access_token: data.access_token });
                   });
