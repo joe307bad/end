@@ -32,8 +32,14 @@ export class UsersService {
     return { _id: created._id };
   }
 
-  async findOne(passwordId: string): Promise<User | undefined> {
-    return this.userModel.findOne({ password_id: passwordId });
+  async findByPasswordId(passwordId: string): Promise<User | undefined> {
+    return this.userModel.findOne({ _id: passwordId });
+  }
+
+  async findByUserName(
+    userName: string
+  ): Promise<{ password_id: string } | null> {
+    return this.entityModel.findOne({ table: 'users', userName });
   }
 
   async checkUsernameAvailability(userName: string): Promise<boolean> {

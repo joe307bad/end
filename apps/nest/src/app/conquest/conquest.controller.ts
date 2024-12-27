@@ -96,7 +96,7 @@ export class ConquestController {
             return { id: r._id };
           });
 
-        return { state, warId: event.warId };
+        return { state, warId: event.warId, playerId: userId };
       case 'add-player':
       case 'deploy':
       case 'set-portal-entry':
@@ -135,12 +135,14 @@ export class ConquestController {
           }
 
           existingWarActor.send(event);
-          const existingWarState = existingWarActor.getSnapshot().toJSON() as any;
+          const existingWarState = existingWarActor
+            .getSnapshot()
+            .toJSON() as any;
           await this.warModel
             .updateOne(
               { warId: event.warId },
               {
-                ...existingWarState as any,
+                ...(existingWarState as any),
               }
             )
             .then((r) => {
@@ -311,7 +313,7 @@ export class ConquestController {
             );
           }
 
-          return { state: existingWarState, warId: event.warId };
+          return { state: existingWarState, ...event };
         } catch (e) {
           return e.message;
         }

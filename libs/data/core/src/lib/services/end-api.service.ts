@@ -32,33 +32,10 @@ const EndApiLive = Layer.effect(
 
     return EndApiService.of({
       login: (userName: string, password: string) => {
-        const passwordId = () =>
-          Effect.tryPromise({
-            try: () =>
-              database
-                .get('users')
-                .query(Q.where('userName', userName))
-                .fetch(),
-            catch: () => `Failed to get passwordId for user ${userName}`,
-          });
-
-        return pipe(
-          Effect.tryPromise({
-            try: () =>
-              database
-                .get<User>('users')
-                .query(Q.where('userName', userName))
-                .fetch()
-                .then((r) => r[0]),
-            catch: () => `Failed to get passwordId for user ${userName}`,
-          }),
-          Effect.flatMap((result) =>
-            fetch.post<{ access_token: string }>('/auth/login', {
-              passwordId: result?.password_id,
-              password,
-            })
-          )
-        );
+        return fetch.post<{ access_token: string }>('/auth/login', {
+          userName,
+          password,
+        })
       },
       register: (
         userName: string,
@@ -78,7 +55,6 @@ const EndApiLive = Layer.effect(
             );
           }),
           Effect.flatMap((data) => {
-            debugger;
             if (!data.access_token) {
               return Effect.fail((data as any)?.message);
             }

@@ -30,7 +30,6 @@ export function Register({
     setLoading(true);
     execute(services.endApi.register(userName, password, confirmPassword))
       .then(async (res: any) => {
-        debugger;
         setLoading(false);
         if (res?.access_token) {
           await setToken(res.access_token);

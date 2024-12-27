@@ -56,12 +56,14 @@ export class User extends Model implements IUser {
   password_id!: string;
 }
 
-class WarUser extends Model {
+export class WarUser extends Model {
   static override table = 'war_users'
   static override  associations: Associations = {
     wars: { type: 'belongs_to', key: 'war_id' },
     users: { type: 'belongs_to', key: 'user_id' },
   }
+  @field('war_id') warId!: string;
+  @field('user_id') userId!: string;
 
   @relation('wars', 'war_id') war!: IWar
   @relation('users', 'user_id') user!: IUser
