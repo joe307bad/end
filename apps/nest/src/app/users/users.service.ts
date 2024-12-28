@@ -38,8 +38,20 @@ export class UsersService {
 
   async findByUserName(
     userName: string
-  ): Promise<{ password_id: string } | null> {
+  ): Promise<{ password_id: string, _id: string } | null> {
     return this.entityModel.findOne({ table: 'users', userName });
+  }
+
+  async findById(
+    _id: string
+  ): Promise<{ password_id: string, _id: string, userName: string } | null> {
+    return this.entityModel.findOne({ table: 'users', _id });
+  }
+
+  async findUserNameByPasswordId(
+    passwordId: string
+  ): Promise<{ userName: string; _id: string } | null> {
+    return this.entityModel.findOne({ table: 'users', password_id: passwordId });
   }
 
   async checkUsernameAvailability(userName: string): Promise<boolean> {

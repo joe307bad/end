@@ -15,7 +15,7 @@ import { Model, ObjectId } from 'mongoose';
 import { Entity } from '../sync/sync.service';
 import { ConquestService } from './conquest.service';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '../users/users.service';
+import { User, UsersService } from '../users/users.service';
 
 const colors: string[] = [
   '#FF0000', // Red
@@ -59,20 +59,22 @@ export class ConquestController {
     @InjectModel(Entity.name) private entityModel: Model<Entity>,
     @InjectModel(User.name) private userModel: Model<User>,
     private jwtService: JwtService,
-    private conquest: ConquestService
+    private conquest: ConquestService,
+    private userService: UsersService
   ) {}
 
   @Post()
   async log(@Body() event: Event, @Req() request: Request) {
     switch (event.type) {
       case 'generate-new-war':
-        const { userId, username }: { userId: string; username: string } =
-          (() => {
+        const { userId, userName }: { userId: string; userName: string } =
+          await (async () => {
             const authHeader = request.headers['authorization'];
             if (authHeader && authHeader.startsWith('Bearer ')) {
               const token = authHeader.split(' ')[1];
-              const { sub, username } = this.jwtService.decode(token);
-              return { userId: sub, username };
+              const { sub } = this.jwtService.decode(token);
+              const { userName, _id } = await this.userService.findById(sub);
+              return { userId: _id, userName };
             }
             return null;
           })();
@@ -84,7 +86,7 @@ export class ConquestController {
           players: [
             {
               id: userId,
-              userName: username,
+              userName,
               color: colors[0],
             },
           ],
@@ -116,12 +118,13 @@ export class ConquestController {
           const preActionState = existingWarActor.getSnapshot();
 
           if (event.type === 'add-player') {
-            const { userId, username } = getUserInfo(this.jwtService)(request);
+            const { userId } = getUserInfo(this.jwtService)(request);
+            const { userName, _id } = await this.userService.findById(userId);
             event = {
               ...event,
               player: {
-                id: userId,
-                userName: username,
+                id: _id,
+                userName,
                 color: colors[preActionState.context.players.length],
               },
             };

@@ -45,6 +45,7 @@ import { Database } from '@nozbe/watermelondb';
 import { Observable } from 'rxjs';
 import { execute } from '@end/data/core';
 import { View } from 'tamagui';
+import { useSnapshot } from 'valtio/react';
 
 function WithNavigate({
   children,
@@ -121,6 +122,7 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
       execute(services.syncService.sync())
         .then(async (r) => {
           setToken(t);
+          debugger;
           services.warService.store.userId = await execute(
             services.authService.getUserId()
           );
@@ -156,6 +158,7 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
 
 function AppRoutes() {
   const { services } = useEndApi();
+  const warStore = useSnapshot(services.warService.store);
 
   const getLeaderboard = useCallback(() => {
     return execute(services.endApi.leaderboard()); //execute(services.endApi.leaderboard());
@@ -207,7 +210,7 @@ function AppRoutes() {
           path: '/conquest',
           element: (
             <PrivateRoute>
-              <Conquest />
+              <Conquest userId={warStore.userId} />
             </PrivateRoute>
           ),
           loader: getLeaderboard,
@@ -230,7 +233,7 @@ function AppRoutes() {
           ),
         },
       ]),
-    []
+    [warStore.userId]
   );
 
   return (

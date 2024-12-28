@@ -35,14 +35,14 @@ export function Register({
           await setToken(res.access_token);
           goToHome?.();
         } else {
-          toast.show('An error occurred. Try again.', {
-            message: (res as any)?.message,
-          });
+          // toast.show('An error occurred. Try again.', {
+          //   message: (res as any)?.message,
+          // });
         }
       })
       .catch((e) => {
         setLoading(false);
-        toast.show('An error occurred. Try again.', { message: e?.message });
+        // toast.show('An error occurred. Try again.', { message: e?.message });
       });
   }, [userName, password, confirmPassword]);
 

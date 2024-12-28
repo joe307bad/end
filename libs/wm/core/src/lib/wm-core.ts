@@ -49,11 +49,23 @@ export class War extends Model implements IWar {
 }
 
 export class User extends Model implements IUser {
+  static override associations: Associations = {
+    war_users: {
+      type: 'has_many',
+      foreignKey: 'user_id',
+    },
+  };
+
   static override table = 'users';
   @field('userName')
   userName!: string;
   @field('password_id')
   password_id!: string;
+
+  @lazy
+  wars = this.collections
+    .get<War>('wars')
+    .query(Q.on('war_users', 'user_id', this.id));
 }
 
 export class WarUser extends Model {

@@ -36,7 +36,7 @@ export function Landing({ goToHome, goToRegister, services }: Props) {
       })
       .catch((e) => {
         setLoading(false);
-        toast.show('An error occurred. Try again.', { message: e?.message });
+        // toast.show('An error occurred. Try again.', { message: e?.message });
       });
   }, [userName, password]);
 
