@@ -107,6 +107,7 @@ export const ConquestLive = Layer.effect(
                       .create((war) => {
                         war.planet.id = newPlanet;
                         war.players = players;
+                        war.status = 'searching-for-players';
                       });
                     resolve(id);
                   });
@@ -144,7 +145,6 @@ export const ConquestLive = Layer.effect(
           Effect.flatMap((data: { warId: string, playerId: string }) =>
             Effect.tryPromise({
               try: () => {
-                debugger;
                 return new Promise<{ warId: string, playerId: string }>(async (resolve) => {
                   await database.write(async () => {
                     const { id } = await database
@@ -168,7 +168,7 @@ export const ConquestLive = Layer.effect(
         callback: (v: string | null) => void
       ) => {
         const socket = io(`${config.webSocketUrl ?? 'localhost:3000'}`, {});
-        socket.emit('joinRoom', { warId: warId });
+        socket.emit('joinRoom', { roomId: warId });
         socket.on('serverToRoom', (message) => {
           warLog.next(message.toString());
         });
@@ -253,25 +253,24 @@ export const ConquestLive = Layer.effect(
             type: 'add-player',
             ...event,
           }),
-          Effect.flatMap((data: { player: { id: string } }) =>
-            Effect.tryPromise({
-              try: () => {
-                debugger;
-                return new Promise<string>(async (resolve) => {
-                  await database.write(async () => {
-                    const { id } = await database
-                      .get<WarUser>('war_users')
-                      .create((wu: WarUser) => {
-                        wu.warId = event.warId;
-                        wu.userId = data.player.id;
-                      });
-                    resolve(id);
-                  });
-                });
-              },
-              catch: () => 'Failed to add user to war for local store',
-            })
-          )
+          // Effect.flatMap((data: { player: { id: string } }) =>
+          //   Effect.tryPromise({
+          //     try: () => {
+          //       return new Promise<string>(async (resolve) => {
+          //         await database.write(async () => {
+          //           const { id } = await database
+          //             .get<WarUser>('war_users')
+          //             .create((wu: WarUser) => {
+          //               wu.warId = event.warId;
+          //               wu.userId = data.player.id;
+          //             });
+          //           resolve(id);
+          //         });
+          //       });
+          //     },
+          //     catch: () => 'Failed to add user to war for local store',
+          //   })
+          // )
         );
       },
       engage: () => {

@@ -2,15 +2,16 @@ import 'reflect-metadata';
 import {
   appSchema,
   Database,
-  DatabaseAdapter, Q,
+  DatabaseAdapter,
+  Q,
   Relation,
-  tableSchema
+  tableSchema,
 } from '@nozbe/watermelondb';
 import { schemaMigrations } from '@nozbe/watermelondb/Schema/migrations';
 import { Model } from '@nozbe/watermelondb';
 import { field, lazy, relation } from '@nozbe/watermelondb/decorators';
 import { synchronize } from '@nozbe/watermelondb/sync';
-import { IWar, IPlanet, IUser } from '@end/war/core';
+import { IWar, IPlanet, IUser, WarState } from '@end/war/core';
 import { Associations } from '@nozbe/watermelondb/Model';
 
 export class Planet extends Model implements IPlanet {
@@ -31,14 +32,19 @@ export class War extends Model implements IWar {
   static override associations: Associations = {
     war_users: {
       type: 'has_many',
-      foreignKey: 'war_id'
+      foreignKey: 'war_id',
     },
+    turn: { type: 'belongs_to', key: 'turn_id' },
+    victor: { type: 'belongs_to', key: 'victor_id' },
   };
-
-  @field('victor')
-  victor!: string;
+  @relation('war_victors', 'victor_id')
+  victor!: Relation<User>;
   @field('players')
   players!: number;
+  @relation('war_turns', 'turn_id')
+  turn!: Relation<User>;
+  @field('status')
+  status!: WarState;
   @relation('planets', 'planet_id')
   planet!: Relation<Planet>;
 
@@ -69,23 +75,48 @@ export class User extends Model implements IUser {
 }
 
 export class WarUser extends Model {
-  static override table = 'war_users'
-  static override  associations: Associations = {
+  static override table = 'war_users';
+  static override associations: Associations = {
     wars: { type: 'belongs_to', key: 'war_id' },
     users: { type: 'belongs_to', key: 'user_id' },
-  }
+  };
   @field('war_id') warId!: string;
   @field('user_id') userId!: string;
 
-  @relation('wars', 'war_id') war!: IWar
-  @relation('users', 'user_id') user!: IUser
+  @relation('wars', 'war_id') war!: IWar;
+  @relation('users', 'user_id') user!: IUser;
 }
 
+export class WarTurn extends Model {
+  static override table = 'war_turns';
+  static override associations: Associations = {
+    wars: { type: 'belongs_to', key: 'war_id' },
+    users: { type: 'belongs_to', key: 'user_id' },
+  };
+  @field('war_id') warId!: string;
+  @field('user_id') userId!: string;
+
+  @relation('wars', 'war_id') war!: IWar;
+  @relation('users', 'user_id') user!: IUser;
+}
+
+export class WarVictor extends Model {
+  static override table = 'war_victors';
+  static override associations: Associations = {
+    wars: { type: 'belongs_to', key: 'war_id' },
+    users: { type: 'belongs_to', key: 'user_id' },
+  };
+  @field('war_id') warId!: string;
+  @field('user_id') userId!: string;
+
+  @relation('wars', 'war_id') war!: IWar;
+  @relation('users', 'user_id') user!: IUser;
+}
 
 export const databaseFactory = (adapter: DatabaseAdapter) =>
   new Database({
     adapter,
-    modelClasses: [Planet, War, User, WarUser],
+    modelClasses: [Planet, War, User, WarUser, WarTurn, WarVictor],
   });
 
 export const schema = appSchema({
@@ -106,6 +137,9 @@ export const schema = appSchema({
     tableSchema({
       name: 'wars',
       columns: [
+        { name: 'status', type: 'string' },
+        { name: 'turn_id', type: 'string' },
+        { name: 'victor_id', type: 'string' },
         { name: 'planet_id', type: 'string' },
         { name: 'players', type: 'number' },
       ],
@@ -119,6 +153,20 @@ export const schema = appSchema({
     }),
     tableSchema({
       name: 'war_users',
+      columns: [
+        { name: 'user_id', type: 'string' },
+        { name: 'war_id', type: 'string' },
+      ],
+    }),
+    tableSchema({
+      name: 'war_turns',
+      columns: [
+        { name: 'user_id', type: 'string' },
+        { name: 'war_id', type: 'string' },
+      ],
+    }),
+    tableSchema({
+      name: 'war_victors',
       columns: [
         { name: 'user_id', type: 'string' },
         { name: 'war_id', type: 'string' },

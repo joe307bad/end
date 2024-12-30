@@ -122,7 +122,6 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
       execute(services.syncService.sync())
         .then(async (r) => {
           setToken(t);
-          debugger;
           services.warService.store.userId = await execute(
             services.authService.getUserId()
           );
@@ -140,6 +139,18 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
         });
     });
   }, []);
+
+  useEffect(() => {
+    if (token) {
+      return services.endApi.connectToUserLog(token, async (value) => {
+        if(value) {
+          await execute(services.syncService.sync());
+        }
+      });
+    }
+
+    return () => {};
+  }, [token]);
 
   if (token === 'LOADING') {
     return null;

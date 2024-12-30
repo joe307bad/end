@@ -18,13 +18,18 @@ export function LobbyTabs() {
     await execute(
       pipe(
         services.conquestService.addPlayer({ warId: params['id'] ?? '' }),
-        Effect.flatMap(syncService.sync)
+        // Effect.flatMap(syncService.sync)
       )
     );
   }, []);
 
   const beginTurnNumber1 = useCallback(async () => {
-    await execute(services.conquestService.beginTurnNumber1());
+    await execute(
+      pipe(
+        services.conquestService.beginTurnNumber1(),
+        // Effect.flatMap(syncService.sync)
+      )
+    );
   }, []);
 
   return (
