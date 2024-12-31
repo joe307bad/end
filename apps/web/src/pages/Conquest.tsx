@@ -14,6 +14,7 @@ import { useEndApi } from '@end/data/web';
 import { execute } from '@end/data/core';
 import { WarState } from '@end/war/core';
 import { useSnapshot } from 'valtio/react';
+import { format } from 'date-fns';
 
 function Status({ warId, status: s }: { warId: string; status: WarState }) {
   const { services } = useEndApi();
@@ -30,11 +31,11 @@ function Status({ warId, status: s }: { warId: string; status: WarState }) {
 
   switch (status) {
     case 'searching-for-players':
-      return <Badge title={'Searching for players'} />;
+      return <Badge color="orange" title={'Searching for players'} />;
     case 'war-complete':
-      return <Badge title={'Complete'} />;
+      return <Badge color="blue" title={'Complete'} />;
     case 'war-in-progress':
-      return <Badge title={'In progress'} />;
+      return <Badge color="green" title={'In progress'} />;
     default:
       return <></>;
   }
@@ -70,7 +71,9 @@ const PlanetInfo = compose(
 function UserInfoEnhanced({
   warId,
   users: u,
+  createdAt,
 }: {
+  createdAt: Date;
   warId: string;
   users: User[];
 }) {
@@ -85,8 +88,13 @@ function UserInfoEnhanced({
     return u;
   }, [store.latestWarCache[warId]?.players]);
   return (
-    <XStack paddingTop={'$0.75'} space="$0.5">
-      {!users ? <></> : users.map((u) => <Badge title={u.userName} />)}
+    <XStack alignItems="center" paddingTop={'$0.75'}>
+      <XStack flex={1} space="$0.5">
+        {!users ? <></> : users.map((u) => <Badge title={u.userName} />)}
+      </XStack>
+      <View>
+        <Text>{format(createdAt, 'MM.dd.yyyy')}</Text>
+      </View>
     </XStack>
   );
 }
@@ -99,10 +107,15 @@ const UserInfo = compose(
       war,
     }: {
       war: War;
-    }): { users: Observable<User[]>; warId: Observable<string> } => {
+    }): {
+      users: Observable<User[]>;
+      warId: Observable<string>;
+      createdAt: Observable<Date>;
+    } => {
       return {
         users: war.users.observe(),
         warId: of(war.id),
+        createdAt: of(war.createdAt),
       };
     }
   ) as (arg0: unknown) => ComponentType

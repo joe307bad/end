@@ -253,24 +253,6 @@ export const ConquestLive = Layer.effect(
             type: 'add-player',
             ...event,
           }),
-          // Effect.flatMap((data: { player: { id: string } }) =>
-          //   Effect.tryPromise({
-          //     try: () => {
-          //       return new Promise<string>(async (resolve) => {
-          //         await database.write(async () => {
-          //           const { id } = await database
-          //             .get<WarUser>('war_users')
-          //             .create((wu: WarUser) => {
-          //               wu.warId = event.warId;
-          //               wu.userId = data.player.id;
-          //             });
-          //           resolve(id);
-          //         });
-          //       });
-          //     },
-          //     catch: () => 'Failed to add user to war for local store',
-          //   })
-          // )
         );
       },
       engage: () => {

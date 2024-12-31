@@ -60,6 +60,7 @@ export class AuthService {
       userName: userName,
       password_id: _id,
       created_on_server: Date.now(),
+      createdAt: new Date()
     });
     const payload = { sub: userId };
 

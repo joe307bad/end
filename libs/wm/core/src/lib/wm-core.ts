@@ -1,20 +1,26 @@
 import 'reflect-metadata';
 import {
-  appSchema,
+  appSchema, ColumnSchema,
   Database,
   DatabaseAdapter,
   Q,
   Relation,
-  tableSchema,
+  tableSchema
 } from '@nozbe/watermelondb';
 import { schemaMigrations } from '@nozbe/watermelondb/Schema/migrations';
 import { Model } from '@nozbe/watermelondb';
-import { field, lazy, relation } from '@nozbe/watermelondb/decorators';
+import { date, field, lazy, readonly, relation } from '@nozbe/watermelondb/decorators';
 import { synchronize } from '@nozbe/watermelondb/sync';
 import { IWar, IPlanet, IUser, WarState } from '@end/war/core';
 import { Associations } from '@nozbe/watermelondb/Model';
 
-export class Planet extends Model implements IPlanet {
+export class BaseModel extends Model {
+  @field('deleted') deleted!: boolean;
+  @readonly @date('created_at') createdAt!: Date;
+  @readonly @date('updated_at') updatedAt!: Date;
+}
+
+export class Planet extends BaseModel implements IPlanet {
   static override table = 'planets';
   @field('name')
   name!: string;
@@ -26,7 +32,7 @@ export class Planet extends Model implements IPlanet {
   waterColor!: string;
 }
 
-export class War extends Model implements IWar {
+export class War extends BaseModel implements IWar {
   static override table = 'wars';
 
   static override associations: Associations = {
@@ -54,7 +60,7 @@ export class War extends Model implements IWar {
     .query(Q.on('war_users', 'war_id', this.id));
 }
 
-export class User extends Model implements IUser {
+export class User extends BaseModel implements IUser {
   static override associations: Associations = {
     war_users: {
       type: 'has_many',
@@ -74,7 +80,7 @@ export class User extends Model implements IUser {
     .query(Q.on('war_users', 'user_id', this.id));
 }
 
-export class WarUser extends Model {
+export class WarUser extends BaseModel {
   static override table = 'war_users';
   static override associations: Associations = {
     wars: { type: 'belongs_to', key: 'war_id' },
@@ -87,7 +93,7 @@ export class WarUser extends Model {
   @relation('users', 'user_id') user!: IUser;
 }
 
-export class WarTurn extends Model {
+export class WarTurn extends BaseModel {
   static override table = 'war_turns';
   static override associations: Associations = {
     wars: { type: 'belongs_to', key: 'war_id' },
@@ -100,7 +106,7 @@ export class WarTurn extends Model {
   @relation('users', 'user_id') user!: IUser;
 }
 
-export class WarVictor extends Model {
+export class WarVictor extends BaseModel {
   static override table = 'war_victors';
   static override associations: Associations = {
     wars: { type: 'belongs_to', key: 'war_id' },
@@ -119,12 +125,18 @@ export const databaseFactory = (adapter: DatabaseAdapter) =>
     modelClasses: [Planet, War, User, WarUser, WarTurn, WarVictor],
   });
 
+const baseColumns = (schema: ColumnSchema[]): ColumnSchema[] => [
+  ...schema,
+  { name: 'deleted', type: 'boolean' },
+  { name: 'created_at', type: 'number' },
+  { name: 'updated_at', type: 'number' }
+];
 export const schema = appSchema({
   version: 1,
   tables: [
     tableSchema({
       name: 'planets',
-      columns: [
+      columns: baseColumns([
         { name: 'name', type: 'string' },
         { name: 'raised', type: 'string' },
         {
@@ -132,45 +144,45 @@ export const schema = appSchema({
           type: 'string',
         },
         { name: 'waterColor', type: 'string' },
-      ],
+      ]),
     }),
     tableSchema({
       name: 'wars',
-      columns: [
+      columns:  baseColumns([
         { name: 'status', type: 'string' },
         { name: 'turn_id', type: 'string' },
         { name: 'victor_id', type: 'string' },
         { name: 'planet_id', type: 'string' },
         { name: 'players', type: 'number' },
-      ],
+      ]),
     }),
     tableSchema({
       name: 'users',
-      columns: [
+      columns:  baseColumns([
         { name: 'userName', type: 'string' },
         { name: 'password_id', type: 'string' },
-      ],
+      ]),
     }),
     tableSchema({
       name: 'war_users',
-      columns: [
+      columns:  baseColumns([
         { name: 'user_id', type: 'string' },
         { name: 'war_id', type: 'string' },
-      ],
+      ]),
     }),
     tableSchema({
       name: 'war_turns',
-      columns: [
+      columns:  baseColumns([
         { name: 'user_id', type: 'string' },
         { name: 'war_id', type: 'string' },
-      ],
+      ]),
     }),
     tableSchema({
       name: 'war_victors',
-      columns: [
+      columns:  baseColumns([
         { name: 'user_id', type: 'string' },
         { name: 'war_id', type: 'string' },
-      ],
+      ]),
     }),
   ],
 });
