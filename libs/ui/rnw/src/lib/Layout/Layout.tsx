@@ -81,7 +81,7 @@ export function ContainerWithNav({
   navigate,
   currentRoute,
   logOut,
-  title
+  title,
 }: {
   children: ReactNode;
   currentRoute: string;
@@ -116,6 +116,9 @@ export function ContainerWithNav({
             </NavButton>
             <NavButton currentRoute={currentRoute} navigate={navigate}>
               Conquest
+            </NavButton>
+            <NavButton currentRoute={currentRoute} navigate={navigate}>
+              Citadel
             </NavButton>
             <NavButton currentRoute={currentRoute} onPress={logOut}>
               Logout

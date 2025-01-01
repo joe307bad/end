@@ -47,6 +47,7 @@ interface EndStore {
       turn: string | undefined | null;
       victor: string | undefined | null;
       status: string | undefined | null;
+      updatedAt: number | undefined | null;
     };
   };
 }
@@ -71,6 +72,7 @@ const UpdatedWarSchema = S.Struct({
     turn: S.UndefinedOr(S.NullOr(S.String)),
     victor: S.UndefinedOr(S.NullOr(S.String)),
     status: S.UndefinedOr(S.NullOr(S.String)),
+    updatedAt: S.UndefinedOr(S.NullOr(S.Number)),
   }),
 });
 
@@ -137,12 +139,17 @@ const EndApiLive = Layer.effect(
             );
           }),
           Effect.flatMap((result: UpdatedWar) => {
+            if (!store.latestWarCache[result.war.id]) {
+              // @ts-ignore
+              store.latestWarCache[result.war.id] = result.war as Mutable<
+                UpdatedWar['war']
+              >;
+              return Effect.succeed('Updated war cache');
+            }
+
             Object.keys(result.war).forEach((k: string) => {
               const key = k as keyof typeof result.war;
-              if (
-                typeof result.war[key] !== 'undefined' &&
-                store.latestWarCache[result.war.id]
-              ) {
+              if (typeof result.war[key] !== 'undefined') {
                 switch (key) {
                   case 'players':
                     store.latestWarCache[result.war.id].players = result.war
@@ -156,12 +163,11 @@ const EndApiLive = Layer.effect(
                     store.latestWarCache[result.war.id].victor = result.war
                       .victor as Mutable<UpdatedWar['war']['victor']>;
                     break;
+                  case 'updatedAt':
+                    store.latestWarCache[result.war.id].updatedAt = result.war
+                      .victor as Mutable<UpdatedWar['war']['updatedAt']>;
+                    break;
                 }
-              } else {
-                // @ts-ignore
-                store.latestWarCache[result.war.id] = result.war as Mutable<
-                  UpdatedWar['war']
-                >;
               }
             });
 

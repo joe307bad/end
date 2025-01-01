@@ -46,6 +46,7 @@ import { Observable } from 'rxjs';
 import { execute } from '@end/data/core';
 import { View } from 'tamagui';
 import { useSnapshot } from 'valtio/react';
+import { Citadel } from '../pages/Citadel';
 
 function WithNavigate({
   children,
@@ -227,6 +228,15 @@ function AppRoutes() {
           loader: getLeaderboard,
         },
         {
+          path: '/citadel',
+          element: (
+            <PrivateRoute>
+              <Citadel />
+            </PrivateRoute>
+          ),
+          loader: getLeaderboard,
+        },
+        {
           path: '/home',
           element: (
             <PrivateRoute>
@@ -250,58 +260,6 @@ function AppRoutes() {
   return (
     <DatabaseProvider database={services.endApi.database}>
       <RouterProvider router={router} />
-      {/*<Router>*/}
-      {/*  <Routes>*/}
-      {/*    <Route element={<PrivateRoutes />}>*/}
-      {/*      <Route path="/home" element={<Home />} />*/}
-      {/*      <Route*/}
-      {/*        loader={getLeaderboard}*/}
-      {/*        path="/conquest"*/}
-      {/*        element={<Conquest />}*/}
-      {/*      />*/}
-      {/*      <Route path="/war/:id" element={<War />} />*/}
-      {/*    </Route>*/}
-      {/*    <Route*/}
-      {/*      path="/"*/}
-      {/*      element={*/}
-      {/*        <Container>*/}
-      {/*          <WithNavigate>*/}
-      {/*            {(n) => (*/}
-      {/*              <>*/}
-      {/*                <Landing*/}
-      {/*                  services={services}*/}
-      {/*                  goToRegister={() => n('/register')}*/}
-      {/*                  goToHome={() => {*/}
-      {/*                    const queryParams = new URLSearchParams(*/}
-      {/*                      window.location.search*/}
-      {/*                    );*/}
-      {/*                    const returnPath = queryParams.get('return_path');*/}
-      {/*                    n(returnPath ? returnPath : '/home');*/}
-      {/*                  }}*/}
-      {/*                />*/}
-      {/*                /!*<Link to={'#'}>*!/*/}
-      {/*                /!*  <Badge title="Download the Android app" />*!/*/}
-      {/*                /!*</Link>*!/*/}
-      {/*              </>*/}
-      {/*            )}*/}
-      {/*          </WithNavigate>*/}
-      {/*        </Container>*/}
-      {/*      }*/}
-      {/*    />*/}
-      {/*    <Route*/}
-      {/*      path="/register"*/}
-      {/*      element={*/}
-      {/*        <View width="100%">*/}
-      {/*          <WithNavigate>*/}
-      {/*            {(n) => (*/}
-      {/*              <Register services={services} goToHome={() => n('/home')} />*/}
-      {/*            )}*/}
-      {/*          </WithNavigate>*/}
-      {/*        </View>*/}
-      {/*      }*/}
-      {/*    />*/}
-      {/*  </Routes>*/}
-      {/*</Router>*/}
     </DatabaseProvider>
   );
 }

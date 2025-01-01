@@ -231,13 +231,15 @@ export class ConquestController {
           }
 
           if (event.type === 'add-player') {
+            const now = Date.now();
             await this.entityModel.create({
               _id: generateRandomId(),
               table: 'war_users',
               user_id: event.player.id,
               war_id: event.warId,
               created_on_server: Date.now(),
-              createdAt: new Date(),
+              created_at: now,
+              updated_at: now,
             });
             this.conquest.next({
               roomId: 'live-updates',
@@ -245,6 +247,7 @@ export class ConquestController {
                 id: event.warId,
                 players: existingWarState.context.players,
                 turn: null,
+                updatedAt: now
               },
               type: 'war-change',
             });
@@ -271,12 +274,13 @@ export class ConquestController {
               roomId: event.warId,
               round,
             });
+            const updatedAt = Date.now();
             await this.entityModel.updateOne(
               { table: 'wars', _id: event.warId },
               {
                 turn_id: currentUsersTurn,
                 updated_on_server: Date.now(),
-                updatedAt: new Date(),
+                updated_at: updatedAt,
               }
             );
             this.conquest.next({
@@ -285,6 +289,7 @@ export class ConquestController {
                 id: event.warId,
                 turn: currentUsersTurn,
                 status: existingWarActor.getSnapshot().value,
+                updatedAt,
               },
               type: 'war-change',
             });
@@ -306,13 +311,14 @@ export class ConquestController {
               ),
               war: { id, ...existingWarState.context },
             });
+            const updatedAt = Date.now();
             await this.entityModel.updateOne(
               { table: 'wars', _id: event.warId },
               {
                 turn_id: existingWarState.context.players[0].id,
                 status: 'war-in-progress',
                 updated_on_server: Date.now(),
-                updatedAt: new Date(),
+                updated_at: updatedAt,
               }
             );
             this.conquest.next({
@@ -320,7 +326,9 @@ export class ConquestController {
               war: {
                 id: event.warId,
                 players: existingWarState.context.players,
+                turn: existingWarState.context.players[0].id,
                 status: 'war-in-progress',
+                updatedAt,
               },
               type: 'war-change',
             });
@@ -365,6 +373,7 @@ export class ConquestController {
               players: existingWarState.context.players,
               tiles: Object.values(existingWarState.context.tiles),
             })[0].id;
+            const updatedAt = Date.now();
 
             await this.entityModel.updateOne(
               { table: 'wars', _id: event.warId },
@@ -373,7 +382,7 @@ export class ConquestController {
                 turn_id: null,
                 status: 'war-complete',
                 updated_on_server: Date.now(),
-                updatedAt: new Date(),
+                updated_at: updatedAt,
               }
             );
 
@@ -384,6 +393,7 @@ export class ConquestController {
                 victor,
                 turn: null,
                 status: 'war-complete',
+                updatedAt,
               },
               type: 'war-change',
             });
