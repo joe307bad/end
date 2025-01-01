@@ -106,3 +106,18 @@ export const getRandomName = () => {
 };
 
 export const hexasphere: THexasphere = new HS(50, 4, 1);
+
+export const colors: string[] = [
+  '#FF0000', // Red
+  '#FF7F00', // Orange
+  '#FFFF00', // Yellow
+  '#00FF00', // Green
+  '#0000FF', // Blue
+  '#520043', // Cyan
+  '#FF1493', // Deep Pink
+  '#FFD700', // Gold
+  '#008080', // Teal
+  '#800000', // Maroon
+  '#40E0D0', // Turquoise
+  '#8B4513', // Saddle Brown
+];

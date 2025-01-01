@@ -46,12 +46,14 @@ export function TabsContainer({
           return;
         }
 
-        console.log(selectedTileIndex)
+        console.log(selectedTileIndex);
         if (sv.current && selectedTileIndex > -1) {
           sv.current.scrollTo(selectedTileIndex * 67);
         }
       }
     );
+
+    warService.setFilter('all');
 
     return () => unsubscribe();
   }, []);
@@ -94,7 +96,7 @@ export function TabsContainer({
             </Tabs.List>
             <Separator />
             <TabsContent value="tab1">
-              <View width="100%">
+              <ScrollView width="100%">
                 <Select
                   label="Number of players"
                   onValueChange={warService.setPlayerLimit}
@@ -124,7 +126,7 @@ export function TabsContainer({
                 />
                 <Spacer />
                 <PrimaryButton onPress={startGame}>Start game</PrimaryButton>
-              </View>
+              </ScrollView>
             </TabsContent>
             <TabsContent value="tab2" style={tw`h-full`}>
               <View style={tw`h-full overflow-scroll w-full`}>

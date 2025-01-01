@@ -1,8 +1,6 @@
-import { Effect,pipe} from 'effect';
+import { Effect, pipe } from 'effect';
 import * as THREE from 'three';
-import {
-  Coords,
-} from '@end/shared';
+import { Coords } from '@end/shared';
 import { WarState } from '@end/war/core';
 import { WarLive } from './war/WarLive';
 import { Players, Result, Tile } from './war/WarSchema';
@@ -27,11 +25,14 @@ interface IWarService {
   setFilter: (filter: WarStore['filter']) => void;
   setLandAndWaterColors: (water: string, land: string) => void;
   setName: (name: string) => void;
-  setDeployments: (deployments: { deployTo: string; troopsToDeploy: number; date: string }[]) => void;
+  setDeployments: (
+    deployments: { deployTo: string; troopsToDeploy: number; date: string }[]
+  ) => void;
   setTiles: (
     raisedTiles: Record<string, string>,
     ownedTiles: Record<string, Tile>
   ) => void;
+  resetTiles: () => void;
   setSort: (sort: WarStore['sort']) => void;
   setSettingPortalCoords: (
     settingPortalCords: WarStore['settingPortalCoords']

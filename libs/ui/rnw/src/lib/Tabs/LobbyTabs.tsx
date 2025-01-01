@@ -6,21 +6,30 @@ import { UserCircle2 } from '@tamagui/lucide-icons';
 import { PrimaryButton } from '../Display';
 import { useParams } from 'react-router-dom';
 import { execute } from '@end/data/core';
+import { Effect, pipe } from 'effect';
 
 export function LobbyTabs() {
   const { services } = useEndApi();
-  const { warService } = services;
+  const { warService, syncService } = services;
   const warStore = useSnapshot(warService.store);
   const params = useParams();
 
   const join = useCallback(async () => {
     await execute(
-      services.conquestService.addPlayer({ warId: params['id'] ?? '' })
+      pipe(
+        services.conquestService.addPlayer({ warId: params['id'] ?? '' }),
+        // Effect.flatMap(syncService.sync)
+      )
     );
   }, []);
 
   const beginTurnNumber1 = useCallback(async () => {
-    await execute(services.conquestService.beginTurnNumber1());
+    await execute(
+      pipe(
+        services.conquestService.beginTurnNumber1(),
+        // Effect.flatMap(syncService.sync)
+      )
+    );
   }, []);
 
   return (

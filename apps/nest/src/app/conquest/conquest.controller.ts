@@ -1,13 +1,13 @@
 import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
 import {
-  warMachine,
   Event,
-  Battle,
-  getPossibleDeployedTroops,
-  getDeployedTroopsForTurn,
-  getMostRecentPortal,
-  getMostRecentDeployment,
   getCurrentUsersTurn,
+  getDeployedTroopsForTurn,
+  getMostRecentDeployment,
+  getMostRecentPortal,
+  getPossibleDeployedTroops,
+  getScoreboard,
+  warMachine,
 } from '@end/war/core';
 import { createActor } from 'xstate';
 import { InjectModel, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -15,9 +15,8 @@ import { Model, ObjectId } from 'mongoose';
 import { Entity } from '../sync/sync.service';
 import { ConquestService } from './conquest.service';
 import { JwtService } from '@nestjs/jwt';
-import { v6 as uuidv6 } from 'uuid';
-import { faker } from '@faker-js/faker';
-import * as S from '@effect/schema/Schema';
+import { User, UsersService } from '../users/users.service';
+import { generateRandomId } from '../shared';
 
 const colors: string[] = [
   '#FF0000', // Red
@@ -36,9 +35,6 @@ const colors: string[] = [
 
 @Schema({ strict: false })
 export class War {
-  @Prop({ required: true })
-  state: string;
-
   @Prop({ required: true })
   warId: string;
 
@@ -62,21 +58,24 @@ export class ConquestController {
   constructor(
     @InjectModel(War.name) private warModel: Model<War>,
     @InjectModel(Entity.name) private entityModel: Model<Entity>,
+    @InjectModel(User.name) private userModel: Model<User>,
     private jwtService: JwtService,
-    private conquest: ConquestService
+    private conquest: ConquestService,
+    private userService: UsersService
   ) {}
 
   @Post()
   async log(@Body() event: Event, @Req() request: Request) {
     switch (event.type) {
       case 'generate-new-war':
-        const { userId, username }: { userId: string; username: string } =
-          (() => {
+        const { userId, userName }: { userId: string; userName: string } =
+          await (async () => {
             const authHeader = request.headers['authorization'];
             if (authHeader && authHeader.startsWith('Bearer ')) {
               const token = authHeader.split(' ')[1];
-              const { sub, username } = this.jwtService.decode(token);
-              return { userId: sub, username };
+              const { sub } = this.jwtService.decode(token);
+              const { userName, _id } = await this.userService.findById(sub);
+              return { userId: _id, userName };
             }
             return null;
           })();
@@ -88,19 +87,22 @@ export class ConquestController {
           players: [
             {
               id: userId,
-              userName: username,
+              userName,
               color: colors[0],
             },
           ],
         });
-        const state = warActor.getSnapshot();
+        const state = warActor.getSnapshot().toJSON();
         await this.warModel
-          .create({ state: JSON.stringify(state), warId: event.warId })
+          .create({
+            ...(state as any),
+            warId: event.warId,
+          })
           .then((r) => {
             return { id: r._id };
           });
 
-        return { state, warId: event.warId };
+        return { state, warId: event.warId, playerId: userId };
       case 'add-player':
       case 'deploy':
       case 'set-portal-entry':
@@ -109,23 +111,24 @@ export class ConquestController {
       case 'complete-turn':
       case 'begin-turn-number-1':
         try {
-          const war = await this.warModel
+          const war = (await this.warModel
             .findOne({ warId: event.warId })
-            .exec();
-          const warState = JSON.parse(war.state);
+            .exec()) as any;
+          // const warState = JSON.parse(war.state);
           const existingWarActor = createActor(
-            warMachine(event.warId, warState.context, warState.value)
+            warMachine(event.warId, war.context, war.value)
           );
           existingWarActor.start();
           const preActionState = existingWarActor.getSnapshot();
 
           if (event.type === 'add-player') {
-            const { userId, username } = getUserInfo(this.jwtService)(request);
+            const { userId } = getUserInfo(this.jwtService)(request);
+            const { userName, _id } = await this.userService.findById(userId);
             event = {
               ...event,
               player: {
-                id: userId,
-                userName: username,
+                id: _id,
+                userName,
                 color: colors[preActionState.context.players.length],
               },
             };
@@ -139,15 +142,14 @@ export class ConquestController {
           }
 
           existingWarActor.send(event);
-          const existingWarState = existingWarActor.getSnapshot();
+          const existingWarState = existingWarActor
+            .getSnapshot()
+            .toJSON() as any;
           await this.warModel
             .updateOne(
               { warId: event.warId },
               {
-                state: JSON.stringify({
-                  context: existingWarState.context,
-                  value: existingWarState.value,
-                }),
+                ...(existingWarState as any),
               }
             )
             .then((r) => {
@@ -172,7 +174,7 @@ export class ConquestController {
 
             this.conquest.next({
               type: 'attack',
-              warId: event.warId,
+              roomId: event.warId,
               ownerUpdates: {
                 [battle.defendingTerritory]:
                   existingWarState.context.tiles[battle.defendingTerritory]
@@ -211,7 +213,7 @@ export class ConquestController {
                 .troopCount;
             this.conquest.next({
               type: 'battle-started',
-              warId: event.warId,
+              roomId: event.warId,
               troopUpdates: {
                 [battle.defendingTerritory]: defendingTroopCount,
                 [battle.attackingFromTerritory]: attackingTroopCount,
@@ -229,9 +231,29 @@ export class ConquestController {
           }
 
           if (event.type === 'add-player') {
+            const now = Date.now();
+            await this.entityModel.create({
+              _id: generateRandomId(),
+              table: 'war_users',
+              user_id: event.player.id,
+              war_id: event.warId,
+              created_on_server: Date.now(),
+              created_at: now,
+              updated_at: now,
+            });
+            this.conquest.next({
+              roomId: 'live-updates',
+              war: {
+                id: event.warId,
+                players: existingWarState.context.players,
+                turn: null,
+                updatedAt: now
+              },
+              type: 'war-change',
+            });
             this.conquest.next({
               type: 'player-joined',
-              warId: event.warId,
+              roomId: event.warId,
               players: existingWarState.context.players,
             });
           }
@@ -249,8 +271,27 @@ export class ConquestController {
             this.conquest.next({
               type: 'turn-completed',
               currentUsersTurn,
-              warId: event.warId,
+              roomId: event.warId,
               round,
+            });
+            const updatedAt = Date.now();
+            await this.entityModel.updateOne(
+              { table: 'wars', _id: event.warId },
+              {
+                turn_id: currentUsersTurn,
+                updated_on_server: Date.now(),
+                updated_at: updatedAt,
+              }
+            );
+            this.conquest.next({
+              roomId: 'live-updates',
+              war: {
+                id: event.warId,
+                turn: currentUsersTurn,
+                status: existingWarActor.getSnapshot().value,
+                updatedAt,
+              },
+              type: 'war-change',
             });
           }
 
@@ -263,19 +304,40 @@ export class ConquestController {
             const id = event.warId;
             this.conquest.next({
               type: 'war-started',
-              warId: event.warId,
+              roomId: event.warId,
               round: Math.ceil(
                 Object.keys(existingWarState.context.turns).length /
                   existingWarState.context.players.length
               ),
               war: { id, ...existingWarState.context },
             });
+            const updatedAt = Date.now();
+            await this.entityModel.updateOne(
+              { table: 'wars', _id: event.warId },
+              {
+                turn_id: existingWarState.context.players[0].id,
+                status: 'war-in-progress',
+                updated_on_server: Date.now(),
+                updated_at: updatedAt,
+              }
+            );
+            this.conquest.next({
+              roomId: 'live-updates',
+              war: {
+                id: event.warId,
+                players: existingWarState.context.players,
+                turn: existingWarState.context.players[0].id,
+                status: 'war-in-progress',
+                updatedAt,
+              },
+              type: 'war-change',
+            });
           }
 
           if (event.type === 'set-portal-entry') {
             this.conquest.next({
               type: 'portal-entry-set',
-              warId: event.warId,
+              roomId: event.warId,
               portal: getMostRecentPortal(existingWarState.context),
             });
           }
@@ -295,7 +357,7 @@ export class ConquestController {
               tile: event.tile,
               troopsCount:
                 existingWarState.context.tiles[event.tile].troopCount,
-              warId: event.warId,
+              roomId: event.warId,
               availableTroopsToDeploy,
               deployment,
             });
@@ -304,11 +366,40 @@ export class ConquestController {
           if (existingWarState.value === 'war-complete') {
             this.conquest.next({
               type: 'war-completed',
-              warId: event.warId,
+              roomId: event.warId,
+            });
+
+            const victor = getScoreboard({
+              players: existingWarState.context.players,
+              tiles: Object.values(existingWarState.context.tiles),
+            })[0].id;
+            const updatedAt = Date.now();
+
+            await this.entityModel.updateOne(
+              { table: 'wars', _id: event.warId },
+              {
+                victor_id: victor,
+                turn_id: null,
+                status: 'war-complete',
+                updated_on_server: Date.now(),
+                updated_at: updatedAt,
+              }
+            );
+
+            this.conquest.next({
+              roomId: 'live-updates',
+              war: {
+                id: event.warId,
+                victor,
+                turn: null,
+                status: 'war-complete',
+                updatedAt,
+              },
+              type: 'war-change',
             });
           }
 
-          return { state: existingWarState, warId: event.warId };
+          return { state: existingWarState, ...event };
         } catch (e) {
           return e.message;
         }
@@ -317,28 +408,30 @@ export class ConquestController {
 
   @Get('war/:id')
   async war(@Param() params: { id?: string }) {
-    const war = await this.warModel
+    const war = (await this.warModel
       .findOne({
         warId: { $eq: params.id },
       })
-      .exec();
-    const warState = JSON.parse(war.state);
+      .exec()) as any;
+    // const warState = JSON.parse(war.state);
     const existingWarActor = createActor(
-      warMachine(war.warId, warState.context, warState.value)
+      warMachine(war.warId, war.context, war.value)
     );
     const existingWarState = existingWarActor.getSnapshot();
+    const turns = existingWarState.context.turns;
     const deployedTroops = getDeployedTroopsForTurn(
-      existingWarState.context.turns[existingWarState.context.turn]
+      turns?.[existingWarState.context.turn]
     );
     const availableTroopsToDeploy =
       getPossibleDeployedTroops(existingWarState.context) - deployedTroops;
     return {
       war,
       availableTroopsToDeploy,
-      round: Math.ceil(
-        Object.keys(existingWarState.context.turns).length /
-          existingWarState.context.players.length
-      ),
+      round: !turns
+        ? 0
+        : Math.ceil(
+            Object.keys(turns).length / existingWarState.context.players.length
+          ),
       isInactive: existingWarState.value === 'war-complete',
     };
   }

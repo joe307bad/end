@@ -36,7 +36,7 @@ export function Landing({ goToHome, goToRegister, services }: Props) {
       })
       .catch((e) => {
         setLoading(false);
-        toast.show('An error occurred. Try again.', { message: e?.message });
+        // toast.show('An error occurred. Try again.', { message: e?.message });
       });
   }, [userName, password]);
 
@@ -45,39 +45,37 @@ export function Landing({ goToHome, goToRegister, services }: Props) {
   }, []);
 
   return (
-    <YStack space="$0.5" style={{ alignItems: 'center' }} height="100%">
-      <View paddingTop="$1" paddingBottom="$1" display="flex" height="100%">
-        <YStack space="$0.5" flex={1}>
-          <View display="flex" alignItems="center">
-            <Typography.H1>end</Typography.H1>
-          </View>
-          <XStack space="$0.5">
-            <Input
-              placeholder="Username"
-              onChange={(e) => setUserName(e.nativeEvent.text)}
-              padding="$0.5"
-              width="50%"
-            />
-            <Input
-              placeholder="Password"
-              onChange={(e) => setPassword(e.nativeEvent.text)}
-              secureTextEntry={true}
-              padding="$0.5"
-              width="50%"
-              onKeyPress={(event: any) => {
-                if (event.code === 'Enter' || event.code === 'NumpadEnter') {
-                  login();
-                }
-              }}
-            />
-          </XStack>
-          <PrimaryButton loading={loading} onPress={login}>
-            Login
-          </PrimaryButton>
-        </YStack>
-        <PrimaryButton onPress={goToRegister}>Register</PrimaryButton>
-        <CurrentToast />
+    <YStack height="100%" padding="$0.5" space="$0.5">
+      <View display="flex" alignItems="center">
+        <Typography.H1>end</Typography.H1>
       </View>
+      <XStack space="$0.5">
+        <Input
+          placeholder="Username"
+          onChange={(e) => setUserName(e.nativeEvent.text)}
+          padding="$0.5"
+          width="50%"
+        />
+        <Input
+          placeholder="Password"
+          onChange={(e) => setPassword(e.nativeEvent.text)}
+          secureTextEntry={true}
+          padding="$0.5"
+          width="50%"
+          onKeyPress={(event: any) => {
+            if (event.code === 'Enter' || event.code === 'NumpadEnter') {
+              login();
+            }
+          }}
+        />
+      </XStack>
+      <PrimaryButton loading={loading} onPress={login}>
+        Login
+      </PrimaryButton>
+      <View flex={1} justifyContent="flex-end">
+        <PrimaryButton onPress={goToRegister}>Register</PrimaryButton>
+      </View>
+      <CurrentToast />
     </YStack>
   );
 }

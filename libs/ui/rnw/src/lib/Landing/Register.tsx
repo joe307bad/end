@@ -6,6 +6,7 @@ import { execute, servicesFactory } from '@end/data/core';
 import { useToastController } from '@tamagui/toast';
 import { useAuth } from '@end/auth';
 import { CurrentToast } from '../components';
+import { Effect, pipe } from 'effect';
 
 export function Register({
   goToHome,
@@ -22,7 +23,7 @@ export function Register({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    toast.hide()
+    toast.hide();
   }, []);
 
   const register = useCallback(() => {
@@ -34,33 +35,36 @@ export function Register({
           await setToken(res.access_token);
           goToHome?.();
         } else {
-          toast.show('An error occurred. Try again.', {
-            message: (res as any)?.message,
-          });
+          // toast.show('An error occurred. Try again.', {
+          //   message: (res as any)?.message,
+          // });
         }
       })
       .catch((e) => {
         setLoading(false);
-        toast.show('An error occurred. Try again.', { message: e?.message });
+        // toast.show('An error occurred. Try again.', { message: e?.message });
       });
   }, [userName, password, confirmPassword]);
 
   return (
-    <YStack paddingTop="$1" space="$0.5" style={{ alignItems: 'center' }}>
+    <YStack
+      width="100%"
+      padding="$0.5"
+      space="$0.5"
+      style={{ alignItems: 'center' }}
+    >
       <Typography.H1>end</Typography.H1>
-      <YStack width={430} space="$0.5">
+      <YStack maxWidth={438} width="100%" space="$0.5">
         <Input
           placeholder="Username"
           onChange={(e) => setUserName(e.nativeEvent.text)}
           padding="$0.5"
-          width="100%"
         />
         <Input
           placeholder="Password"
           onChange={(e) => setPassword(e.nativeEvent.text)}
           secureTextEntry={true}
           padding="$0.5"
-          width="100%"
           onKeyPress={(event: any) => {}}
         />
         <Input
@@ -68,7 +72,6 @@ export function Register({
           onChange={(e) => setConfirmPassword(e.nativeEvent.text)}
           secureTextEntry={true}
           padding="$0.5"
-          width="100%"
           onKeyPress={(event: any) => {}}
         />
         <PrimaryButton loading={loading} onPress={register}>

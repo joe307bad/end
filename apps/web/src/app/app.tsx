@@ -3,6 +3,7 @@ import React, {
   ReactNode,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import {
@@ -25,6 +26,8 @@ import {
   Outlet,
   Navigate,
   useParams,
+  createBrowserRouter,
+  RouterProvider,
 } from 'react-router-dom';
 import Home from '../pages/Home';
 import { useAuth } from '@end/auth';
@@ -41,6 +44,9 @@ import { War as TWar } from '@end/wm/core';
 import { Database } from '@nozbe/watermelondb';
 import { Observable } from 'rxjs';
 import { execute } from '@end/data/core';
+import { View } from 'tamagui';
+import { useSnapshot } from 'valtio/react';
+import { Citadel } from '../pages/Citadel';
 
 function WithNavigate({
   children,
@@ -107,7 +113,7 @@ function PageRouteComponent({ children }: { children: ReactNode }) {
   return <EnhancedPage warId={params.id}>{children}</EnhancedPage>;
 }
 
-const PrivateRoutes = () => {
+const PrivateRoute = ({ children }: { children: ReactNode }) => {
   const { services } = useEndApi();
   const { getToken } = useAuth();
   const [token, setToken] = useState<string | null | 'LOADING'>('LOADING');
@@ -135,14 +141,24 @@ const PrivateRoutes = () => {
     });
   }, []);
 
+  useEffect(() => {
+    if (token) {
+      return services.endApi.connectToUserLog(token, async (value) => {
+        if(value) {
+          await execute(services.syncService.sync());
+        }
+      });
+    }
+
+    return () => {};
+  }, [token]);
+
   if (token === 'LOADING') {
     return null;
   }
 
   return token ? (
-    <PageRouteComponent>
-      <Outlet />
-    </PageRouteComponent>
+    <PageRouteComponent>{children}</PageRouteComponent>
   ) : (
     <Navigate
       to={`/?return_path=${encodeURIComponent(
@@ -154,57 +170,96 @@ const PrivateRoutes = () => {
 
 function AppRoutes() {
   const { services } = useEndApi();
+  const warStore = useSnapshot(services.warService.store);
+
+  const getLeaderboard = useCallback(() => {
+    return execute(services.endApi.leaderboard()); //execute(services.endApi.leaderboard());
+  }, []);
+
+  const router = useMemo(
+    () =>
+      createBrowserRouter([
+        {
+          path: '/',
+          element: (
+            <Container>
+              <WithNavigate>
+                {(n) => (
+                  <>
+                    <Landing
+                      services={services}
+                      goToRegister={() => n('/register')}
+                      goToHome={() => {
+                        const queryParams = new URLSearchParams(
+                          window.location.search
+                        );
+                        const returnPath = queryParams.get('return_path');
+                        n(returnPath ? returnPath : '/home');
+                      }}
+                    />
+                    {/*<Link to={'#'}>*/}
+                    {/*  <Badge title="Download the Android app" />*/}
+                    {/*</Link>*/}
+                  </>
+                )}
+              </WithNavigate>
+            </Container>
+          ),
+        },
+        {
+          path: '/register',
+          element: (
+            <View width="100%">
+              <WithNavigate>
+                {(n) => (
+                  <Register services={services} goToHome={() => n('/home')} />
+                )}
+              </WithNavigate>
+            </View>
+          ),
+        },
+        {
+          path: '/conquest',
+          element: (
+            <PrivateRoute>
+              <Conquest userId={warStore.userId} />
+            </PrivateRoute>
+          ),
+          loader: getLeaderboard,
+        },
+        {
+          path: '/citadel',
+          element: (
+            <PrivateRoute>
+              <Citadel />
+            </PrivateRoute>
+          ),
+          loader: getLeaderboard,
+        },
+        {
+          path: '/home',
+          element: (
+            <PrivateRoute>
+              <Home />
+            </PrivateRoute>
+          ),
+          loader: getLeaderboard,
+        },
+        {
+          path: '/war/:id',
+          element: (
+            <PrivateRoute>
+              <War />
+            </PrivateRoute>
+          ),
+        },
+      ]),
+    [warStore.userId]
+  );
 
   return (
     <DatabaseProvider database={services.endApi.database}>
-      <Router>
-        <Routes>
-          <Route element={<PrivateRoutes />}>
-            <Route path="/home" element={<Home />} />
-            <Route path="/conquest" element={<Conquest />} />
-            <Route path="/war/:id" element={<War />} />
-          </Route>
-          <Route
-            path="/"
-            element={
-              <Container>
-                <WithNavigate>
-                  {(n) => (
-                    <>
-                      <Landing
-                        services={services}
-                        goToRegister={() => n('/register')}
-                        goToHome={() => {
-                          const queryParams = new URLSearchParams(
-                            window.location.search
-                          );
-                          const returnPath = queryParams.get('return_path');
-                          n(returnPath ? returnPath : '/home');
-                        }}
-                      />
-                      {/*<Link to={'#'}>*/}
-                      {/*  <Badge title="Download the Android app" />*/}
-                      {/*</Link>*/}
-                    </>
-                  )}
-                </WithNavigate>
-              </Container>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <Container>
-                <WithNavigate>
-                  {(n) => (
-                    <Register services={services} goToHome={() => n('/home')} />
-                  )}
-                </WithNavigate>
-              </Container>
-            }
-          />
-        </Routes>
-      </Router>
+      <RouterProvider router={router} />
     </DatabaseProvider>
   );
 }

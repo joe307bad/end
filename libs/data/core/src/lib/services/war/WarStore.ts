@@ -1,7 +1,11 @@
 import { proxy } from 'valtio';
-import { Option as O } from 'effect';
+import { Context, Option as O } from 'effect';
 import { getOrUndefined, Option } from 'effect/Option';
-import { getDeploymentsByTerritory, WarState } from '@end/war/core';
+import {
+  getDeploymentsByTerritory,
+  getScoreboard,
+  WarState,
+} from '@end/war/core';
 import * as THREE from 'three';
 import { buildCameraPath, Coords, hexasphere } from '@end/shared';
 import { Players, Tile, Battle } from './WarSchema';
@@ -69,7 +73,7 @@ export const store = proxy<WarStore>({
   activeBattle: O.none(),
   deployments: [],
   roundLimit: 10,
-  playerLimit: 12
+  playerLimit: 12,
 });
 
 export const derived = derive({
@@ -77,19 +81,7 @@ export const derived = derive({
     const tiles = get(store).tiles;
     const players = get(store).players;
 
-    return players
-      .reduce((acc: { totalTroops: number; userName: string; color: string; }[], curr) => {
-        const owned = tiles.filter((t) => t.owner === curr.id);
-
-        const totalTroops = owned.reduce((acc1, curr1) => {
-          acc1 = acc1 + curr1.troopCount;
-          return acc1;
-        }, 0);
-
-        acc.push({ totalTroops, userName: curr.userName, color: curr.color });
-        return acc;
-      }, [])
-      .sort((a, b) => b.totalTroops - a.totalTroops);
+    return getScoreboard({ tiles, players });
   },
   battles: (get) => {
     const battles = get(store).battles;
