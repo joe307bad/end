@@ -54,13 +54,14 @@ export class AuthService {
     const { _id } = await this.usersService.create({ password });
     const userId = generateRandomId();
 
+    const now = Date.now();
     await this.entityModel.create({
       _id: userId,
       table: 'users',
       userName: userName,
       password_id: _id,
       created_on_server: Date.now(),
-      createdAt: new Date()
+      created_at: Date.now(),
     });
     const payload = { sub: userId };
 

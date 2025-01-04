@@ -106,6 +106,22 @@ export class WarTurn extends BaseModel {
   @relation('users', 'user_id') user!: IUser;
 }
 
+export class LeaderboardItem extends BaseModel {
+  @field('change') change!: number;
+
+  @field('total') total!: number;
+
+  @field('value') value!: number;
+
+  @field('rank') rank!: number;
+
+  @field('user_id') userId!: string;
+  @relation('users', 'user_id') user!: IUser;
+
+  @field('leaderboard_id') leaderBoardId!: string;
+  @relation('leaderboards', 'leaderboard_id') leaderboard!: Leaderboard;
+}
+
 export class WarVictor extends BaseModel {
   static override table = 'war_victors';
   static override associations: Associations = {
@@ -119,10 +135,34 @@ export class WarVictor extends BaseModel {
   @relation('users', 'user_id') user!: IUser;
 }
 
+export class LeaderboardType extends BaseModel {
+  static override table = 'leaderboard_types';
+  @field('name') name!: string;
+}
+
+export class Leaderboard extends BaseModel {
+  static override table = 'leaderboards';
+
+  @field('leaderboard_type_id') leaderboardTypeId!: string;
+  @relation('leaderboard_types', 'type_id') leaderboardType!: LeaderboardType;
+
+  @field('citadel_feed_id') citadelFeedId!: string;
+  @relation('citadel_feed', 'citadel_feed_id') citadelFeed!: CitadelFeed;
+}
+
+export class CitadelFeed extends BaseModel {
+  static override table = 'citadel_feed';
+
+  @lazy
+  leaderboards = this.collections
+    .get<Leaderboard>('leaderboards')
+    .query(Q.on('citadel_feed_leaderboards', 'leaderboard_id', this.id));
+}
+
 export const databaseFactory = (adapter: DatabaseAdapter) =>
   new Database({
     adapter,
-    modelClasses: [Planet, War, User, WarUser, WarTurn, WarVictor],
+    modelClasses: [Planet, War, User, WarUser, WarTurn, WarVictor, CitadelFeed, Leaderboard, LeaderboardType, LeaderboardItem],
   });
 
 const baseColumns = (schema: ColumnSchema[]): ColumnSchema[] => [

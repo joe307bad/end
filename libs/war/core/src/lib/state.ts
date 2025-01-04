@@ -16,7 +16,7 @@ export interface Tile {
   originalOwner: string;
 }
 
-interface Context {
+export interface Context {
   players: { id: string; userName: string; color: string }[];
   playerLimit: number;
   battleLimit: number;

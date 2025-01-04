@@ -14,5 +14,6 @@ import { UsersModule } from '../users/users.module';
   ],
   providers: [ConquestGateway, ConquestService],
   controllers: [ConquestController],
+  exports: [ConquestService]
 })
 export class ConquestModule {}

@@ -97,6 +97,7 @@ export class ConquestController {
           .create({
             ...(state as any),
             warId: event.warId,
+            created_at: Date.now(),
           })
           .then((r) => {
             return { id: r._id };
@@ -247,7 +248,7 @@ export class ConquestController {
                 id: event.warId,
                 players: existingWarState.context.players,
                 turn: null,
-                updatedAt: now
+                updatedAt: now,
               },
               type: 'war-change',
             });
@@ -364,16 +365,16 @@ export class ConquestController {
           }
 
           if (existingWarState.value === 'war-complete') {
-            this.conquest.next({
-              type: 'war-completed',
-              roomId: event.warId,
-            });
-
             const victor = getScoreboard({
               players: existingWarState.context.players,
               tiles: Object.values(existingWarState.context.tiles),
             })[0].id;
             const updatedAt = Date.now();
+
+            await this.warModel.updateOne(
+              { warId: event.warId },
+              { completed_at: Date.now() }
+            );
 
             await this.entityModel.updateOne(
               { table: 'wars', _id: event.warId },
@@ -385,7 +386,10 @@ export class ConquestController {
                 updated_at: updatedAt,
               }
             );
-
+            this.conquest.next({
+              type: 'war-completed',
+              roomId: event.warId,
+            });
             this.conquest.next({
               roomId: 'live-updates',
               war: {
