@@ -1,52 +1,28 @@
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Entity } from '../sync/sync.service';
-import { ConquestService } from '../conquest/conquest.service';
+import { Model, Types } from 'mongoose';
 import { War } from '../conquest/conquest.controller';
 import { subYears } from 'date-fns';
 import { Context } from '@end/war/core';
-import { generateRandomId } from '../shared';
 import { CitadelFeed } from './citadel.service';
+import { generateRandomId } from '../shared';
+import { isEmptyRecord } from 'effect/Record';
 
-@Processor('citadel-recalculation-queue')
-export class CitadelQueueProcesser {
+@Processor('citadel-feed-queue')
+export class CitadelQueueProcessor {
   constructor(
-    @InjectModel(War.name) private warModel: Model<War>,
-    @InjectModel(Entity.name) private entityModel: Model<Entity>,
-    private conquest: ConquestService
+    @InjectModel('citadel-feed') private citadelModel: Model<CitadelFeed>,
+    @InjectModel(War.name) private warModel: Model<War>
   ) {}
 
   @Process({ concurrency: 1 })
-  async handleJob(job: Job) {
+  async CitadelQueueProcessor(job: Job) {
     const now = Date.now();
 
-    // Create leaderboard types if they do not exist
-    for (const type of [
-      'Battle win rate',
-      'Total troop count',
-      'Total planets captured',
-    ]) {
-      const existing = await this.entityModel
-        .findOne({ table: 'leaderboard_types', name: type })
-        .exec();
-
-      if (!existing) {
-        await this.entityModel.create({
-          _id: generateRandomId(),
-          table: 'leaderboard_types',
-          name: type,
-          created_on_server: now,
-          created_at: now,
-          updated_at: now,
-        });
-      }
-    }
-
     // find the latest entry in CitadelFeed
-    const latestCitadelFeedEntry = await this.entityModel
-      .findOne<CitadelFeed>()
+    const latestCitadelFeedEntry = await this.citadelModel
+      .findOne<CitadelFeed | null>()
       .sort({ created_at: -1 })
       .exec();
 
@@ -61,7 +37,7 @@ export class CitadelQueueProcesser {
     // get all completed wars created after entryDate
     const completedWars = await this.warModel
       .find<{ context: Context; victor_id?: string }>({
-        completed_at: { $gt: entryDate },
+        completed_at: { $gt: entryDate.getTime() },
         value: 'war-complete',
       })
       .exec();
@@ -69,15 +45,15 @@ export class CitadelQueueProcesser {
     // get all wars created after entryDate
     const allWars = await this.warModel
       .find<{ context: Context; victor_id?: string }>({
-        created_at: { $gt: entryDate },
-        value: { $ne: 'war-complete' },
+        updated_at: { $gt: entryDate.getTime() },
+        value: { $nin: ['war-complete', 'searching-for-players'] },
       })
       .exec();
 
     // run calculations on this subset
     const { battleWinRate, totalTroopCount } = allWars.reduce(
       (leaderboards: Partial<CitadelFeed['leaderboards']>, curr) => {
-        Object.values(curr.context.turns).forEach((turn, i) => {
+        Object.values(curr.context?.turns ?? {}).forEach((turn, i) => {
           turn.battles.forEach((battle) => {
             const { aggressor, defender } = battle.events.reduce(
               (acc: { aggressor?: number; defender?: number }, curr) => {
@@ -112,22 +88,50 @@ export class CitadelQueueProcesser {
           });
         });
 
-        Object.values(curr.context.tiles).forEach((tile, i) => {
-          if (!leaderboards.totalTroopCount[tile.owner]) {
-            leaderboards.totalTroopCount[tile.owner] = {
-              value: 0,
-              change: 0,
-            };
-          }
+        Object.values(curr.context.tiles)
+          .filter((t) => t.owner !== 'null')
+          .forEach((tile, i) => {
+            if (!leaderboards.totalTroopCount[tile.owner]) {
+              leaderboards.totalTroopCount[tile.owner] = {
+                value: 0,
+                change: 0,
+              };
+            }
 
-          leaderboards.totalTroopCount[tile.owner].value =
-            leaderboards.totalTroopCount[tile.owner].value + tile.troopCount;
-        });
+            leaderboards.totalTroopCount[tile.owner].value =
+              leaderboards.totalTroopCount[tile.owner].value + tile.troopCount;
+          });
 
         return leaderboards;
       },
       { battleWinRate: {}, totalTroopCount: {} }
     );
+
+    // calculate change for battle win rate
+    Object.keys(battleWinRate).forEach((user, i) => {
+      const exists = latestCitadelFeedEntry?.leaderboards.battleWinRate[user];
+
+      if (exists) {
+        const prev =
+          latestCitadelFeedEntry.leaderboards.battleWinRate[user].battlesWon /
+          latestCitadelFeedEntry.leaderboards.battleWinRate[user].totalBattles;
+        const currBwr =
+          battleWinRate[user].battlesWon / battleWinRate[user].totalBattles;
+        battleWinRate[user].change = currBwr - prev;
+      }
+    });
+
+    // calculate change for troop count
+    Object.keys(totalTroopCount).forEach((user, i) => {
+      const exists = latestCitadelFeedEntry?.leaderboards.totalTroopCount[user];
+
+      if (exists) {
+        const prev =
+          latestCitadelFeedEntry.leaderboards.totalTroopCount[user].value;
+        latestCitadelFeedEntry.leaderboards.totalTroopCount[user].change =
+          totalTroopCount[user].value - prev;
+      }
+    });
 
     const totalPlanetsCaptured: Record<
       string,
@@ -144,47 +148,37 @@ export class CitadelQueueProcesser {
       return acc;
     }, {});
 
-    // calculate change for battle win rate
-    Object.keys(battleWinRate).forEach((user, i) => {
-      const exists = latestCitadelFeedEntry.leaderboards.battleWinRate[user];
+    // calculate change for planets captured
+    Object.keys(totalPlanetsCaptured).forEach((user, i) => {
+      const exists =
+        latestCitadelFeedEntry?.leaderboards.totalPlanetsCaptured[user];
 
       if (exists) {
         const prev =
-          latestCitadelFeedEntry.leaderboards.battleWinRate[user].battlesWon /
-          latestCitadelFeedEntry.leaderboards.battleWinRate[user].totalBattles;
-        const currBwr =
-          battleWinRate[user].battlesWon / battleWinRate[user].totalBattles;
-        battleWinRate[user].change = currBwr - prev;
+          latestCitadelFeedEntry.leaderboards.totalPlanetsCaptured[user].value;
+        latestCitadelFeedEntry.leaderboards.totalPlanetsCaptured[user].change =
+          totalPlanetsCaptured[user].value - prev;
       }
     });
 
-    // calculate change for troop count
-    Object.keys(totalTroopCount).forEach((user, i) => {
-      const exists =
-        latestCitadelFeedEntry.leaderboards.totalPlanetsCaptured[user];
-
-      if (exists) {
-        const prev = latestCitadelFeedEntry.leaderboards.totalPlanetsCaptured[user].value;
-        latestCitadelFeedEntry.leaderboards.totalPlanetsCaptured[user].change = totalTroopCount[user].value - prev;
-      }
-    });
-
-    // calculate change for troop count
-    Object.keys(totalTroopCount).forEach((user, i) => {
-      const exists =
-        latestCitadelFeedEntry.leaderboards.totalPlanetsCaptured[user];
-
-      if (exists) {
-        const prev = latestCitadelFeedEntry.leaderboards.totalPlanetsCaptured[user].value;
-        latestCitadelFeedEntry.leaderboards.totalPlanetsCaptured[user].change = totalTroopCount[user].value - prev;
-      }
-    });
+    if (
+      isEmptyRecord(totalPlanetsCaptured) &&
+      isEmptyRecord(battleWinRate) &&
+      isEmptyRecord(totalTroopCount)
+    ) {
+      return;
+    }
 
     // TODO Calculate each victors battle rate for each war
 
-    // loop through wars with/without a victor
-    // calculate the total number of troops for each user
-    // and planet that have been captured/wars that are in progress
-    // this is the "largest standing force" leaderboard
+    await this.citadelModel.create({
+      _id: generateRandomId(),
+      leaderboards: {
+        totalPlanetsCaptured,
+        battleWinRate,
+        totalTroopCount,
+      },
+      created_at: now,
+    });
   }
 }

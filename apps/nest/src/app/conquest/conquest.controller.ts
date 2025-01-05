@@ -17,6 +17,7 @@ import { ConquestService } from './conquest.service';
 import { JwtService } from '@nestjs/jwt';
 import { User, UsersService } from '../users/users.service';
 import { generateRandomId } from '../shared';
+import { CitadelService } from '../citadel/citadel.service';
 
 const colors: string[] = [
   '#FF0000', // Red
@@ -61,7 +62,8 @@ export class ConquestController {
     @InjectModel(User.name) private userModel: Model<User>,
     private jwtService: JwtService,
     private conquest: ConquestService,
-    private userService: UsersService
+    private userService: UsersService,
+    private citadelService: CitadelService
   ) {}
 
   @Post()
@@ -102,6 +104,7 @@ export class ConquestController {
           .then((r) => {
             return { id: r._id };
           });
+        await this.citadelService.enqueue();
 
         return { state, warId: event.warId, playerId: userId };
       case 'add-player':
@@ -150,6 +153,7 @@ export class ConquestController {
             .updateOne(
               { warId: event.warId },
               {
+                updated_at: Date.now(),
                 ...(existingWarState as any),
               }
             )
@@ -263,7 +267,7 @@ export class ConquestController {
             const currentUsersTurn = getCurrentUsersTurn(
               existingWarState.context
             );
-            const turn = existingWarState.context.turn;
+
             const turns = existingWarState.context.turns;
             const round = Math.ceil(
               Object.keys(turns).length /
@@ -294,6 +298,7 @@ export class ConquestController {
               },
               type: 'war-change',
             });
+            await this.citadelService.enqueue();
           }
 
           if (
@@ -333,6 +338,7 @@ export class ConquestController {
               },
               type: 'war-change',
             });
+            await this.citadelService.enqueue();
           }
 
           if (event.type === 'set-portal-entry') {
@@ -372,8 +378,13 @@ export class ConquestController {
             const updatedAt = Date.now();
 
             await this.warModel.updateOne(
-              { warId: event.warId },
-              { completed_at: Date.now() }
+              {
+                warId: event.warId,
+              },
+              {
+                completed_at: updatedAt,
+                updated_at: updatedAt,
+              }
             );
 
             await this.entityModel.updateOne(
@@ -382,7 +393,7 @@ export class ConquestController {
                 victor_id: victor,
                 turn_id: null,
                 status: 'war-complete',
-                updated_on_server: Date.now(),
+                updated_on_server: updatedAt,
                 updated_at: updatedAt,
               }
             );
@@ -401,6 +412,7 @@ export class ConquestController {
               },
               type: 'war-change',
             });
+            await this.citadelService.enqueue();
           }
 
           return { state: existingWarState, ...event };

@@ -9,18 +9,24 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { SyncController } from './sync/sync.controller';
 import { SyncModule } from './sync/sync.module';
 import { ConquestModule } from './conquest/conquest.module';
-import { CitadelService } from './citadel/citadel.service';
 import { BullModule } from '@nestjs/bull';
-import { CitadelQueueProcesser } from './citadel/citadel.queue-processor';
 import { War, WarSchema } from './conquest/conquest.controller';
 import { Entity, EntitySchema } from './sync/sync.service';
+import { CitadelModule } from './citadel/citadel.module';
 
 @Module({
   imports: [
+    BullModule.forRoot({
+      redis: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
     AuthModule,
     UsersModule,
     SyncModule,
     ConquestModule,
+    CitadelModule,
     ConfigModule.forRoot(),
     MongooseModule.forRoot(
       `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_PROD_URL}`,
@@ -28,17 +34,8 @@ import { Entity, EntitySchema } from './sync/sync.service';
     ),
     MongooseModule.forFeature([{ name: Entity.name, schema: EntitySchema }]),
     MongooseModule.forFeature([{ name: War.name, schema: WarSchema }]),
-    BullModule.forRoot({
-      redis: {
-        host: 'localhost',
-        port: 6379,
-      },
-    }),
-    BullModule.registerQueue({
-      name: 'citadel-recalculation-queue',
-    }),
   ],
   controllers: [AppController, SyncController],
-  providers: [AppService, CitadelService, CitadelQueueProcesser],
+  providers: [AppService],
 })
 export class AppModule {}
