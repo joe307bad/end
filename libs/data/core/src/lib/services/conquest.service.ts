@@ -25,7 +25,7 @@ interface Conquest {
   readonly startWar: (
     players: number
   ) => Effect.Effect<{ warId: string, playerId: string }, string>;
-  readonly getWar: (warId: string) => Effect.Effect<Response, string>;
+  readonly getWar: (warId: string) => Effect.Effect<War, string>;
   readonly connectToWarLog: (
     warId: string,
     callback: (v: string | null) => void

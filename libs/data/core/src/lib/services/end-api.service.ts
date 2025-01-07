@@ -9,6 +9,18 @@ import { proxy } from 'valtio';
 import * as S from '@effect/schema/Schema';
 import { isRight } from 'effect/Either';
 import { execute } from '@end/data/core';
+import { ResultSchema } from './war/WarSchema';
+
+type CitadelFeed = {
+  leaderboards: {
+    battleWinRate: Record<
+      string,
+      { totalBattles: number; battlesWon: number; change: number }
+    >;
+    totalTroopCount: Record<string, { value: number; change: number }>;
+    totalPlanetsCaptured: Record<string, { value: number; change: number }>;
+  };
+};
 
 interface EndApi {
   readonly login: (
@@ -21,46 +33,13 @@ interface EndApi {
     confirmPassword: string
   ) => Effect.Effect<{ access_token: string }, string>;
   readonly database: Database;
-  readonly leaderboard: () => Effect.Effect<Response, string>;
-  readonly connectToUserLog: (
-    userId: string,
-    callback: (v: string | null) => void
-  ) => () => void;
+  readonly connectToUserLog: () => () => void;
   readonly store: EndStore;
   readonly parseUserLog: (message: string) => Effect.Effect<string, string>;
+  readonly getLatestCitadelFeed: () => Effect.Effect<CitadelFeed, string>;
 }
 
 const EndApiService = Context.GenericTag<EndApi>('end-api');
-
-interface EndStore {
-  latestWarCache: {
-    [key: string]: {
-      id: string;
-      players:
-        | {
-            id: string;
-            userName: string;
-            color: string;
-          }[]
-        | undefined
-        | null;
-      turn: string | undefined | null;
-      victor: string | undefined | null;
-      status: string | undefined | null;
-      updatedAt: number | undefined | null;
-    };
-  };
-}
-
-type Mutable<T> = {
-  -readonly [P in keyof T]: T[P] extends Record<string, any>
-    ? Mutable<T[P]>
-    : T[P];
-};
-
-const store = proxy<EndStore>({
-  latestWarCache: {},
-});
 
 const UpdatedWarSchema = S.Struct({
   type: S.Literal('war-change'),
@@ -72,13 +51,73 @@ const UpdatedWarSchema = S.Struct({
     turn: S.UndefinedOr(S.NullOr(S.String)),
     victor: S.UndefinedOr(S.NullOr(S.String)),
     status: S.UndefinedOr(S.NullOr(S.String)),
-    updatedAt: S.UndefinedOr(S.NullOr(S.Number)),
-  }),
+    updatedAt: S.UndefinedOr(S.NullOr(S.Number))
+  })
+});
+
+const BattleStatsSchema = S.Struct({
+  totalBattles: S.Number,
+  battlesWon: S.Number,
+  change: S.Number
+});
+
+const PlanetsStatsSchema = S.Struct({
+  value: S.Number,
+  change: S.Number
+});
+
+// Define the main Leaderboards schema
+const CitadelUpdateSchema = S.Struct({
+  type: S.Literal('citadel-update'),
+  leaderboards: S.Struct({
+    battleWinRate: S.UndefinedOr(
+      S.Record({ key: S.String, value: BattleStatsSchema })
+    ),
+    totalPlanetsCaptured: S.UndefinedOr(
+      S.Record({ key: S.String, value: PlanetsStatsSchema })
+    )
+  })
+});
+
+export type CitadelUpdate = Mutable<S.Schema.Type<typeof CitadelUpdateSchema>>;
+
+interface EndStore {
+  latestWarCache: {
+    [key: string]: {
+      id: string;
+      players:
+        | {
+        id: string;
+        userName: string;
+        color: string;
+      }[]
+        | undefined
+        | null;
+      turn: string | undefined | null;
+      victor: string | undefined | null;
+      status: string | undefined | null;
+      updatedAt: number | undefined | null;
+    };
+  };
+  citadel: CitadelFeed | null | 'fetching';
+}
+
+type Mutable<T> = {
+  -readonly [P in keyof T]: T[P] extends Record<string, any>
+    ? Mutable<T[P]>
+    : T[P];
+};
+
+const store = proxy<EndStore>({
+  latestWarCache: {},
+  citadel: null
 });
 
 export type UpdatedWar = Mutable<S.Schema.Type<typeof UpdatedWarSchema>>;
 
-const UserLogSchema = S.Union(UpdatedWarSchema);
+const UserLogSchema = S.Union(UpdatedWarSchema, CitadelUpdateSchema);
+
+type Result = S.Schema.Type<typeof UserLogSchema>;
 
 const EndApiLive = Layer.effect(
   EndApiService,
@@ -87,14 +126,13 @@ const EndApiLive = Layer.effect(
     const db = yield* DbService;
     const database = yield* db.database();
     const config = yield* ConfigService;
-    let userLog = new BehaviorSubject<string | null>(null);
 
     return EndApiService.of({
       store,
       login: (userName: string, password: string) => {
         return fetch.post<{ access_token: string }>('/auth/login', {
           userName,
-          password,
+          password
         });
       },
       register: (
@@ -116,16 +154,13 @@ const EndApiLive = Layer.effect(
           })
         );
       },
-      leaderboard() {
-        return fetch.get('/leaderboard');
-      },
       parseUserLog: (message: string) => {
         return pipe(
           Effect.try({
             try: () => JSON.parse(message),
             catch: (e) => {
               return 'Failed to parse user log entry. Invalid json.';
-            },
+            }
           }),
           Effect.flatMap((parsed) => {
             const valid = S.decodeEither(UserLogSchema)(parsed);
@@ -138,57 +173,79 @@ const EndApiLive = Layer.effect(
               'Failed to parse user log entry. Entry did not match any known schema.'
             );
           }),
-          Effect.flatMap((result: UpdatedWar) => {
-            if (!store.latestWarCache[result.war.id]) {
-              // @ts-ignore
-              store.latestWarCache[result.war.id] = result.war as Mutable<
-                UpdatedWar['war']
-              >;
-              return Effect.succeed('Updated war cache');
-            }
+          Effect.match({
+            onSuccess(result: Result) {
+              switch (result.type) {
+                case 'citadel-update':
+                  // @ts-ignore
+                  store.citadel = result;
+                  break;
+                case 'war-change':
+                  if (!store.latestWarCache[result.war.id]) {
+                    // @ts-ignore
+                    store.latestWarCache[result.war.id] = result.war as Mutable<
+                      UpdatedWar['war']
+                    >;
+                    return 'Updated war cache';
+                  }
 
-            Object.keys(result.war).forEach((k: string) => {
-              const key = k as keyof typeof result.war;
-              if (typeof result.war[key] !== 'undefined') {
-                switch (key) {
-                  case 'players':
-                    store.latestWarCache[result.war.id].players = result.war
-                      .players as Mutable<UpdatedWar['war']['players']>;
-                    break;
-                  case 'turn':
-                    store.latestWarCache[result.war.id].turn = result.war
-                      .turn as Mutable<UpdatedWar['war']['turn']>;
-                    break;
-                  case 'victor':
-                    store.latestWarCache[result.war.id].victor = result.war
-                      .victor as Mutable<UpdatedWar['war']['victor']>;
-                    break;
-                  case 'updatedAt':
-                    store.latestWarCache[result.war.id].updatedAt = result.war
-                      .victor as Mutable<UpdatedWar['war']['updatedAt']>;
-                    break;
-                }
+                  Object.keys(result.war).forEach((k: string) => {
+                    const key = k as keyof typeof result.war;
+                    if (typeof result.war[key] !== 'undefined') {
+                      switch (key) {
+                        case 'players':
+                          store.latestWarCache[result.war.id].players = result
+                            .war.players as Mutable<
+                            UpdatedWar['war']['players']
+                          >;
+                          break;
+                        case 'turn':
+                          store.latestWarCache[result.war.id].turn = result.war
+                            .turn as Mutable<UpdatedWar['war']['turn']>;
+                          break;
+                        case 'victor':
+                          store.latestWarCache[result.war.id].victor = result
+                            .war.victor as Mutable<UpdatedWar['war']['victor']>;
+                          break;
+                        case 'updatedAt':
+                          store.latestWarCache[result.war.id].updatedAt = result
+                            .war.victor as Mutable<
+                            UpdatedWar['war']['updatedAt']
+                          >;
+                          break;
+                      }
+                    }
+                  });
               }
-            });
-
-            return Effect.succeed('Updated war cache');
+              return 'New user log entry';
+            },
+            onFailure: (e) => 'New user log entry'
           })
         );
       },
-      connectToUserLog(userId: string, callback: (v: string | null) => void) {
+      getLatestCitadelFeed() {
+        store.citadel = 'fetching';
+        return pipe(
+          fetch.get<CitadelFeed>('/citadel'),
+          Effect.map((r) => {
+            // @ts-ignore
+            store.citadel = r;
+            return r;
+          })
+        );
+      },
+      connectToUserLog() {
         const socket = io(`${config.webSocketUrl ?? 'localhost:3000'}`, {});
         socket.emit('joinRoom', { roomId: 'live-updates' });
         socket.on('serverToRoom', (message) =>
           execute(this.parseUserLog(message))
         );
-        const subscription = userLog.subscribe(callback);
-        return function () {
-          subscription.unsubscribe();
+
+        return function() {
           socket.close();
-          userLog = new BehaviorSubject<string | null>(null);
         };
       },
-      database,
+      database
     });
   })
 );

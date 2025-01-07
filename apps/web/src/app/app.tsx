@@ -138,16 +138,14 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
             setToken(null);
           }
         });
+
+      execute(services.endApi.getLatestCitadelFeed());
     });
   }, []);
 
   useEffect(() => {
     if (token) {
-      return services.endApi.connectToUserLog(token, async (value) => {
-        if(value) {
-          await execute(services.syncService.sync());
-        }
-      });
+      return services.endApi.connectToUserLog();
     }
 
     return () => {};
@@ -171,10 +169,6 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
 function AppRoutes() {
   const { services } = useEndApi();
   const warStore = useSnapshot(services.warService.store);
-
-  const getLeaderboard = useCallback(() => {
-    return execute(services.endApi.leaderboard()); //execute(services.endApi.leaderboard());
-  }, []);
 
   const router = useMemo(
     () =>
@@ -225,7 +219,6 @@ function AppRoutes() {
               <Conquest userId={warStore.userId} />
             </PrivateRoute>
           ),
-          loader: getLeaderboard,
         },
         {
           path: '/citadel',
@@ -234,7 +227,6 @@ function AppRoutes() {
               <Citadel />
             </PrivateRoute>
           ),
-          loader: getLeaderboard,
         },
         {
           path: '/home',
@@ -243,7 +235,6 @@ function AppRoutes() {
               <Home />
             </PrivateRoute>
           ),
-          loader: getLeaderboard,
         },
         {
           path: '/war/:id',

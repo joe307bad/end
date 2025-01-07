@@ -3,8 +3,16 @@ import { faker } from '@faker-js/faker';
 import { Coords } from '@end/shared';
 import { Battle } from './interfaces/Battle';
 import { compareDesc } from 'date-fns';
-import { groupBy, pipe, shuffle, uniqBy } from 'remeda';
-import { Mutable } from 'effect/Types';
+import {
+  groupBy,
+  map,
+  maxBy,
+  pipe,
+  reduce,
+  shuffle,
+  toPairs,
+  uniqBy,
+} from 'remeda';
 
 export interface Tile {
   habitable: boolean;
@@ -24,6 +32,7 @@ export interface Context {
   tiles: Record<string, Tile>;
   turns?: Record<string, Turn>;
   roundLimit: number;
+  victor?: string;
 }
 
 export interface Turn {
@@ -475,7 +484,26 @@ export const warMachine = (
           },
         },
       },
-      'war-complete': {},
+      'war-complete': {
+        entry: assign({
+          victor: ({ context }) => {
+            const leaders = pipe(
+              Object.values(context.tiles),
+              reduce((acc, item) => {
+                acc[item.owner] = (acc[item.owner] || 0) + item.troopCount;
+                return acc;
+              }, {} as Record<string, number>)
+            );
+
+            const victor = pipe(
+              toPairs(leaders),
+              maxBy((entry) => entry[1])
+            );
+
+            return victor?.[0];
+          },
+        }),
+      },
       'searching-for-players': {
         on: {
           'add-player': {

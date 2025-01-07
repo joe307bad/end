@@ -8,7 +8,7 @@ interface Fetch {
     route: string,
     body: Record<string, any>
   ) => Effect.Effect<T, string>;
-  readonly get: (route: string) => Effect.Effect<Response, string>;
+  readonly get: <T>(route: string) => Effect.Effect<T, string>;
 }
 
 const FetchService = Context.GenericTag<Fetch>('fetch-service');
@@ -44,7 +44,7 @@ const FetchLive = Layer.effect(
           )
         );
       },
-      get: (route: string) => {
+      get: <T>(route: string) => {
         return pipe(
           Effect.match(getToken(), {
             onSuccess: (token) => getOrUndefined(token),
@@ -58,7 +58,9 @@ const FetchLive = Layer.effect(
                   headers: {
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                   },
-                }),
+                }).then((response) => {
+                  return response.json();
+                }) as Promise<T>,
               catch: (error) => `Error fetching ${route}: ${error?.toString()}`,
             })
           )

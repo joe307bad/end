@@ -386,7 +386,7 @@ function WarComponent({
 
     Promise.all([
       war.planet.fetch(),
-      execute(services.conquestService.getWar(params.id)).then((r) => r.json()),
+      execute(services.conquestService.getWar(params.id)),
     ]).then(([local, remote]) => {
       const title = `The War of ${local.name}`;
       warService.begin(local, remote, params, title);

@@ -14,6 +14,6 @@ export class AppController {
 
   @Get('citadel')
   async citadel() {
-    return this.citadelService.getLatest();
+    return this.citadelService.getLatest().then((r) => r ?? {});
   }
 }
