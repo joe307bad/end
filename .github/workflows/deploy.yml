@@ -16,6 +16,8 @@ jobs:
       MONGO_PROD_URL: ${{ secrets.MONGO_PROD_URL }}
       API_BASE_URL: ${{ secrets.API_BASE_URL }}
       NEST_JWT_SECRET: ${{ secrets.NEST_JWT_SECRET }}
+      REDIS_HOST: ${{ secrets.API_BASE_URL }}
+      REDIS_PASSWORD: ${{ secrets.NEST_JWT_SECRET }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -45,6 +47,8 @@ jobs:
           envkey_API_BASE_URL: ${{ secrets.API_BASE_URL }}
           envkey_NEST_JWT_SECRET: ${{ secrets.NEST_JWT_SECRET }}
           envkey_HOST: 0.0.0.0
+          envkey_REDIS_HOST: ${{ secrets.API_BASE_URL }}
+          envkey_REDIS_PASSWORD: ${{ secrets.NEST_JWT_SECRET }}
 
       - run: git pull --rebase
       - run: yarn deploy

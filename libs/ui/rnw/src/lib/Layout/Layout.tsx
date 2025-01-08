@@ -18,11 +18,13 @@ function NavButton({
   navigate,
   currentRoute,
   onPress,
+  toggleMenu,
 }: {
   children: string;
   currentRoute: string;
   navigate?: (route: string, options?: { replace?: boolean }) => void;
   onPress?: () => void;
+  toggleMenu: (open: boolean) => void;
 }) {
   const active = `/${children.toLowerCase()}` === currentRoute;
   const { bp } = useResponsive();
@@ -43,9 +45,10 @@ function NavButton({
       hoverStyle={style}
       pressStyle={style}
       borderRadius={0}
-      onPress={() =>
-        onPress ? onPress() : navigate?.(`/${children.toLowerCase()}`)
-      }
+      onPress={() => {
+        onPress ? onPress() : navigate?.(`/${children.toLowerCase()}`);
+        toggleMenu(false);
+      }}
     >
       {children}
     </Button>
@@ -148,16 +151,32 @@ export function ContainerWithNav({
             width="100%"
             style={bp(['flex flex-column', '', 'flex-row'])}
           >
-            <NavButton currentRoute={currentRoute} navigate={navigate}>
+            <NavButton
+              toggleMenu={toggleMenu}
+              currentRoute={currentRoute}
+              navigate={navigate}
+            >
               Home
             </NavButton>
-            <NavButton currentRoute={currentRoute} navigate={navigate}>
+            <NavButton
+              toggleMenu={toggleMenu}
+              currentRoute={currentRoute}
+              navigate={navigate}
+            >
               Conquest
             </NavButton>
-            <NavButton currentRoute={currentRoute} navigate={navigate}>
+            <NavButton
+              toggleMenu={toggleMenu}
+              currentRoute={currentRoute}
+              navigate={navigate}
+            >
               Citadel
             </NavButton>
-            <NavButton currentRoute={currentRoute} onPress={logOut}>
+            <NavButton
+              toggleMenu={toggleMenu}
+              currentRoute={currentRoute}
+              onPress={logOut}
+            >
               Logout
             </NavButton>
             <Text position="absolute" right="$2" top={10} alignContent="center">

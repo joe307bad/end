@@ -168,7 +168,6 @@ const EndApiLive = Layer.effect(
         );
       },
       parseUserLog: (message: string) => {
-        console.log({ message });
         return pipe(
           Effect.try({
             try: () => JSON.parse(message),
@@ -180,10 +179,8 @@ const EndApiLive = Layer.effect(
             const valid = S.decodeEither(UserLogSchema)(parsed);
 
             if (isRight(valid)) {
-              console.log({ valid });
               return Effect.succeed(valid.right);
             }
-            console.log('invalid');
 
             return Effect.fail(
               'Failed to parse user log entry. Entry did not match any known schema.'
@@ -233,7 +230,7 @@ const EndApiLive = Layer.effect(
                         case 'updatedAt':
                           // @ts-ignore
                           store.latestWarCache[result.war.id].updatedAt = result
-                            .war.victor as Mutable<
+                            .war.updatedAt as Mutable<
                             UpdatedWar['war']['updatedAt']
                           >;
                           break;

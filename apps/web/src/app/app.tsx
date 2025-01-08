@@ -8,7 +8,6 @@ import React, {
   useState,
 } from 'react';
 import {
-  Badge,
   Container,
   ContainerWithNav,
   Landing,
@@ -21,10 +20,6 @@ import {
   NavigateFunction,
   useLocation,
   useNavigate,
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Outlet,
   Navigate,
   useParams,
   createBrowserRouter,
@@ -41,7 +36,7 @@ import {
 import Conquest from '../pages/Conquest';
 import War from '../pages/War';
 import { EndApiProvider, useEndApi } from '@end/data/web';
-import { War as TWar, User } from '@end/wm/core';
+import { War as TWar } from '@end/wm/core';
 import { Database } from '@nozbe/watermelondb';
 import { Observable, of } from 'rxjs';
 import { execute } from '@end/data/core';
@@ -111,7 +106,6 @@ const EnhancedPage = compose(
       warId: string;
       userId: string;
     }): { war: Observable<TWar>; userId: Observable<string> } => {
-      console.log({ userId });
       return {
         war: database.get<TWar>('wars').findAndObserve(warId),
         userId: of(userId),

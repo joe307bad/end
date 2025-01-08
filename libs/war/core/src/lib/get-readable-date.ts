@@ -1,4 +1,9 @@
-import { differenceInDays, differenceInHours, differenceInMinutes, format } from 'date-fns';
+import {
+  differenceInDays,
+  differenceInHours,
+  differenceInMinutes,
+  format,
+} from 'date-fns';
 
 export function getReadableDate(date: Date): string {
   const now = new Date();

@@ -2,7 +2,7 @@ import { Text, View, H3, H2, XStack, YStack, ListItem, Spinner } from 'tamagui';
 import React, { ComponentType } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trophy } from '@tamagui/lucide-icons';
-import { Badge } from '@end/components';
+import { Badge, ResponsiveStack } from '@end/components';
 import { useEndApi } from '@end/data/web';
 import { useSnapshot } from 'valtio/react';
 import { toPairs } from 'remeda';
@@ -51,17 +51,17 @@ function BattleWinRate({
       }
       iconAfter={
         <XStack alignItems="center" space="$0.5">
-          <Text>
-            {won}-{total - won}
-          </Text>
-          <Text>•</Text>
-          <Text>{(won / total).toFixed(3)}</Text>
           {formatted !== 0 ? (
             <Badge
               color={formatted < 0 ? 'red' : 'green'}
               title={`${formatted > 0 ? '+' : ''}${formatted}%`}
             />
           ) : null}
+          <Text width={40} textAlign="right">
+            {won}-{total - won}
+          </Text>
+          <Text>•</Text>
+          <Text>{(won / total).toFixed(3)}</Text>
         </XStack>
       }
     />
@@ -130,15 +130,27 @@ export function Citadel() {
 
   const citadel = store.citadel;
 
+  const trophyColor = (index: number) => {
+    switch (index) {
+      case 0:
+        return 'gold';
+      case 1:
+        return 'silver';
+      default:
+        return 'brown';
+    }
+  };
+
   return (
-    <XStack
+    <ResponsiveStack
       justifyContent="center"
       alignItems="flex-start"
       space="$2"
       width="100%"
       paddingTop="$1"
+      paddingBottom="$1"
     >
-      <View width={500}>
+      <View maxWidth="100%" width={500}>
         <H2 paddingBottom="$1">Latest victors</H2>
         <YStack space="$1">
           {citadel.latestWars?.map((war) => (
@@ -157,30 +169,20 @@ export function Citadel() {
           ))}
         </YStack>
       </View>
-      <YStack width={500} space="$3">
+      <YStack maxWidth="100%" width={500} space="$3">
         <View>
           <H2 paddingBottom="$1">Battle win rate leaders</H2>
           <YStack space="$1">
             {toPairs(citadel.leaderboards?.battleWinRate ?? {})
               .slice(0, 3)
               .map(([user, bwr], i) => {
-                const trophyColor = (() => {
-                  switch (i) {
-                    case 0:
-                      return 'gold';
-                    case 1:
-                      return 'silver';
-                    default:
-                      return 'brown';
-                  }
-                })();
                 return (
                   <BattleWinRate
                     user={user}
                     total={bwr.totalBattles}
                     won={bwr.battlesWon}
                     change={bwr.change}
-                    trophyColor={trophyColor}
+                    trophyColor={trophyColor(i)}
                   />
                 );
               })}
@@ -191,7 +193,7 @@ export function Citadel() {
           <YStack space="$1">
             {toPairs(citadel.leaderboards?.totalPlanetsCaptured ?? {})
               .slice(0, 3)
-              .map(([user, captured]) => (
+              .map(([user, captured], i) => (
                 <ListItem
                   minHeight={0}
                   padding={0}
@@ -201,7 +203,7 @@ export function Citadel() {
                   maxWidth={400}
                   icon={
                     <View>
-                      <Trophy color="gold" size="$2" />
+                      <Trophy color={trophyColor(i)} size="$2" />
                     </View>
                   }
                   title={
@@ -215,6 +217,6 @@ export function Citadel() {
           </YStack>
         </View>
       </YStack>
-    </XStack>
+    </ResponsiveStack>
   );
 }

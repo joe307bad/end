@@ -1,4 +1,4 @@
-import { Badge } from '@end/components';
+import { Badge, ResponsiveStack } from '@end/components';
 import {
   compose,
   withDatabase,
@@ -53,14 +53,14 @@ function Status({
   }, [store.latestWarCache[warId]?.status, store.latestWarCache[warId]?.turn]);
 
   if (turn === services.warService.store.userId) {
-    return <Badge color="green" title={'Your turn'} />;
+    return <Badge color="yellow" title={'Your turn'} />;
   }
 
   switch (status) {
     case 'searching-for-players':
       return <Badge color="orange" title={'Searching for players'} />;
     case 'war-complete':
-      return <Badge color="blue" title={'Complete'} />;
+      return <Badge color="purple" title={'Conquered'} />;
     case 'war-in-progress':
       return <Badge color="blue" title={'In progress'} />;
     default:
@@ -178,6 +178,7 @@ function UserInfoEnhanced({
 
     return ua;
   }, [store.latestWarCache[warId]?.updatedAt]);
+
   return (
     <XStack cursor="pointer" alignItems="center" paddingTop={'$0.75'}>
       <XStack flex={1} space="$0.5">
@@ -302,19 +303,6 @@ function WarStack({
   );
 }
 
-function PinnedContainer({
-  children,
-  ...rest
-}: { children: ReactNode } & StackProps) {
-  const media = useMedia();
-
-  return media.sm ? (
-    <YStack {...rest}>{children}</YStack>
-  ) : (
-    <XStack {...rest}>{children}</XStack>
-  );
-}
-
 function Conquest({
   pinned,
   warsWithUser,
@@ -332,7 +320,7 @@ function Conquest({
   const navigate = useNavigate();
   return (
     <View width="100%" paddingTop="$1" alignItems="center">
-      <PinnedContainer
+      <ResponsiveStack
         space="$1"
         width="100%"
         justifyContent="center"
@@ -360,7 +348,7 @@ function Conquest({
             }
           />
         ))}
-      </PinnedContainer>
+      </ResponsiveStack>
       <View maxWidth={'100%'} width="500px" paddingTop="$1">
         {warsWithUser.length > 0 ? (
           <WarStack
@@ -434,9 +422,12 @@ export default compose(
           map(([warsWithUser, allWars]) => {
             const warWithUserIds = new Set(warsWithUser.map((war) => war.id));
 
-            const warsWithoutUser = allWars.filter(
-              (war) => !warWithUserIds.has(war.id)
-            );
+            const warsWithoutUser = allWars.filter((war) => {
+              if (war.id === 'GjaOBLM332GBq6zO') {
+                debugger;
+              }
+              return !warWithUserIds.has(war.id);
+            });
 
             return warsWithoutUser.sort(mostRecentlyUpdated);
           })

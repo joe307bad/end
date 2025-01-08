@@ -13,13 +13,18 @@ import { BullModule } from '@nestjs/bull';
 import { War, WarSchema } from './conquest/conquest.controller';
 import { Entity, EntitySchema } from './sync/sync.service';
 import { CitadelModule } from './citadel/citadel.module';
+require('dotenv').config()
+
+const host = process.env.REDIS_HOST ?? 'localhost';
+const password = process.env.REDIS_PASSWORD ? { password: process.env.REDIS_PASSWORD } : undefined;
 
 @Module({
   imports: [
     BullModule.forRoot({
       redis: {
-        host: 'localhost',
+        host,
         port: 6379,
+        ...password
       },
     }),
     AuthModule,

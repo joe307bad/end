@@ -1,6 +1,6 @@
 import React, { ReactNode, useMemo } from 'react';
 import * as THREE from 'three';
-import { TamaguiProvider, YStack } from 'tamagui';
+import { StackProps, TamaguiProvider, useMedia, XStack, YStack } from 'tamagui';
 import { config, tokens } from './tamagui.config';
 import { View } from 'react-native';
 import t, { useDeviceContext } from 'twrnc';
@@ -35,6 +35,19 @@ export function Providers({ children }: { children: ReactNode }) {
         </TamaguiProvider>
       </AuthProvider>
     </ToastProvider>
+  );
+}
+
+export function ResponsiveStack({
+  children,
+  ...rest
+}: { children: ReactNode } & StackProps) {
+  const media = useMedia();
+
+  return media['sm'] ? (
+    <YStack {...rest} paddingHorizontal="$1">{children}</YStack>
+  ) : (
+    <XStack {...rest}>{children}</XStack>
   );
 }
 
