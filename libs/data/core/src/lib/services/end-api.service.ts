@@ -3,13 +3,11 @@ import { FetchService } from './fetch.service';
 import { Database } from '@nozbe/watermelondb';
 import { DbService } from './db.service';
 import { io } from 'socket.io-client';
-import { BehaviorSubject } from 'rxjs';
 import { ConfigService } from './config.service';
 import { proxy } from 'valtio';
 import * as S from '@effect/schema/Schema';
 import { isRight } from 'effect/Either';
 import { execute } from '@end/data/core';
-import { ResultSchema } from './war/WarSchema';
 
 type CitadelFeed = {
   leaderboards: {
@@ -20,6 +18,12 @@ type CitadelFeed = {
     totalTroopCount: Record<string, { value: number; change: number }>;
     totalPlanetsCaptured: Record<string, { value: number; change: number }>;
   };
+  latestWars: {
+    warId: string;
+    userName: string;
+    summary: string;
+    completed: number;
+  }[];
 };
 
 interface EndApi {
@@ -51,19 +55,19 @@ const UpdatedWarSchema = S.Struct({
     turn: S.UndefinedOr(S.NullOr(S.String)),
     victor: S.UndefinedOr(S.NullOr(S.String)),
     status: S.UndefinedOr(S.NullOr(S.String)),
-    updatedAt: S.UndefinedOr(S.NullOr(S.Number))
-  })
+    updatedAt: S.UndefinedOr(S.NullOr(S.Number)),
+  }),
 });
 
 const BattleStatsSchema = S.Struct({
   totalBattles: S.Number,
   battlesWon: S.Number,
-  change: S.Number
+  change: S.Number,
 });
 
 const PlanetsStatsSchema = S.Struct({
   value: S.Number,
-  change: S.Number
+  change: S.Number,
 });
 
 // Define the main Leaderboards schema
@@ -75,8 +79,17 @@ const CitadelUpdateSchema = S.Struct({
     ),
     totalPlanetsCaptured: S.UndefinedOr(
       S.Record({ key: S.String, value: PlanetsStatsSchema })
-    )
-  })
+    ),
+  }),
+  latestWars: S.Array(
+    S.Struct({
+      userName: S.String,
+      summary: S.String,
+      complete: S.Number,
+      warId: S.String,
+    })
+  ),
+  updatedAt: S.UndefinedOr(S.NullOr(S.Number)),
 });
 
 export type CitadelUpdate = Mutable<S.Schema.Type<typeof CitadelUpdateSchema>>;
@@ -87,10 +100,10 @@ interface EndStore {
       id: string;
       players:
         | {
-        id: string;
-        userName: string;
-        color: string;
-      }[]
+            id: string;
+            userName: string;
+            color: string;
+          }[]
         | undefined
         | null;
       turn: string | undefined | null;
@@ -110,7 +123,7 @@ type Mutable<T> = {
 
 const store = proxy<EndStore>({
   latestWarCache: {},
-  citadel: null
+  citadel: null,
 });
 
 export type UpdatedWar = Mutable<S.Schema.Type<typeof UpdatedWarSchema>>;
@@ -132,7 +145,7 @@ const EndApiLive = Layer.effect(
       login: (userName: string, password: string) => {
         return fetch.post<{ access_token: string }>('/auth/login', {
           userName,
-          password
+          password,
         });
       },
       register: (
@@ -155,19 +168,22 @@ const EndApiLive = Layer.effect(
         );
       },
       parseUserLog: (message: string) => {
+        console.log({ message });
         return pipe(
           Effect.try({
             try: () => JSON.parse(message),
             catch: (e) => {
               return 'Failed to parse user log entry. Invalid json.';
-            }
+            },
           }),
           Effect.flatMap((parsed) => {
             const valid = S.decodeEither(UserLogSchema)(parsed);
 
             if (isRight(valid)) {
+              console.log({ valid });
               return Effect.succeed(valid.right);
             }
+            console.log('invalid');
 
             return Effect.fail(
               'Failed to parse user log entry. Entry did not match any known schema.'
@@ -194,20 +210,28 @@ const EndApiLive = Layer.effect(
                     if (typeof result.war[key] !== 'undefined') {
                       switch (key) {
                         case 'players':
-                          store.latestWarCache[result.war.id].players = result
-                            .war.players as Mutable<
-                            UpdatedWar['war']['players']
-                          >;
+                          store.latestWarCache[result.war.id].players =
+                            // @ts-ignore
+                            result.war.players as Mutable<
+                              UpdatedWar['war']['players']
+                            >;
                           break;
                         case 'turn':
-                          store.latestWarCache[result.war.id].turn = result.war
-                            .turn as Mutable<UpdatedWar['war']['turn']>;
+                          store.latestWarCache[result.war.id].turn =
+                            // @ts-ignore
+                            result.war.turn as Mutable<
+                              UpdatedWar['war']['turn']
+                            >;
                           break;
                         case 'victor':
-                          store.latestWarCache[result.war.id].victor = result
-                            .war.victor as Mutable<UpdatedWar['war']['victor']>;
+                          store.latestWarCache[result.war.id].victor =
+                            // @ts-ignore
+                            result.war.victor as Mutable<
+                              UpdatedWar['war']['victor']
+                            >;
                           break;
                         case 'updatedAt':
+                          // @ts-ignore
                           store.latestWarCache[result.war.id].updatedAt = result
                             .war.victor as Mutable<
                             UpdatedWar['war']['updatedAt']
@@ -219,7 +243,7 @@ const EndApiLive = Layer.effect(
               }
               return 'New user log entry';
             },
-            onFailure: (e) => 'New user log entry'
+            onFailure: (e) => 'New user log entry',
           })
         );
       },
@@ -237,15 +261,15 @@ const EndApiLive = Layer.effect(
       connectToUserLog() {
         const socket = io(`${config.webSocketUrl ?? 'localhost:3000'}`, {});
         socket.emit('joinRoom', { roomId: 'live-updates' });
-        socket.on('serverToRoom', (message) =>
-          execute(this.parseUserLog(message))
-        );
+        socket.on('serverToRoom', (message) => {
+          return execute(this.parseUserLog(message));
+        });
 
-        return function() {
+        return function () {
           socket.close();
         };
       },
-      database
+      database,
     });
   })
 );

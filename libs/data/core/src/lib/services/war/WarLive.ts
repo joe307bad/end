@@ -13,8 +13,8 @@ import { isRight } from 'effect/Either';
 import { WarService } from './WarService';
 import { derived, store, WarStore } from './WarStore';
 import { selectTile, tileIdAndCoords } from './WarUtils';
-import { Players, ResultSchema, Tile, Battle } from './WarSchema';
-import { prop, uniqBy } from 'remeda';
+import { Players, ResultSchema, Tile } from './WarSchema';
+import { uniqBy } from 'remeda';
 
 export const WarLive = Layer.effect(
   WarService,

@@ -1,18 +1,8 @@
-import {
-  Text,
-  View,
-  H3,
-  H2,
-  H4,
-  XStack,
-  YStack,
-  ListItem,
-  Spinner,
-} from 'tamagui';
+import { Text, View, H3, H2, XStack, YStack, ListItem, Spinner } from 'tamagui';
 import React, { ComponentType } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader, Trophy } from '@tamagui/lucide-icons';
-import { Badge, getReadableDate } from '@end/components';
+import { Trophy } from '@tamagui/lucide-icons';
+import { Badge } from '@end/components';
 import { useEndApi } from '@end/data/web';
 import { useSnapshot } from 'valtio/react';
 import { toPairs } from 'remeda';
@@ -21,9 +11,8 @@ import {
   withDatabase,
   withObservables,
 } from '@nozbe/watermelondb/react';
-import { Planet, User, War } from '@end/wm/core';
-import { map, Observable, of } from 'rxjs';
-import { IUser } from '@end/war/core';
+import { User, War } from '@end/wm/core';
+import { map, Observable } from 'rxjs';
 import { Database, Q } from '@nozbe/watermelondb';
 
 function BattleWinRate({
@@ -39,7 +28,7 @@ function BattleWinRate({
   change: number;
   trophyColor: string;
 }) {
-  const readableChange = Math.round(change * 100 * 10) / 10;
+  const formatted = Math.round(change * 100 * 10) / 10;
   return (
     <ListItem
       maxHeight="100%"
@@ -66,10 +55,12 @@ function BattleWinRate({
           </Text>
           <Text>•</Text>
           <Text>{(won / total).toFixed(3)}</Text>
-          <Badge
-            color={readableChange < 0 ? 'red' : 'green'}
-            title={`${readableChange > 0 ? '+' : ''}${readableChange}%`}
-          />
+          {formatted !== 0 ? (
+            <Badge
+              color={formatted < 0 ? 'red' : 'green'}
+              title={`${formatted > 0 ? '+' : ''}${formatted}%`}
+            />
+          ) : null}
         </XStack>
       }
     />
@@ -100,11 +91,18 @@ const UserInfo = compose(
   ) as (arg0: unknown) => ComponentType
 )(UserInfoEnhanced);
 
-function WarInfoEnhanced({ user, summary }: { user: User; summary: string }) {
+// TODO use this component with the citadel valtio cache. If we have a cache, just use this component directly, if not use the watermelon db store
+function WarInfoEnhanced({
+  userName,
+  summary,
+}: {
+  userName: string;
+  summary: string;
+}) {
   return (
     <>
       <H3 paddingBottom="$1">
-        <H3>{user.userName}</H3>
+        <H3>{userName}</H3>
       </H3>
       <XStack>
         <Text flex={1}>{summary}</Text>
@@ -112,33 +110,6 @@ function WarInfoEnhanced({ user, summary }: { user: User; summary: string }) {
     </>
   );
 }
-
-const WarInfo = compose(
-  withDatabase,
-  withObservables(
-    ['war'],
-    ({
-      war,
-    }: {
-      war: War;
-    }): {
-      user: Observable<User>;
-      summary: Observable<string>;
-    } => {
-      return {
-        user: war.victor.observe(),
-        summary: war.planet
-          .observe()
-          .pipe(
-            map(
-              (planet) =>
-                `Conquered ${planet.name} ${getReadableDate(war.createdAt)}`
-            )
-          ),
-      };
-    }
-  ) as (arg0: unknown) => ComponentType
-)(WarInfoEnhanced);
 
 function CitadelEnhanced({ wars }: { wars: War[] }) {
   const navigate = useNavigate();
@@ -166,9 +137,9 @@ function CitadelEnhanced({ wars }: { wars: War[] }) {
       <View width={500}>
         <H2 paddingBottom="$1">Latest victors</H2>
         <YStack space="$1">
-          {wars.map((war) => (
+          {citadel.latestWars?.map((war) => (
             <View
-              onPress={() => navigate(`/war/${war.id}`)}
+              onPress={() => navigate(`/war/${war.warId}`)}
               padding="$1"
               borderWidth={1}
               borderRadius={5}
@@ -177,7 +148,7 @@ function CitadelEnhanced({ wars }: { wars: War[] }) {
               margin="0"
               cursor="pointer"
             >
-              <WarInfo war={war} />
+              <WarInfoEnhanced summary={war.summary} userName={war.userName} />
             </View>
           ))}
         </YStack>

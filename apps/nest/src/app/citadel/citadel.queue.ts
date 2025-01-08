@@ -4,23 +4,25 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { War } from '../conquest/conquest.controller';
 import { subYears } from 'date-fns';
-import { Context } from '@end/war/core';
+import { Context, getReadableDate } from '@end/war/core';
 import { CitadelFeed } from './citadel.service';
 import { generateRandomId } from '../shared';
 import { isEmptyRecord } from 'effect/Record';
 import * as R from 'remeda';
 import { Entity } from '../sync/sync.service';
+import { SharedService } from '../shared/shared.service';
 
-@Processor('citadel-feed-queue')
-export class CitadelQueueProcessor {
+@Processor('citadel-queue')
+export class CitadelQueue {
   constructor(
     @InjectModel(Entity.name) private entityModel: Model<Entity>,
     @InjectModel('citadel-feed') private citadelModel: Model<CitadelFeed>,
-    @InjectModel(War.name) private warModel: Model<War>
+    @InjectModel(War.name) private warModel: Model<War>,
+    private sharedService: SharedService
   ) {}
 
   @Process({ concurrency: 1 })
-  async CitadelQueueProcessor(job: Job) {
+  async handleQueuedJob(job: Job) {
     const now = Date.now();
 
     // find the latest entry in CitadelFeed
@@ -218,24 +220,60 @@ export class CitadelQueueProcessor {
       return;
     }
 
-    const updatedLeaderboards = {
-      totalPlanetsCaptured: {
-        ...latestCitadelFeedEntry?.leaderboards?.totalPlanetsCaptured,
-        ...totalPlanetsCaptured,
-      },
-      battleWinRate: {
-        ...latestCitadelFeedEntry?.leaderboards?.battleWinRate,
-        ...battleWinRate,
-      },
-      // totalTroopCount: {
-      //   ...latestCitadelFeedEntry?.leaderboards?.totalTroopCount,
-      //   // ...totalTroopCount,
-      // },
-    };
-
     // TODO Calculate each victors battle rate for each war
 
-    await this.citadelModel.create({
+    const recentlyCompletedWars = await this.warModel
+      .find<War>({
+        value: 'war-complete',
+      })
+      .sort({ completed_at: -1 })
+      .exec()
+      .then((wars) => wars.slice(0, 5));
+
+    const warIds = recentlyCompletedWars.map((w) => w.warId);
+
+    const planetsByWar = await this.entityModel
+      .find<{ planet_id: string; _id: string }>({
+        table: 'wars',
+        _id: { $in: warIds },
+      })
+      .sort({ completed_at: -1 })
+      .exec()
+      .then((wars) =>
+        wars.reduce((acc: Record<string, string>, curr) => {
+          acc[curr._id] = curr.planet_id;
+          return acc;
+        }, {})
+      );
+
+    const planetData = await this.entityModel
+      .find<{ name: string; _id: string }>({
+        table: 'planets',
+        _id: { $in: Object.values(planetsByWar) },
+      })
+      .exec();
+
+    const latestWars: {
+      userName: string;
+      summary: string;
+      completed: number;
+      warId: string;
+    }[] = recentlyCompletedWars.map((war) => {
+      const planetId = planetsByWar[war.warId];
+      const planet = planetData.find((p) => p._id === planetId);
+      return {
+        warId: war._id.toString(),
+        completed: war.completed_at,
+        userName:
+          war.context.players.find((p) => p.id === war.context.victor)
+            ?.userName ?? '',
+        summary: `Conquered ${planet.name} ${getReadableDate(
+          new Date(war.completed_at)
+        )}`,
+      };
+    });
+
+    const newCitadelFeed = {
       _id: generateRandomId(),
       leaderboards: {
         battleWinRate: R.pipe(
@@ -249,7 +287,7 @@ export class CitadelQueueProcessor {
             value,
             aggregate: value.battlesWon / value.totalBattles,
           })),
-          R.sortBy((item) => item.aggregate),
+          R.sortBy([(item) => item.aggregate, 'desc']),
           R.reduce((acc, { key, value }) => {
             acc[key] = value;
             return acc;
@@ -268,7 +306,19 @@ export class CitadelQueueProcessor {
           }, {})
         ),
       },
+      latestWars,
       created_at: now,
+    };
+
+    await this.citadelModel.create(newCitadelFeed);
+
+    this.sharedService.next({
+      roomId: 'live-updates',
+      leaderboards: newCitadelFeed.leaderboards,
+      latestWars,
+      updatedAt: now,
+      type: 'citadel-update',
     });
+
   }
 }

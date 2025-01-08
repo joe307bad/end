@@ -1,6 +1,5 @@
 import { assign, setup, StateFrom } from 'xstate';
 import { faker } from '@faker-js/faker';
-import { Coords } from '@end/shared';
 import { Battle } from './interfaces/Battle';
 import { compareDesc } from 'date-fns';
 import {
@@ -13,6 +12,12 @@ import {
   toPairs,
   uniqBy,
 } from 'remeda';
+
+type Coords = {
+  x: number;
+  y: number;
+  z: number;
+};
 
 export interface Tile {
   habitable: boolean;
@@ -487,6 +492,10 @@ export const warMachine = (
       'war-complete': {
         entry: assign({
           victor: ({ context }) => {
+            if (context.victor) {
+              return context.victor;
+            }
+
             const leaders = pipe(
               Object.values(context.tiles),
               reduce((acc, item) => {

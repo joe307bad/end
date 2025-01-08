@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import {
@@ -40,13 +41,14 @@ import {
 import Conquest from '../pages/Conquest';
 import War from '../pages/War';
 import { EndApiProvider, useEndApi } from '@end/data/web';
-import { War as TWar } from '@end/wm/core';
+import { War as TWar, User } from '@end/wm/core';
 import { Database } from '@nozbe/watermelondb';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { execute } from '@end/data/core';
 import { View } from 'tamagui';
 import { useSnapshot } from 'valtio/react';
 import { Citadel } from '../pages/Citadel';
+import { jwtDecode } from 'jwt-decode';
 
 function WithNavigate({
   children,
@@ -57,7 +59,15 @@ function WithNavigate({
   return children(navigate);
 }
 
-function Page({ war, children }: { war?: TWar; children: ReactNode }) {
+function Page({
+  war,
+  userId,
+  children,
+}: {
+  war?: TWar;
+  userId?: string;
+  children: ReactNode;
+}) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { deleteToken } = useAuth();
@@ -81,6 +91,7 @@ function Page({ war, children }: { war?: TWar; children: ReactNode }) {
       currentRoute={pathname}
       logOut={logOut}
       title={title}
+      userId={userId}
     >
       {children}
     </ContainerWithNav>
@@ -90,33 +101,50 @@ function Page({ war, children }: { war?: TWar; children: ReactNode }) {
 const EnhancedPage = compose(
   withDatabase,
   withObservables(
-    ['warId'],
+    ['warId', 'userId'],
     ({
       database,
       warId,
+      userId,
     }: {
       database: Database;
       warId: string;
-    }): { war: Observable<TWar> } => ({
-      war: database.get<TWar>('wars').findAndObserve(warId),
-    })
+      userId: string;
+    }): { war: Observable<TWar>; userId: Observable<string> } => {
+      console.log({ userId });
+      return {
+        war: database.get<TWar>('wars').findAndObserve(warId),
+        userId: of(userId),
+      };
+    }
   ) as (arg0: unknown) => ComponentType
 )(Page);
 
-function PageRouteComponent({ children }: { children: ReactNode }) {
+function PageRouteComponent({
+  children,
+  userId,
+}: {
+  children: ReactNode;
+  userId?: string;
+}) {
   const params = useParams();
 
   if (!params.id) {
-    return <Page>{children}</Page>;
+    return <Page userId={userId}>{children}</Page>;
   }
 
-  return <EnhancedPage warId={params.id}>{children}</EnhancedPage>;
+  return (
+    <EnhancedPage warId={params.id} userId={userId}>
+      {children}
+    </EnhancedPage>
+  );
 }
 
 const PrivateRoute = ({ children }: { children: ReactNode }) => {
   const { services } = useEndApi();
   const { getToken } = useAuth();
   const [token, setToken] = useState<string | null | 'LOADING'>('LOADING');
+  const unsubscribe = useRef<() => void>();
 
   useEffect(() => {
     getToken().then((t) => {
@@ -126,6 +154,7 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
           services.warService.store.userId = await execute(
             services.authService.getUserId()
           );
+          unsubscribe.current = services.endApi.connectToUserLog();
         })
         .catch((e) => {
           try {
@@ -144,19 +173,21 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    if (token) {
-      return services.endApi.connectToUserLog();
-    }
-
-    return () => {};
-  }, [token]);
+    return () => {
+      if (unsubscribe.current) {
+        unsubscribe.current();
+      }
+    };
+  }, []);
 
   if (token === 'LOADING') {
     return null;
   }
 
   return token ? (
-    <PageRouteComponent>{children}</PageRouteComponent>
+    <PageRouteComponent userId={jwtDecode(token).sub}>
+      {children}
+    </PageRouteComponent>
   ) : (
     <Navigate
       to={`/?return_path=${encodeURIComponent(

@@ -40,10 +40,9 @@ export class War extends BaseModel implements IWar {
       type: 'has_many',
       foreignKey: 'war_id',
     },
-    turn: { type: 'belongs_to', key: 'turn_id' },
-    victor: { type: 'belongs_to', key: 'victor_id' },
   };
-  @relation('war_victors', 'victor_id')
+
+  @relation('users', 'victor_id')
   victor!: Relation<User>;
   @field('players')
   players!: number;
@@ -54,10 +53,12 @@ export class War extends BaseModel implements IWar {
   @relation('planets', 'planet_id')
   planet!: Relation<Planet>;
 
-  @lazy
-  users = this.collections
-    .get<User>('users')
-    .query(Q.on('war_users', 'war_id', this.id));
+  //@lazy
+  get users() {
+    return this.collections
+      .get<User>('users')
+      .query(Q.on('war_users', 'war_id', this.id));
+  }
 }
 
 export class User extends BaseModel implements IUser {
@@ -74,10 +75,12 @@ export class User extends BaseModel implements IUser {
   @field('password_id')
   password_id!: string;
 
-  @lazy
-  wars = this.collections
-    .get<War>('wars')
-    .query(Q.on('war_users', 'user_id', this.id));
+  // @lazy
+  get wars() {
+    return this.collections
+      .get<War>('wars')
+      .query(Q.on('war_users', 'user_id', this.id))
+  };
 }
 
 export class WarUser extends BaseModel {
@@ -106,23 +109,10 @@ export class WarTurn extends BaseModel {
   @relation('users', 'user_id') user!: IUser;
 }
 
-export class WarVictor extends BaseModel {
-  static override table = 'war_victors';
-  static override associations: Associations = {
-    wars: { type: 'belongs_to', key: 'war_id' },
-    users: { type: 'belongs_to', key: 'user_id' },
-  };
-  @field('war_id') warId!: string;
-  @field('user_id') userId!: string;
-
-  @relation('wars', 'war_id') war!: IWar;
-  @relation('users', 'user_id') user!: IUser;
-}
-
 export const databaseFactory = (adapter: DatabaseAdapter) =>
   new Database({
     adapter,
-    modelClasses: [Planet, War, User, WarUser, WarTurn, WarVictor],
+    modelClasses: [Planet, War, User, WarUser, WarTurn],
   });
 
 const baseColumns = (schema: ColumnSchema[]): ColumnSchema[] => [
@@ -176,14 +166,7 @@ export const schema = appSchema({
         { name: 'user_id', type: 'string' },
         { name: 'war_id', type: 'string' },
       ]),
-    }),
-    tableSchema({
-      name: 'war_victors',
-      columns:  baseColumns([
-        { name: 'user_id', type: 'string' },
-        { name: 'war_id', type: 'string' },
-      ]),
-    }),
+    })
   ],
 });
 

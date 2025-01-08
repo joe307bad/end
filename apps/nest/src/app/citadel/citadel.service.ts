@@ -15,10 +15,19 @@ class Leaderboards {
   totalPlanetsCaptured: Record<string, { value: number; change: number }>;
 }
 
-@Schema({ strict: false })
+class LatestWar {
+  userName: string;
+  summary: string;
+  completed: number;
+}
+
+  @Schema({ strict: false })
 export class CitadelFeed {
   @Prop({ type: Leaderboards })
   leaderboards: Leaderboards;
+
+  @Prop({ type: [LatestWar] })
+  latestWars: LatestWar[];
 
   @Prop()
   _id: string;
@@ -32,7 +41,7 @@ export const CitadelFeedSchema = SchemaFactory.createForClass(CitadelFeed);
 @Injectable()
 export class CitadelService {
   constructor(
-    @InjectQueue('citadel-feed-queue') private readonly queue: Queue,
+    @InjectQueue('citadel-queue') private readonly queue: Queue,
     @InjectModel('citadel-feed') private citadelFeed: Model<War>
   ) {}
 
@@ -48,7 +57,7 @@ export class CitadelService {
     }
 
     await this.queue.add({
-      'citadel-feed-queue': true,
+      'citadel-queue': true,
     });
   }
 }

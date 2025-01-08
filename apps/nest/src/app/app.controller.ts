@@ -1,6 +1,6 @@
 import { Controller, Get, Inject } from '@nestjs/common';
 
-import { AppService } from './app.service';
+import { SharedService } from './shared/shared.service';
 import { InjectModel } from '@nestjs/mongoose';
 import { Entity } from './sync/sync.service';
 import { Model } from 'mongoose';

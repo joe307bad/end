@@ -7,7 +7,7 @@ import { Server, Socket } from 'socket.io';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { War } from './conquest.controller';
-import { ConquestService } from './conquest.service';
+import { SharedService } from '../shared/shared.service';
 
 @WebSocketGateway({
   cors: {
@@ -20,9 +20,9 @@ export class ConquestGateway {
 
   constructor(
     @InjectModel(War.name) private warModel: Model<War>,
-    private conquest: ConquestService
+    private sharedService: SharedService,
   ) {
-    this.conquest.getStream().subscribe(({ roomId, ...payload }) => {
+    this.sharedService.getStream().subscribe(({ roomId, ...payload }) => {
       if (this.server) {
         this.server.to(roomId).emit('serverToRoom', JSON.stringify(payload));
       }

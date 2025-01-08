@@ -1,9 +1,17 @@
-import React, { ReactNode, useCallback, useState } from 'react';
+import React, { ComponentType, ReactNode, useCallback, useState } from 'react';
 import { MenuSquare } from '@tamagui/lucide-icons';
-import { Button, H4, Header, View, XStack } from 'tamagui';
+import { Button, H4, Header, View, Text } from 'tamagui';
 import { tw } from '../components';
 import { useWindowDimensions } from 'react-native';
 import * as R from 'remeda';
+import {
+  compose,
+  withDatabase,
+  withObservables,
+} from '@nozbe/watermelondb/react';
+import { Database } from '@nozbe/watermelondb';
+import { Observable, of } from 'rxjs';
+import { User, War as TWar } from '@end/wm/core';
 
 function NavButton({
   children,
@@ -76,18 +84,42 @@ export function useResponsive(rerender?: boolean, max?: number) {
   };
 }
 
+function UserNameEnhanced({ user }: { user: User }) {
+  return user.userName;
+}
+
+const UserName = compose(
+  withDatabase,
+  withObservables(
+    ['userId'],
+    ({
+      database,
+      userId,
+    }: {
+      database: Database;
+      userId: string;
+    }): { user: Observable<User> } => {
+      return {
+        user: database.get<User>('users').findAndObserve(userId),
+      };
+    }
+  ) as (arg0: unknown) => ComponentType
+)(UserNameEnhanced);
+
 export function ContainerWithNav({
   children,
   navigate,
   currentRoute,
   logOut,
   title,
+  userId,
 }: {
   children: ReactNode;
   currentRoute: string;
   navigate?: (route: string, options?: { replace?: boolean }) => void;
   logOut?: () => void;
   title?: string;
+  userId?: string;
 }) {
   const [menuOpen, toggleMenu] = useState<boolean>(false);
   const { bp } = useResponsive(menuOpen);
@@ -103,14 +135,19 @@ export function ContainerWithNav({
         </View>
       </View>
       <View
+        width="100%"
         style={bp([
           '',
           `${menuOpen ? '' : 'hidden'} absolute right-0 top-12`,
           '',
         ])}
       >
-        <Header style={tw`z-1`}>
-          <View style={bp(['flex flex-column', '', 'flex-row'])}>
+        <Header width="100%" style={tw`z-1`}>
+          <View
+            justifyContent="center"
+            width="100%"
+            style={bp(['flex flex-column', '', 'flex-row'])}
+          >
             <NavButton currentRoute={currentRoute} navigate={navigate}>
               Home
             </NavButton>
@@ -123,6 +160,9 @@ export function ContainerWithNav({
             <NavButton currentRoute={currentRoute} onPress={logOut}>
               Logout
             </NavButton>
+            <Text position="absolute" right="$2" top={10} alignContent="center">
+              <UserName userId={userId} />
+            </Text>
           </View>
         </Header>
       </View>

@@ -1,4 +1,4 @@
-import { Badge, getReadableDate } from '@end/components';
+import { Badge } from '@end/components';
 import {
   compose,
   withDatabase,
@@ -28,7 +28,7 @@ import React, {
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEndApi } from '@end/data/web';
-import { WarState } from '@end/war/core';
+import { getReadableDate, WarState } from '@end/war/core';
 import { useSnapshot } from 'valtio/react';
 import { format } from 'date-fns';
 

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { SharedService } from './shared/shared.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
@@ -36,6 +36,7 @@ import { CitadelModule } from './citadel/citadel.module';
     MongooseModule.forFeature([{ name: War.name, schema: WarSchema }]),
   ],
   controllers: [AppController, SyncController],
-  providers: [AppService],
+  providers: [SharedService],
+  exports: [SharedService]
 })
 export class AppModule {}

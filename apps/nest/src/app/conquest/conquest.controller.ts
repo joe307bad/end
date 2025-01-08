@@ -8,16 +8,17 @@ import {
   getPossibleDeployedTroops,
   getScoreboard,
   warMachine,
+  Context, Tile
 } from '@end/war/core';
 import { createActor } from 'xstate';
 import { InjectModel, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
 import { Entity } from '../sync/sync.service';
-import { ConquestService } from './conquest.service';
 import { JwtService } from '@nestjs/jwt';
 import { User, UsersService } from '../users/users.service';
 import { generateRandomId } from '../shared';
 import { CitadelService } from '../citadel/citadel.service';
+import { SharedService } from '../shared/shared.service';
 
 const colors: string[] = [
   '#FF0000', // Red
@@ -33,13 +34,30 @@ const colors: string[] = [
   '#40E0D0', // Turquoise
   '#8B4513', // Saddle Brown
 ];
+//
+// class ContextClass implements Context {
+//   battleLimit: number;
+//   playerLimit: number;
+//   players: { id: string; userName: string; color: string }[];
+//   roundLimit: number;
+//   tiles: Record<string, Tile>;
+//   turn: number;
+// }
 
 @Schema({ strict: false })
 export class War {
   @Prop({ required: true })
   warId: string;
+  //
+  // @Prop({ type: ContextClass })
+  // context: ContextClass;
+
+  @Prop({ type: Number })
+  completed_at: number;
 
   _id: ObjectId;
+
+  context: any;
 }
 
 const getUserInfo = (jwtService: JwtService) => (request: Request) => {
@@ -61,7 +79,7 @@ export class ConquestController {
     @InjectModel(Entity.name) private entityModel: Model<Entity>,
     @InjectModel(User.name) private userModel: Model<User>,
     private jwtService: JwtService,
-    private conquest: ConquestService,
+    private sharedService: SharedService,
     private userService: UsersService,
     private citadelService: CitadelService
   ) {}
@@ -104,7 +122,7 @@ export class ConquestController {
           .then((r) => {
             return { id: r._id };
           });
-        await this.citadelService.enqueue();
+        this.citadelService.enqueue();
 
         return { state, warId: event.warId, playerId: userId };
       case 'add-player':
@@ -177,7 +195,7 @@ export class ConquestController {
               existingWarState.context.tiles[battle.attackingFromTerritory]
                 .troopCount;
 
-            this.conquest.next({
+            this.sharedService.next({
               type: 'attack',
               roomId: event.warId,
               ownerUpdates: {
@@ -216,7 +234,7 @@ export class ConquestController {
             const attackingTroopCount =
               existingWarState.context.tiles[battle.attackingFromTerritory]
                 .troopCount;
-            this.conquest.next({
+            this.sharedService.next({
               type: 'battle-started',
               roomId: event.warId,
               troopUpdates: {
@@ -246,7 +264,7 @@ export class ConquestController {
               created_at: now,
               updated_at: now,
             });
-            this.conquest.next({
+            this.sharedService.next({
               roomId: 'live-updates',
               war: {
                 id: event.warId,
@@ -256,7 +274,7 @@ export class ConquestController {
               },
               type: 'war-change',
             });
-            this.conquest.next({
+            this.sharedService.next({
               type: 'player-joined',
               roomId: event.warId,
               players: existingWarState.context.players,
@@ -273,7 +291,7 @@ export class ConquestController {
               Object.keys(turns).length /
                 existingWarState.context.players.length
             );
-            this.conquest.next({
+            this.sharedService.next({
               type: 'turn-completed',
               currentUsersTurn,
               roomId: event.warId,
@@ -288,7 +306,7 @@ export class ConquestController {
                 updated_at: updatedAt,
               }
             );
-            this.conquest.next({
+            this.sharedService.next({
               roomId: 'live-updates',
               war: {
                 id: event.warId,
@@ -298,7 +316,7 @@ export class ConquestController {
               },
               type: 'war-change',
             });
-            await this.citadelService.enqueue();
+            this.citadelService.enqueue();
           }
 
           if (
@@ -308,7 +326,7 @@ export class ConquestController {
             event.type === 'begin-turn-number-1'
           ) {
             const id = event.warId;
-            this.conquest.next({
+            this.sharedService.next({
               type: 'war-started',
               roomId: event.warId,
               round: Math.ceil(
@@ -327,7 +345,7 @@ export class ConquestController {
                 updated_at: updatedAt,
               }
             );
-            this.conquest.next({
+            this.sharedService.next({
               roomId: 'live-updates',
               war: {
                 id: event.warId,
@@ -338,11 +356,11 @@ export class ConquestController {
               },
               type: 'war-change',
             });
-            await this.citadelService.enqueue();
+            this.citadelService.enqueue();
           }
 
           if (event.type === 'set-portal-entry') {
-            this.conquest.next({
+            this.sharedService.next({
               type: 'portal-entry-set',
               roomId: event.warId,
               portal: getMostRecentPortal(existingWarState.context),
@@ -359,7 +377,7 @@ export class ConquestController {
             const availableTroopsToDeploy =
               getPossibleDeployedTroops(existingWarState.context) -
               deployedTroops;
-            this.conquest.next({
+            this.sharedService.next({
               type: 'deploy',
               tile: event.tile,
               troopsCount:
@@ -397,11 +415,11 @@ export class ConquestController {
                 updated_at: updatedAt,
               }
             );
-            this.conquest.next({
+            this.sharedService.next({
               type: 'war-completed',
               roomId: event.warId,
             });
-            this.conquest.next({
+            this.sharedService.next({
               roomId: 'live-updates',
               war: {
                 id: event.warId,
@@ -412,7 +430,7 @@ export class ConquestController {
               },
               type: 'war-change',
             });
-            await this.citadelService.enqueue();
+            this.citadelService.enqueue();
           }
 
           return { state: existingWarState, ...event };
