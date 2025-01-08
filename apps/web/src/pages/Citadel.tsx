@@ -14,6 +14,7 @@ import {
 import { User, War } from '@end/wm/core';
 import { map, Observable } from 'rxjs';
 import { Database, Q } from '@nozbe/watermelondb';
+import { getReadableDate } from '@end/war/core';
 
 function BattleWinRate({
   total,
@@ -91,27 +92,30 @@ const UserInfo = compose(
   ) as (arg0: unknown) => ComponentType
 )(UserInfoEnhanced);
 
-// TODO use this component with the citadel valtio cache. If we have a cache, just use this component directly, if not use the watermelon db store
-function WarInfoEnhanced({
-  userName,
-  summary,
+function WarInfo({
+  war,
 }: {
-  userName: string;
-  summary: string;
+  war: {
+    userName: string;
+    summary: string;
+    completed: number;
+  };
 }) {
   return (
     <>
       <H3 paddingBottom="$1">
-        <H3>{userName}</H3>
+        <H3>{war.userName}</H3>
       </H3>
       <XStack>
-        <Text flex={1}>{summary}</Text>
+        <Text flex={1}>
+          Conquered {war.summary} {getReadableDate(new Date(war.completed))}
+        </Text>
       </XStack>
     </>
   );
 }
 
-function CitadelEnhanced({ wars }: { wars: War[] }) {
+export function Citadel() {
   const navigate = useNavigate();
   const { services: s } = useEndApi();
   const store = useSnapshot(s.endApi.store);
@@ -148,7 +152,7 @@ function CitadelEnhanced({ wars }: { wars: War[] }) {
               margin="0"
               cursor="pointer"
             >
-              <WarInfoEnhanced summary={war.summary} userName={war.userName} />
+              <WarInfo war={war} />
             </View>
           ))}
         </YStack>
@@ -182,10 +186,9 @@ function CitadelEnhanced({ wars }: { wars: War[] }) {
               })}
           </YStack>
         </View>
-
         <View>
           <H2 paddingBottom="$1">Most captured planets</H2>
-          <YStack>
+          <YStack space="$1">
             {toPairs(citadel.leaderboards?.totalPlanetsCaptured ?? {})
               .slice(0, 3)
               .map(([user, captured]) => (
@@ -215,25 +218,3 @@ function CitadelEnhanced({ wars }: { wars: War[] }) {
     </XStack>
   );
 }
-
-export const Citadel = compose(
-  withDatabase,
-  withObservables(
-    [],
-    ({
-      database,
-    }: {
-      database: Database;
-    }): {
-      wars: Observable<War[]>;
-    } => {
-      return {
-        wars: database
-          .get<War>('wars')
-          .query(Q.where('victor_id', Q.notEq('')))
-          .observe()
-          .pipe(map((r) => (r ?? []).slice(0, 5))),
-      };
-    }
-  ) as (arg0: unknown) => ComponentType
-)(CitadelEnhanced);

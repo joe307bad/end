@@ -267,9 +267,7 @@ export class CitadelQueue {
         userName:
           war.context.players.find((p) => p.id === war.context.victor)
             ?.userName ?? '',
-        summary: `Conquered ${planet.name} ${getReadableDate(
-          new Date(war.completed_at)
-        )}`,
+        summary: planet.name,
       };
     });
 
@@ -299,7 +297,7 @@ export class CitadelQueue {
             ...totalPlanetsCaptured,
           },
           R.toPairs,
-          R.sortBy(([key, value]) => value.value),
+          R.sortBy([(item) => item[1].value, 'desc']),
           R.reduce((acc, [key, value]) => {
             acc[key] = value;
             return acc;
@@ -319,6 +317,5 @@ export class CitadelQueue {
       updatedAt: now,
       type: 'citadel-update',
     });
-
   }
 }

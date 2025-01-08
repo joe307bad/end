@@ -85,7 +85,7 @@ const CitadelUpdateSchema = S.Struct({
     S.Struct({
       userName: S.String,
       summary: S.String,
-      complete: S.Number,
+      completed: S.Number,
       warId: S.String,
     })
   ),
