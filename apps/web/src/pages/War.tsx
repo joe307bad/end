@@ -9,7 +9,7 @@ import { Canvas } from '@react-three/fiber';
 import { PortalPath, useResponsive, GameTabsV2 } from '@end/components';
 import { OrbitControls } from '@react-three/drei';
 import { useWindowDimensions } from 'react-native';
-import { Option as O } from 'effect';
+import { Effect, Option as O, pipe } from 'effect';
 import { getOrUndefined } from 'effect/Option';
 import { execute } from '@end/data/core';
 import { useParams } from 'react-router-dom';
@@ -193,7 +193,9 @@ function AttackDialog({
     for (let i = 1; i <= 7; i++) {
       const tiles = Object.keys(warDerived.selectedNeighborsOwners);
       const tile = warStore.tiles.find((t) => t.id == tiles[i - 1]);
-      const tileOwner: string | undefined = (warDerived.selectedNeighborsOwners[tile?.id ?? -1] ?? {}).owner;
+      const tileOwner: string | undefined = (
+        warDerived.selectedNeighborsOwners[tile?.id ?? -1] ?? {}
+      ).owner;
 
       if (!tile || !tileOwner) {
         continue;
@@ -349,7 +351,7 @@ function WarComponent({
   setTitle?: (title?: string) => void;
 }) {
   const { services } = useEndApi();
-  const { warService, conquestService } = services;
+  const { warService, conquestService, syncService } = services;
   const warStore = useSnapshot(warService.store);
   const { width } = useWindowDimensions();
 
@@ -384,7 +386,7 @@ function WarComponent({
 
     Promise.all([
       war.planet.fetch(),
-      execute(services.conquestService.getWar(params.id)).then((r) => r.json()),
+      execute(services.conquestService.getWar(params.id)),
     ]).then(([local, remote]) => {
       const title = `The War of ${local.name}`;
       warService.begin(local, remote, params, title);
@@ -394,7 +396,13 @@ function WarComponent({
 
     const unsubscribe = services.conquestService.connectToWarLog(
       params.id,
-      (r) => execute(services.warService.handleWarLogEntry(r))
+      (r) =>
+        execute(
+          pipe(
+            services.warService.handleWarLogEntry(r),
+            // Effect.flatMap(syncService.sync)
+          )
+        )
     );
 
     return () => {
@@ -407,6 +415,7 @@ function WarComponent({
       warService.store.battles = [];
       warService.store.deployments = [];
       warService.store.active = true;
+      warService.resetTiles();
       unsubscribe();
     };
   }, []);

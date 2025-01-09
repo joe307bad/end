@@ -3,6 +3,7 @@ import { Coords, getRandomName, hexasphere } from '@end/shared';
 import {
   getCurrentUsersTurn,
   getMostRecentPortal,
+  getPossibleDeployedTroops,
   Turn,
   WarState,
 } from '@end/war/core';
@@ -13,8 +14,8 @@ import { isRight } from 'effect/Either';
 import { WarService } from './WarService';
 import { derived, store, WarStore } from './WarStore';
 import { selectTile, tileIdAndCoords } from './WarUtils';
-import { Players, ResultSchema, Tile, Battle } from './WarSchema';
-import { prop, uniqBy } from 'remeda';
+import { Players, ResultSchema, Tile } from './WarSchema';
+import { uniqBy } from 'remeda';
 
 export const WarLive = Layer.effect(
   WarService,
@@ -59,10 +60,10 @@ export const WarLive = Layer.effect(
         store.battleLimit = Number(battleLimit);
       },
       begin(local, remote, params, title) {
-        const war = JSON.parse(remote.war.state);
+        const war = remote.war; // JSON.parse(remote.war.state);
         const players = war.context.players;
         const state = war.value;
-        const turn = war.context.turns[war.context.turn] as Turn;
+        const turn = war.context.turns?.[war.context.turn] as Turn;
 
         const round = remote.round;
         const battleLimit = war.context.battleLimit;
@@ -77,7 +78,6 @@ export const WarLive = Layer.effect(
 
         const tiles: Record<string, any> = war.context.tiles;
         const raised: Record<string, string> = JSON.parse(local.raised);
-        debugger;
 
         params.id ? O.some(params.id) : O.none();
         this.setName(title);
@@ -164,6 +164,15 @@ export const WarLive = Layer.effect(
             tile.originalOwner = originalOwner;
             tile.raised = true;
           }
+        });
+      },
+      resetTiles() {
+        store.tiles.forEach((tile) => {
+          tile.name = '';
+          tile.troopCount = 0;
+          tile.owner = '';
+          tile.originalOwner = '';
+          tile.raised = false;
         });
       },
       setSort(sort) {
@@ -342,6 +351,7 @@ export const WarLive = Layer.effect(
                   that.setCurrentUserTurn(result.currentUsersTurn);
                   that.store.battles = [];
                   that.store.deployments = [];
+                  this.setAvailableTroopsToDeploy(getPossibleDeployedTroops());
                   return 'Turn completed event';
                   break;
                 case 'war-started':
@@ -425,7 +435,6 @@ export const WarLive = Layer.effect(
                   const tile1 = store.tiles.find((t) => t.id === tile1Id);
                   const tile2 = store.tiles.find((t) => t.id === tile2Id);
 
-                  // debugger;
                   if (tile1 && tile2) {
                     tile1.troopCount = result.troopUpdates[tile1Id];
                     tile2.troopCount = result.troopUpdates[tile2Id];

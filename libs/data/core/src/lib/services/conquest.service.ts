@@ -1,7 +1,7 @@
 import { Battle, Tile } from '@end/war/core';
 import { Effect, Context, Layer, pipe, Option as O } from 'effect';
 import { FetchService } from './fetch.service';
-import { Planet, War } from '@end/wm/core';
+import { Planet, War, WarUser } from '@end/wm/core';
 import { DbService } from './db.service';
 import { BehaviorSubject } from 'rxjs';
 import { io } from 'socket.io-client';
@@ -12,6 +12,7 @@ import { getOrUndefined } from 'effect/Option';
 import { AuthService } from './auth.service';
 import { execute } from '@end/data/core';
 import { store } from './war/WarStore';
+import { SyncService } from './sync.service';
 
 enum Actions {
   InvalidTurn,
@@ -23,8 +24,8 @@ interface Conquest {
   readonly warLog: BehaviorSubject<string | null>;
   readonly startWar: (
     players: number
-  ) => Effect.Effect<{ warId: string }, string>;
-  readonly getWar: (warId: string) => Effect.Effect<Response, string>;
+  ) => Effect.Effect<{ warId: string, playerId: string }, string>;
+  readonly getWar: (warId: string) => Effect.Effect<War, string>;
   readonly connectToWarLog: (
     warId: string,
     callback: (v: string | null) => void
@@ -36,7 +37,7 @@ interface Conquest {
   readonly startBattle: () => Effect.Effect<Response, string>;
   readonly addPlayer: (payload: {
     warId: string;
-  }) => Effect.Effect<Response, string>;
+  }) => Effect.Effect<void, unknown>;
   readonly engage: () => Effect.Effect<Response, string>;
   readonly beginTurnNumber1: () => Effect.Effect<Response, string>;
 }
@@ -106,6 +107,7 @@ export const ConquestLive = Layer.effect(
                       .create((war) => {
                         war.planet.id = newPlanet;
                         war.players = players;
+                        war.status = 'searching-for-players';
                       });
                     resolve(id);
                   });
@@ -115,7 +117,7 @@ export const ConquestLive = Layer.effect(
             });
           }),
           Effect.flatMap((war) => {
-            return fetch.post<{ warId: string }>('/conquest', {
+            return fetch.post<{ warId: string, playerId: string }>('/conquest', {
               type: 'generate-new-war',
               warId: war,
               players: [],
@@ -139,7 +141,25 @@ export const ConquestLive = Layer.effect(
                 {}
               ),
             });
-          })
+          }),
+          Effect.flatMap((data: { warId: string, playerId: string }) =>
+            Effect.tryPromise({
+              try: () => {
+                return new Promise<{ warId: string, playerId: string }>(async (resolve) => {
+                  await database.write(async () => {
+                    const { id } = await database
+                      .get<WarUser>('war_users')
+                      .create((wu: WarUser) => {
+                        wu.warId = data.warId;
+                        wu.userId = data.playerId;
+                      });
+                    resolve(data);
+                  });
+                });
+              },
+              catch: () => 'Failed to add user to war for local store',
+            })
+          )
         );
       },
       getWar: (warId: string) => fetch.get(`/conquest/war/${warId}`),
@@ -148,7 +168,7 @@ export const ConquestLive = Layer.effect(
         callback: (v: string | null) => void
       ) => {
         const socket = io(`${config.webSocketUrl ?? 'localhost:3000'}`, {});
-        socket.emit('joinRoom', { warId: warId });
+        socket.emit('joinRoom', { roomId: warId });
         socket.on('serverToRoom', (message) => {
           warLog.next(message.toString());
         });
@@ -228,7 +248,12 @@ export const ConquestLive = Layer.effect(
         });
       },
       addPlayer: (event: { warId: string }) => {
-        return fetch.post('/conquest', { type: 'add-player', ...event });
+        return pipe(
+          fetch.post<{ player: { id: string } }>('/conquest', {
+            type: 'add-player',
+            ...event,
+          }),
+        );
       },
       engage: () => {
         const attacking = war.store.selectedTileId;

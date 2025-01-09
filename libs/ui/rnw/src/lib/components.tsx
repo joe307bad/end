@@ -1,12 +1,23 @@
 import React, { ReactNode, useMemo } from 'react';
 import * as THREE from 'three';
-import { TamaguiProvider, YStack } from 'tamagui';
+import { StackProps, TamaguiProvider, useMedia, XStack, YStack } from 'tamagui';
 import { config, tokens } from './tamagui.config';
 import { View } from 'react-native';
 import t, { useDeviceContext } from 'twrnc';
 import { AuthProvider } from '@end/auth';
-import { Toast, ToastProvider, ToastViewport, useToastState } from '@tamagui/toast';
+import {
+  Toast,
+  ToastProvider,
+  ToastViewport,
+  useToastState,
+} from '@tamagui/toast';
 import '@react-three/fiber';
+import {
+  differenceInDays,
+  differenceInHours,
+  differenceInMinutes,
+  format,
+} from 'date-fns';
 
 export const tw = t as any;
 
@@ -24,6 +35,19 @@ export function Providers({ children }: { children: ReactNode }) {
         </TamaguiProvider>
       </AuthProvider>
     </ToastProvider>
+  );
+}
+
+export function ResponsiveStack({
+  children,
+  ...rest
+}: { children: ReactNode } & StackProps) {
+  const media = useMedia();
+
+  return media['sm'] ? (
+    <YStack {...rest} paddingHorizontal="$1">{children}</YStack>
+  ) : (
+    <XStack {...rest}>{children}</XStack>
   );
 }
 
@@ -188,7 +212,6 @@ export function PortalPath({
   ) : null;
 }
 
-
 export const CurrentToast = () => {
   const currentToast = useToastState();
 
@@ -204,7 +227,7 @@ export const CurrentToast = () => {
       animation="medium"
       viewportName={currentToast?.viewportName}
     >
-      <YStack backgroundColor="black" padding="$0.5">
+      <YStack padding="$0.5">
         <Toast.Title>{currentToast?.title}</Toast.Title>
         {!!currentToast?.message && (
           <Toast.Description>{currentToast?.message}</Toast.Description>
