@@ -18,6 +18,8 @@ require('dotenv').config()
 const host = process.env.REDIS_HOST ?? 'localhost';
 const password = process.env.REDIS_PASSWORD ? { password: process.env.REDIS_PASSWORD } : undefined;
 
+console.log({host, password})
+
 @Module({
   imports: [
     BullModule.forRoot({
