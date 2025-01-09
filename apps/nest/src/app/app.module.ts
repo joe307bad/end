@@ -27,6 +27,7 @@ console.log({host, password})
         host,
         family: 6,
         port: 6379,
+        tls: {},
         ...password
       },
     }),
