@@ -23,7 +23,9 @@ const password = process.env.REDIS_PASSWORD ? { password: process.env.REDIS_PASS
     BullModule.forRoot({
       redis: {
         host,
+        family: 6,
         port: 6379,
+        tls: {},
         ...password
       },
     }),
