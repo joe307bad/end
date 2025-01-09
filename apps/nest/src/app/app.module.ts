@@ -13,22 +13,28 @@ import { BullModule } from '@nestjs/bull';
 import { War, WarSchema } from './conquest/conquest.controller';
 import { Entity, EntitySchema } from './sync/sync.service';
 import { CitadelModule } from './citadel/citadel.module';
-require('dotenv').config()
+
+require('dotenv').config();
 
 const host = process.env.REDIS_HOST ?? 'localhost';
-const password = process.env.REDIS_PASSWORD ? { password: process.env.REDIS_PASSWORD } : undefined;
+const password = process.env.REDIS_PASSWORD
+  ? { password: process.env.REDIS_PASSWORD }
+  : undefined;
 
-console.log({host, password})
-
+console.log({ host, password });
 
 @Module({
   imports: [
     BullModule.forRoot({
       redis: {
         host,
-        family: 6,
         port: 6379,
-        ...password
+        tls: {},
+        username: 'default',
+        enableTLSForSentinelMode: true,
+        maxRetriesPerRequest: null,
+        enableReadyCheck: false,
+        ...password,
       },
     }),
     AuthModule,
@@ -46,6 +52,6 @@ console.log({host, password})
   ],
   controllers: [AppController, SyncController],
   providers: [SharedService],
-  exports: [SharedService]
+  exports: [SharedService],
 })
 export class AppModule {}
