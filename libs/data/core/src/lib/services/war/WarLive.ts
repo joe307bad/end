@@ -3,6 +3,7 @@ import { Coords, getRandomName, hexasphere } from '@end/shared';
 import {
   getCurrentUsersTurn,
   getMostRecentPortal,
+  getPossibleDeployedTroops,
   Turn,
   WarState,
 } from '@end/war/core';
@@ -167,11 +168,11 @@ export const WarLive = Layer.effect(
       },
       resetTiles() {
         store.tiles.forEach((tile) => {
-            tile.name = '';
-            tile.troopCount = 0;
-            tile.owner = '';
-            tile.originalOwner = '';
-            tile.raised = false;
+          tile.name = '';
+          tile.troopCount = 0;
+          tile.owner = '';
+          tile.originalOwner = '';
+          tile.raised = false;
         });
       },
       setSort(sort) {
@@ -350,6 +351,7 @@ export const WarLive = Layer.effect(
                   that.setCurrentUserTurn(result.currentUsersTurn);
                   that.store.battles = [];
                   that.store.deployments = [];
+                  this.setAvailableTroopsToDeploy(getPossibleDeployedTroops());
                   return 'Turn completed event';
                   break;
                 case 'war-started':

@@ -284,7 +284,7 @@ export function GameTabsV2({
             <>
               <V
                 display="flex"
-                paddingHorizontal="$0.5"
+                paddingLeft={6}
                 style={bp(['', 'flex-column', 'flex-row-reverse'])}
                 width="100%"
               >
@@ -523,7 +523,13 @@ function WarStatusBadges() {
   const warStore = useSnapshot(warService.store);
   const warDerived = useSnapshot(warService.derived);
   return (
-    <V flexDirection="row" space="$0.5">
+    <V
+      alignItems="center"
+      paddingRight={6}
+      flexDirection="row"
+      height={36}
+      space="$0.5"
+    >
       <Badge color="green" title={warDerived.currentTurnAndRound} />
       <Badge color="red" title={warDerived.remainingTroops.toString()} />
     </V>

@@ -88,7 +88,7 @@ export type Event =
   | { type: 'attack'; battleId: string; warId: string }
   | { type: 'begin-turn-number-1'; warId: string };
 
-export function getPossibleDeployedTroops(context: Context) {
+export function getPossibleDeployedTroops(context?: Context) {
   return 10;
 }
 
@@ -259,7 +259,6 @@ export const warMachine = (
         }
 
         let currentTurn: Turn = context.turns[context.turn];
-        const players = context.players;
         const currentUsersTurn = getCurrentUsersTurn(context);
 
         const attackingTile = context.tiles[event.attackingFromTerritory];
@@ -278,9 +277,6 @@ export const warMachine = (
         if (attackingTile.troopCount === 1) {
           return context;
         }
-
-        const maxDefenderChange = Math.ceil(defendingTile.troopCount / 2);
-        const maxAggressorChange = Math.ceil(attackingTile.troopCount / 2);
 
         const aggressorChange = -1;
         const defenderChange = faker.number.int({
@@ -320,6 +316,16 @@ export const warMachine = (
           defendingTile.troopCount =
             defendingTile.troopCount + battleEvent.defenderChange;
         }
+
+        context.tiles[defendingTile.id] = {
+          ...context.tiles[defendingTile.id],
+          troopCount:
+            defendingTile.troopCount < 1 ? 1 : defendingTile.troopCount,
+          owner:
+            defendingTile.troopCount < 1
+              ? attackingTile.owner
+              : defendingTile.owner,
+        };
 
         return context;
       }),
@@ -374,11 +380,6 @@ export const warMachine = (
         if (attackingTroopCount === 1) {
           return context;
         }
-
-        const maxDefenderChange =
-          defendingTroopCount < 10 ? 5 : Math.ceil(defendingTroopCount / 2);
-        const maxAggressorChange =
-          attackingTroopCount < 10 ? 5 : Math.ceil(attackingTroopCount / 2);
 
         const aggressorChange = faker.number.int({
           max: 0,
