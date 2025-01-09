@@ -20,6 +20,7 @@ const password = process.env.REDIS_PASSWORD ? { password: process.env.REDIS_PASS
 
 console.log({host, password})
 
+
 @Module({
   imports: [
     BullModule.forRoot({
