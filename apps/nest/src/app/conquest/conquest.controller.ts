@@ -8,17 +8,17 @@ import {
   getPossibleDeployedTroops,
   getScoreboard,
   warMachine,
-  Context, Tile
 } from '@end/war/core';
 import { createActor } from 'xstate';
-import { InjectModel, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Model, ObjectId } from 'mongoose';
-import { Entity } from '../sync/sync.service';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
-import { User, UsersService } from '../users/users.service';
+import { UsersService } from '../users/users.service';
 import { generateRandomId } from '../shared';
 import { CitadelService } from '../citadel/citadel.service';
 import { SharedService } from '../shared/shared.service';
+import { War } from '../shared/schemas/war.schema';
+import { Entity } from '../shared/schemas/entity.schema';
 
 const colors: string[] = [
   '#FF0000', // Red
@@ -34,31 +34,7 @@ const colors: string[] = [
   '#40E0D0', // Turquoise
   '#8B4513', // Saddle Brown
 ];
-//
-// class ContextClass implements Context {
-//   battleLimit: number;
-//   playerLimit: number;
-//   players: { id: string; userName: string; color: string }[];
-//   roundLimit: number;
-//   tiles: Record<string, Tile>;
-//   turn: number;
-// }
 
-@Schema({ strict: false })
-export class War {
-  @Prop({ required: true })
-  warId: string;
-  //
-  // @Prop({ type: ContextClass })
-  // context: ContextClass;
-
-  @Prop({ type: Number })
-  completed_at: number;
-
-  _id: ObjectId;
-
-  context: any;
-}
 
 const getUserInfo = (jwtService: JwtService) => (request: Request) => {
   const authHeader = request.headers['authorization'];
@@ -70,14 +46,11 @@ const getUserInfo = (jwtService: JwtService) => (request: Request) => {
   return null;
 };
 
-export const WarSchema = SchemaFactory.createForClass(War);
-
 @Controller('conquest')
 export class ConquestController {
   constructor(
     @InjectModel(War.name) private warModel: Model<War>,
     @InjectModel(Entity.name) private entityModel: Model<Entity>,
-    @InjectModel(User.name) private userModel: Model<User>,
     private jwtService: JwtService,
     private sharedService: SharedService,
     private userService: UsersService,

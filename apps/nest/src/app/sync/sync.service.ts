@@ -1,18 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { InjectModel, SchemaFactory } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { Entity } from '../shared/schemas/entity.schema';
 
-@Schema({ strict: false })
-export class Entity {
-  @Prop({ required: true })
-  table: string;
-
-  @Prop()
-  _id: string;
-}
-
-
-export const EntitySchema = SchemaFactory.createForClass(Entity);
 
 @Injectable()
 export class SyncService {
@@ -70,7 +60,9 @@ export class SyncService {
       );
   }
 
-  create(entity: Record<string, string>): Promise<{ id: Types.ObjectId | string }> {
+  create(
+    entity: Record<string, string>
+  ): Promise<{ id: Types.ObjectId | string }> {
     return this.entityModel.create(entity).then((r) => {
       return { id: r._id };
     });

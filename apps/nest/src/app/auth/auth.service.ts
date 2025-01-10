@@ -7,9 +7,9 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcrypt';
 import { InjectModel } from '@nestjs/mongoose';
-import { Entity } from '../sync/sync.service';
 import { Model } from 'mongoose';
 import { generateRandomId } from '../shared';
+import { Entity } from '../shared/schemas/entity.schema';
 
 @Injectable()
 export class AuthService {

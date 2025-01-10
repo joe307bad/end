@@ -5,13 +5,12 @@ import { UsersModule } from '../users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthGuard } from './auth.guard';
 import { APP_GUARD } from '@nestjs/core';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Entity, EntitySchema } from '../sync/sync.service';
+import { SharedModule } from '../shared/shared.module';
 
 @Module({
   imports: [
+    SharedModule,
     UsersModule,
-    MongooseModule.forFeature([{ name: Entity.name, schema: EntitySchema }]),
     JwtModule.register({
       global: true,
       secret: process.env.NEST_JWT_SECRET,

@@ -1,14 +1,12 @@
 import { Module } from '@nestjs/common';
-import { Entity, EntitySchema, SyncService } from './sync.service';
-import { MongooseModule } from '@nestjs/mongoose';
+import { SyncService } from './sync.service';
 import { SyncController } from './sync.controller';
+import { SharedModule } from '../shared/shared.module';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: Entity.name, schema: EntitySchema }]),
-  ],
+  imports: [SharedModule],
   providers: [SyncService],
-  exports: [SyncService, MongooseModule],
+  exports: [SyncService],
   controllers: [SyncController],
 })
 export class SyncModule {}
