@@ -207,9 +207,15 @@ export const WarLive = Layer.effect(
         store.territoryToAttack = O.none();
         store.troopsToDeploy = 0;
 
-        return Promise.resolve(store.turnAction === 'portal');
+        return Promise.resolve(
+          store.turnAction === 'portal' && store.battles.length === 0
+        );
       },
       setPortal(c) {
+        if (store.battles.length !== 0) {
+          return Promise.resolve(true);
+        }
+
         const [_, coords] = tileIdAndCoords(c);
         if (store.settingPortalCoords === 'first') {
           store.portal[0] = coords;
