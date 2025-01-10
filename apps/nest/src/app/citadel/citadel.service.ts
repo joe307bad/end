@@ -73,7 +73,7 @@ export class CitadelService {
   }
 
   async enqueue() {
-    if (this.currentTaskCount >= this.queueLimit) {
+    if (this.currentTaskCount === this.queueLimit) {
       return;
     }
 
