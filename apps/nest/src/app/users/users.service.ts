@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel, Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import bcrypt from 'bcrypt';
-import { Entity } from '../sync/sync.service';
+import { Entity } from '../shared/schemas/entity.schema';
 
 @Schema()
 export class User {
