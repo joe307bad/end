@@ -423,9 +423,6 @@ export default compose(
             const warWithUserIds = new Set(warsWithUser.map((war) => war.id));
 
             const warsWithoutUser = allWars.filter((war) => {
-              if (war.id === 'GjaOBLM332GBq6zO') {
-                debugger;
-              }
               return !warWithUserIds.has(war.id);
             });
 

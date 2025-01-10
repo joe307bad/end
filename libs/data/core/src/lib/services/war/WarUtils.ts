@@ -77,23 +77,26 @@ export function selectTile(id: string, cameraPosition: THREE.Vector3) {
     store.selectedTileId = O.some(newSelected.id);
     store.cameraPosition = O.some(cameraPosition);
 
-    const currentlyDefending = store.tiles.filter((tile) => tile.defending);
+    // These loops were a perf bottleneck
+    // I don't even think "defending" is being used
+    // const currentlyDefending = store.tiles.filter((tile) => tile.defending);
 
-    if (currentlyDefending.length > 0) {
-      currentlyDefending.forEach((tile) => {
-        tile.defending = false;
-      });
-    }
+    // if (currentlyDefending.length > 0) {
+      // currentlyDefending.forEach((tile) => {
+      //   tile.defending = false;
+      // });
+    // }
 
     const neighbors = hexasphere.tileLookup[newSelected.id].neighborIds;
 
-    newSelected.raised &&
-      neighbors.forEach((neighborTileId) => {
-        const neighbor = store.tiles.find((tile) => tile.id === neighborTileId);
-        if (neighbor) {
-          neighbor.defending = true;
-        }
-      });
+    // newSelected.raised &&
+    // // TODO this foreach is prob a perf bottleneck
+    //   neighbors.forEach((neighborTileId) => {
+    //     const neighbor = store.tiles.find((tile) => tile.id === neighborTileId);
+    //     if (neighbor) {
+    //       neighbor.defending = true;
+    //     }
+    //   });
   }
 
   return currentlySelected;
