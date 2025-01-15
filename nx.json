@@ -69,5 +69,6 @@
       "unitTestRunner": "jest",
       "e2eTestRunner": "none"
     }
-  }
+  },
+  "nxCloudId": "6788181bafef6f3c03ad06d0"
 }

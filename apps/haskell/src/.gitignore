@@ -1,8 +1,0 @@
-.stack-work/
-*~
-conduit-server.cabal
-stack*.lock
-/.idea/
-/out/
-*.iml
-docker-compose.override.yaml
