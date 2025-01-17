@@ -1,7 +1,7 @@
 import React, { ReactNode, useMemo } from 'react';
 import * as THREE from 'three';
 import { StackProps, TamaguiProvider, useMedia, XStack, YStack } from 'tamagui';
-import { config, tokens } from './tamagui.config';
+import { config } from './tamagui.config';
 import { View } from 'react-native';
 import t, { useDeviceContext } from 'twrnc';
 import { AuthProvider } from '@end/auth';
@@ -12,29 +12,25 @@ import {
   useToastState,
 } from '@tamagui/toast';
 import '@react-three/fiber';
-import {
-  differenceInDays,
-  differenceInHours,
-  differenceInMinutes,
-  format,
-} from 'date-fns';
 
 export const tw = t as any;
 
-export const tamaguiTokens = tokens;
-
 export function Providers({ children }: { children: ReactNode }) {
+  debugger;
+
+  const c = useMemo(() => config, []);
+
   // @ts-ignore
   useDeviceContext(tw);
   return (
-    <ToastProvider burntOptions={{ from: 'bottom' }}>
-      <AuthProvider>
-        <TamaguiProvider defaultTheme="dark" config={config}>
+      <ToastProvider burntOptions={{ from: 'bottom' }}>
+        <AuthProvider>
+          <TamaguiProvider defaultTheme="dark" config={c}>
           {children}
+          </TamaguiProvider>
           <ToastViewport bottom={0} />
-        </TamaguiProvider>
-      </AuthProvider>
-    </ToastProvider>
+        </AuthProvider>
+      </ToastProvider>
   );
 }
 
@@ -45,7 +41,9 @@ export function ResponsiveStack({
   const media = useMedia();
 
   return media['sm'] ? (
-    <YStack {...rest} paddingHorizontal="$1">{children}</YStack>
+    <YStack {...rest} paddingHorizontal="$1">
+      {children}
+    </YStack>
   ) : (
     <XStack {...rest}>{children}</XStack>
   );

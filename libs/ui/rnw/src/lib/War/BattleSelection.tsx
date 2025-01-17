@@ -5,7 +5,7 @@ import { PrimaryButton } from '../Display';
 import { useEndApi } from '@end/data/web';
 import { execute } from '@end/data/core';
 import { SelectDemoItem } from '@end/components';
-import { CheckCheck, XCircle } from '@tamagui/lucide-icons';
+// import { CheckCheck, XCircle } from '@tamagui/lucide-icons';
 import { Option as O } from 'effect';
 import { getOrUndefined, isSome } from 'effect/Option';
 import { isRight } from 'effect/Either';

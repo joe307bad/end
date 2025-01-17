@@ -23,7 +23,7 @@
         "outputPath": "dist/apps/web",
         "index": "apps/web/src/index.html",
         "baseHref": "/",
-        "main": "apps/web/src/main.tsx",
+        "main": "apps/web/src/main-web.tsx",
         "tsConfig": "apps/web/tsconfig.app.json",
         "assets": ["apps/web/src/favicon.ico", "apps/web/src/assets"],
         "styles": ["apps/web/src/styles.less"],

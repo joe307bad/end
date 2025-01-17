@@ -1,7 +1,7 @@
 import { Text, View, H3, H2, XStack, YStack, ListItem, Spinner } from 'tamagui';
 import React, { ComponentType } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trophy } from '@tamagui/lucide-icons';
+// import { Trophy } from '@tamagui/lucide-icons';
 import { Badge, ResponsiveStack } from '@end/components';
 import { useEndApi } from '@end/data/web';
 import { useSnapshot } from 'valtio/react';
@@ -41,7 +41,7 @@ function BattleWinRate({
       maxWidth={400}
       icon={
         <View>
-          <Trophy color={trophyColor} size="$2" width={30} />
+          {/*<Trophy color={trophyColor} size="$2" width={30} />*/}
         </View>
       }
       title={
@@ -159,7 +159,7 @@ export function Citadel() {
               padding="$1"
               borderWidth={1}
               borderRadius={5}
-              borderColor={'white'}
+              // borderColor={'white'}
               backgroundColor="transparent"
               margin="0"
               cursor="pointer"
@@ -203,7 +203,7 @@ export function Citadel() {
                   maxWidth={400}
                   icon={
                     <View>
-                      <Trophy color={trophyColor(i)} size="$2" />
+                      {/*<Trophy color={trophyColor(i)} size="$2" />*/}
                     </View>
                   }
                   title={

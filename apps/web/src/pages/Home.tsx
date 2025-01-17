@@ -25,7 +25,7 @@ export default function Home() {
       return [[0, 300, 25], {}];
     }
 
-    if (width < 1297) {
+    if (width < 1000) {
       return [[0, 160, 25], {}];
     }
 
@@ -77,7 +77,7 @@ export default function Home() {
           flex: 1,
           ...responsiveness,
         }}
-        camera={cam}
+        camera={{ fov: 75, near: 0.1, far: 1000, position: [0, 0, 160] }}
       >
         <hv2.HexasphereV2 portalPath={undefined} />
         <OrbitControls />

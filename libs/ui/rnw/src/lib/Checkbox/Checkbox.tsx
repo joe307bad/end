@@ -5,7 +5,7 @@ import {
   SizeTokens,
   CheckboxProps,
 } from 'tamagui';
-import { Check as CheckIcon } from '@tamagui/lucide-icons';
+// import { Check as CheckIcon } from '@tamagui/lucide-icons';
 import React from 'react';
 
 export function Checkbox({
@@ -23,7 +23,7 @@ export function Checkbox({
     <XStack id="stack" alignItems="center">
       <Cb id={id} size={size} {...checkboxProps}>
         <Cb.Indicator>
-          <CheckIcon />
+          {/*<CheckIcon />*/}
         </Cb.Indicator>
       </Cb>
 

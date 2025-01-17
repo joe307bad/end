@@ -1,7 +1,7 @@
 import { Section } from 'tamagui';
 import { Pressable, View } from 'react-native';
 import { tw } from '../components';
-import { CircleDot } from '@tamagui/lucide-icons';
+// import { CircleDot } from '@tamagui/lucide-icons';
 import React, { Dispatch, ReactElement, SetStateAction } from 'react';
 import { useResponsive } from '../Layout';
 
@@ -38,7 +38,7 @@ export function ResponsiveTabs({
           }
           style={bp(['block text-white self-end', '', '', 'hidden'])}
         >
-          <CircleDot color="white" size="$2" />
+          {/*<CircleDot color="white" size="$2" />*/}
         </Pressable>
       </View>
     </Section>

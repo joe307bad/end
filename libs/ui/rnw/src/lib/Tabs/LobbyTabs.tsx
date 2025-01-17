@@ -2,7 +2,7 @@ import { Text, View } from 'tamagui';
 import React, { useCallback } from 'react';
 import { useEndApi } from '@end/data/web';
 import { useSnapshot } from 'valtio';
-import { UserCircle2 } from '@tamagui/lucide-icons';
+// import { UserCircle2 } from '@tamagui/lucide-icons';
 import { PrimaryButton } from '../Display';
 import { useParams } from 'react-router-dom';
 import { execute } from '@end/data/core';
@@ -40,7 +40,7 @@ export function LobbyTabs() {
       maxHeight={'100%'}
       height="100%"
       overflow="hidden"
-      borderColor="$borderColor"
+      // borderColor="$borderColor"
       backgroundColor="black"
       padding="$1"
     >
@@ -53,7 +53,7 @@ export function LobbyTabs() {
             space="$1"
           >
             <View>
-              <UserCircle2 color={color} />
+              {/*<UserCircle2 color={color} />*/}
             </View>
             <Text flex={1}>{userName}</Text>
             <Text

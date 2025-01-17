@@ -1,11 +1,12 @@
 import React, {
+  ComponentType,
   ElementType,
   startTransition,
   useCallback,
   useEffect,
   useMemo,
   useRef,
-  useState,
+  useState
 } from 'react';
 import '@react-three/fiber';
 import { faker } from '@faker-js/faker';
@@ -25,7 +26,7 @@ import {
   NormalBufferAttributes,
   Object3DEventMap,
 } from 'three';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
+// import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 // @ts-ignore
 import tf from 'three/examples/fonts/helvetiker_regular.typeface.json';
@@ -40,6 +41,7 @@ import { useEndApi } from '@end/data/web';
 import { getOrUndefined } from 'effect/Option';
 import { Option as O } from 'effect';
 import { execute } from '@end/data/core';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 
 function getPointInBetweenByPerc(
   pointA: THREE.Vector3,
@@ -52,16 +54,16 @@ function getPointInBetweenByPerc(
   return pointA.clone().add(dir);
 }
 
-extend({ TextGeometry });
+// extend({ TextGeometry });
 
 const center = new THREE.Vector3(0, 0, 0);
 
 const font = new FontLoader().parse(tf);
-declare module '@react-three/fiber' {
-  interface ThreeElements {
-    textGeometry: Object3DNode<TextGeometry, typeof TextGeometry>;
-  }
-}
+// declare module '@react-three/fiber' {
+//   interface ThreeElements {
+//     textGeometry: Object3DNode<TextGeometry, typeof TextGeometry>;
+//   }
+// }
 
 function convertToRoman(num: number) {
   var roman = {
@@ -255,6 +257,7 @@ const TroopCount = React.memo(
     troopCount: number;
     ringColor: string;
   }) => {
+    console.log("efweefw")
     const textPositionX = React.useRef<number>();
     const textPositionY = React.useRef<number>();
     const textPositionZ = React.useRef<number>();
@@ -376,10 +379,10 @@ const TroopCount = React.memo(
         </mesh>
         <mesh ref={textMesh}>
           {/* TODO this TextGeometry renders slowly on React Native */}
-          <textGeometry
-            ref={textGeo}
-            args={[troopCount.toString(), { font, size: 2, height: 0.25 }]}
-          />
+          {/*<textGeometry*/}
+          {/*  ref={textGeo}*/}
+          {/*  args={[troopCount.toString(), { font, size: 2, height: 0.25 }]}*/}
+          {/*/>*/}
           <meshBasicMaterial
             side={THREE.DoubleSide}
             attach="material"
@@ -665,7 +668,7 @@ const TileMesh = React.memo(
 var camPosIndex = 0;
 
 export const HexasphereV2 = React.memo(
-  ({ portalPath: PortalPath }: { portalPath?: ElementType }) => {
+  ({ portalPath: PortalPath }: { portalPath?: ComponentType | null }) => {
     const { services } = useEndApi();
     const { warService, conquestService } = services;
     const warStore = useSnapshot(warService.store);
@@ -777,6 +780,9 @@ export const HexasphereV2 = React.memo(
       }, {});
     }, [warStore.players]);
 
+    console.log("hexa rendered")
+    console.log(warStore.tiles)
+
     return (
       <>
         <ambientLight />
@@ -795,6 +801,7 @@ export const HexasphereV2 = React.memo(
             />
           ))}
           {warService.hasPortal() && PortalPath && (
+            // @ts-ignore
             <PortalPath from={warStore.portal[0]} to={warStore.portal[1]} />
           )}
           <points>

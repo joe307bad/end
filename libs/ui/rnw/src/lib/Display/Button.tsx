@@ -1,5 +1,5 @@
 import { Button, SizeTokens, Spinner, Text } from 'tamagui';
-import React, { ReactElement, ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 
 export function PrimaryButton({
   onPress,

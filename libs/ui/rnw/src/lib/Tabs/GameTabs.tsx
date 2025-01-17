@@ -15,7 +15,7 @@ import {
   XStackProps,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
-import { Dot, Hexagon, UserCircle2 } from '@tamagui/lucide-icons';
+// import { Dot, Hexagon, UserCircle2 } from '@tamagui/lucide-icons';
 import React, {
   Dispatch,
   ElementType,
@@ -55,7 +55,7 @@ function TileInfo({
   return (
     <XStack {...rest}>
       <V paddingRight="$0.5">
-        <Hexagon color={color} size="$1" />
+        {/*<Hexagon color={color} size="$1" />*/}
       </V>
       <Text overflow="hidden" whiteSpace="nowrap" textOverflow="ellipsis">
         {name}
@@ -251,7 +251,7 @@ export function GameTabsV2({
         maxHeight={'100%'}
         height="100%"
         overflow="hidden"
-        borderColor="$borderColor"
+        // borderColor="$borderColor"
       >
         <Tabs.List
           separator={<Separator vertical />}
@@ -465,7 +465,7 @@ export function GameTabsV2({
                 >
                   <V flexDirection="row" alignItems="center" space="$0.5">
                     <Text width="$1">{i + 1}</Text>
-                    <UserCircle2 color={color} />
+                    {/*<UserCircle2 color={color} />*/}
                   </V>
                   <Text flex={1}>{userName}</Text>
                   <Text
@@ -504,7 +504,7 @@ function Scoreboard() {
           >
             <V flexDirection="row" alignItems="center" space="$0.5">
               <Text width="$1">{i + 1}</Text>
-              <UserCircle2 color={color} />
+              {/*<UserCircle2 color={color} />*/}
             </V>
             <Text flex={1}>{userName}</Text>
             <Text whiteSpace="nowrap" overflow="hidden" textOverflow="ellipsis">
@@ -562,7 +562,7 @@ function AttackActions({ tile }: { tile: Partial<Tile> }) {
           hoverTheme
           icon={() => (
             <V flexDirection="row">
-              <Hexagon color={colors[tile.owner]} />
+              {/*<Hexagon color={colors[tile.owner]} />*/}
               {warDerived.battlesByTile[tile.id] ? (
                 warDerived.battlesByTile[tile.id].map(() => (
                   <V
@@ -571,7 +571,7 @@ function AttackActions({ tile }: { tile: Partial<Tile> }) {
                     width={10}
                     overflow="hidden"
                   >
-                    <Dot color="yellow" />
+                    {/*<Dot color="yellow" />*/}
                   </V>
                 ))
               ) : (
@@ -773,10 +773,10 @@ function TilesList({
               hoverTheme
               icon={() => (
                 <V flexDirection="row">
-                  <Hexagon
-                    fill={t.id === selectedTileId ? colors[t.owner] : undefined}
-                    color={colors[t.owner]}
-                  />
+                  {/*<Hexagon*/}
+                  {/*  fill={t.id === selectedTileId ? colors[t.owner] : undefined}*/}
+                  {/*  color={colors[t.owner]}*/}
+                  {/*/>*/}
                   {warDerived.battlesByTile[t.id] ? (
                     warDerived.battlesByTile[t.id].map(() => (
                       <V
@@ -785,7 +785,7 @@ function TilesList({
                         width={10}
                         overflow="hidden"
                       >
-                        <Dot color="yellow" />
+                        {/*<Dot color="yellow" />*/}
                       </V>
                     ))
                   ) : (
