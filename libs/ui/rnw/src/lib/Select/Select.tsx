@@ -1,4 +1,4 @@
-// import { Check, ChevronDown, ChevronUp } from '@tamagui/lucide-icons';
+import { Check, ChevronDown, ChevronUp } from 'lucide-react-native';
 import React from 'react';
 
 import { useMemo, useState } from 'react';
@@ -25,7 +25,9 @@ export default function Select({
 } & SelectProps) {
   return (
     <XStack gap="$4">
-      <Label width="50%" htmlFor="select-demo-2">{label}</Label>
+      <Label width="50%" htmlFor="select-demo-2">
+        {label}
+      </Label>
       <XStack flex={1} alignItems="center" justifyContent="flex-end">
         <SelectDemoItem {...props} id="select-demo-2" items={items} native />
       </XStack>
@@ -38,9 +40,9 @@ export function SelectDemoItem(
 ) {
   return (
     <S size={'$0.5'} disablePreventBodyScroll {...props}>
-      {/*<S.Trigger width={220} iconAfter={ChevronDown}>*/}
-      {/*  <S.Value placeholder="Something" />*/}
-      {/*</S.Trigger>*/}
+      <S.Trigger width={220} iconAfter={ChevronDown}>
+        <S.Value placeholder="Something" />
+      </S.Trigger>
       <S.Content zIndex={200000}>
         <S.ScrollUpButton
           alignItems="center"
@@ -50,15 +52,12 @@ export function SelectDemoItem(
           height="$3"
         >
           <YStack zIndex={10}>
-            {/*<ChevronUp size={20} />*/}
+            <ChevronUp size={20} />
           </YStack>
         </S.ScrollUpButton>
         <S.Viewport style={{ maxWidth: '100%' }}>
           <S.Group>
             <S.Label>Number of players</S.Label>
-
-            {/* for longer lists memoizing these is useful */}
-
             {useMemo(
               () =>
                 props.items.map((item, i) => {
@@ -67,7 +66,7 @@ export function SelectDemoItem(
                       <S.ItemText>{item.key}</S.ItemText>
 
                       <S.ItemIndicator marginLeft="auto">
-                        {/*<Check size={16} />*/}
+                        <Check size={16} />
                       </S.ItemIndicator>
                     </S.Item>
                   );
@@ -76,9 +75,6 @@ export function SelectDemoItem(
               [props.items]
             )}
           </S.Group>
-
-          {/* Native gets an extra icon */}
-
           {props.native && (
             <YStack
               position="absolute"
@@ -90,9 +86,9 @@ export function SelectDemoItem(
               width={'$4'}
               pointerEvents="none"
             >
-              {/*<ChevronDown*/}
-              {/*  size={getFontSize((props.size as FontSizeTokens) ?? '$true')}*/}
-              {/*/>*/}
+              <ChevronDown
+                size={getFontSize((props.size as FontSizeTokens) ?? '$true')}
+              />
             </YStack>
           )}
         </S.Viewport>
@@ -104,7 +100,7 @@ export function SelectDemoItem(
           height="$2"
         >
           <YStack zIndex={10}>
-            {/*<ChevronDown size={20} />*/}
+            <ChevronDown size={20} />
           </YStack>
         </S.ScrollDownButton>
       </S.Content>

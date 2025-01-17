@@ -1,4 +1,4 @@
-import { H4, View } from 'tamagui';
+import { H2, H4, View } from 'tamagui';
 import { useEndApi } from '@end/data/web';
 import React, { ComponentType, useEffect, useMemo, useState } from 'react';
 import { useSnapshot } from 'valtio/react';
@@ -20,9 +20,6 @@ import {
 import { Database } from '@nozbe/watermelondb';
 import { Observable } from 'rxjs';
 import { War } from '@end/wm/core';
-
-
-
 
 function WarComponent({
   war,
@@ -80,8 +77,7 @@ function WarComponent({
       (r) =>
         execute(
           pipe(
-            services.warService.handleWarLogEntry(r),
-            // Effect.flatMap(syncService.sync)
+            services.warService.handleWarLogEntry(r)
           )
         )
     );
@@ -114,16 +110,13 @@ function WarComponent({
 
   return (
     <View style={{ overflow: 'hidden', height: '100%', width: '100%' }}>
-      <View>
-        <H4>{getOrUndefined(warStore.name)}</H4>
-        {/*<Badge title={params.id} />*/}
-      </View>
+      <H2 paddingLeft="$1">{getOrUndefined(warStore.name)}</H2>
       <Canvas
         style={{
           flex: 1,
           ...responsiveness,
         }}
-        camera={cam}
+        camera={{ fov: 75, near: 0.1, far: 1000, position: [0, 0, 160] }}
       >
         <hv2.HexasphereV2 portalPath={PortalPath} />
         <OrbitControls />

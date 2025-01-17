@@ -1,8 +1,14 @@
 import React, { ReactNode, useMemo } from 'react';
 import * as THREE from 'three';
-import { StackProps, TamaguiProvider, useMedia, XStack, YStack } from 'tamagui';
+import {
+  StackProps,
+  TamaguiProvider,
+  useMedia,
+  XStack,
+  YStack,
+  View,
+} from 'tamagui';
 import { config } from './tamagui.config';
-import { View } from 'react-native';
 import t, { useDeviceContext } from 'twrnc';
 import { AuthProvider } from '@end/auth';
 import {
@@ -23,25 +29,26 @@ export function Providers({ children }: { children: ReactNode }) {
   // @ts-ignore
   useDeviceContext(tw);
   return (
-      <ToastProvider burntOptions={{ from: 'bottom' }}>
-        <AuthProvider>
-          <TamaguiProvider defaultTheme="dark" config={c}>
+    <ToastProvider burntOptions={{ from: 'bottom' }}>
+      <AuthProvider>
+        <TamaguiProvider defaultTheme="dark" config={c}>
           {children}
-          </TamaguiProvider>
-          <ToastViewport bottom={0} />
-        </AuthProvider>
-      </ToastProvider>
+        </TamaguiProvider>
+        <ToastViewport bottom={0} />
+      </AuthProvider>
+    </ToastProvider>
   );
 }
 
 export function ResponsiveStack({
   children,
+  mobileProps,
   ...rest
-}: { children: ReactNode } & StackProps) {
+}: { children: ReactNode; mobileProps?: StackProps } & StackProps) {
   const media = useMedia();
 
   return media['sm'] ? (
-    <YStack {...rest} paddingHorizontal="$1">
+    <YStack {...rest} {...mobileProps} paddingHorizontal="$1">
       {children}
     </YStack>
   ) : (
@@ -237,14 +244,10 @@ export const CurrentToast = () => {
 
 export function Container({ children }: { children: ReactNode }) {
   return (
-    <View
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        height: '100%',
-      }}
-    >
-      <View style={{ maxWidth: '100%', height: '100%' }}>{children}</View>
+    <View alignItems="center" height="100%" width="100%">
+      <View maxWidth="100%" height="100%">
+        {children}
+      </View>
     </View>
   );
 }

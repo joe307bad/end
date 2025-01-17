@@ -11,7 +11,7 @@ import {
 import { TabsContent } from './TabsContent';
 import { tw } from '../components';
 import { PrimaryButton } from '../Display';
-// import { CircleDot, Crosshair, Hexagon } from '@tamagui/lucide-icons';
+import { CircleDot, Crosshair, Hexagon } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useResponsive } from '../Layout';
 import { useSnapshot } from 'valtio';
@@ -147,11 +147,11 @@ export function TabsContainer({
         <PrimaryButton onPress={onSync}>Sync</PrimaryButton>
       </View>
       <View onPress={() => {}}>
-        {/*<CircleDot*/}
-        {/*  color="white"*/}
-        {/*  size="$2"*/}
-        {/*  style={bp(['block text-white self-end', '', '', 'hidden'])}*/}
-        {/*/>*/}
+        <CircleDot
+          color="white"
+          size="$2"
+          style={bp(['block text-white self-end', '', '', 'hidden'])}
+        />
       </View>
     </Section>
   );
@@ -174,13 +174,13 @@ const TileListItem = React.memo(function ({
       display={raised ? 'flex' : 'none'}
       padding="$1"
       hoverTheme
-      // icon={Hexagon}
+      icon={Hexagon}
       title={<View style={{ cursor: 'pointer' }}>{name}</View>}
       pressTheme
       onPress={() => warService.setSelectedTileIdOverride(id)}
-      // iconAfter={
-      //   // getOrUndefined(warStore.selectedTileId) === id ? Crosshair : null
-      // }
+      iconAfter={
+        getOrUndefined(warStore.selectedTileId) === id ? Crosshair : null
+      }
     />
   );
 });

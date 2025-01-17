@@ -54,16 +54,16 @@ function getPointInBetweenByPerc(
   return pointA.clone().add(dir);
 }
 
-// extend({ TextGeometry });
+extend({ TextGeometry });
 
 const center = new THREE.Vector3(0, 0, 0);
 
 const font = new FontLoader().parse(tf);
-// declare module '@react-three/fiber' {
-//   interface ThreeElements {
-//     textGeometry: Object3DNode<TextGeometry, typeof TextGeometry>;
-//   }
-// }
+declare module '@react-three/fiber' {
+  interface ThreeElements {
+    textGeometry: Object3DNode<TextGeometry, typeof TextGeometry>;
+  }
+}
 
 function convertToRoman(num: number) {
   var roman = {
@@ -379,10 +379,10 @@ const TroopCount = React.memo(
         </mesh>
         <mesh ref={textMesh}>
           {/* TODO this TextGeometry renders slowly on React Native */}
-          {/*<textGeometry*/}
-          {/*  ref={textGeo}*/}
-          {/*  args={[troopCount.toString(), { font, size: 2, height: 0.25 }]}*/}
-          {/*/>*/}
+          <textGeometry
+            ref={textGeo}
+            args={[troopCount.toString(), { font, size: 2, height: 0.25 }]}
+          />
           <meshBasicMaterial
             side={THREE.DoubleSide}
             attach="material"
