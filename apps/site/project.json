@@ -9,13 +9,15 @@
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
-        "outputPath": "dist/site"
+        "outputPath": "dist/apps/site"
       },
       "configurations": {
         "development": {
           "outputPath": "site"
         },
-        "production": {}
+        "production": {
+          "nextConfig": "{workspaceRoot}/apps/site/next.config.js"
+        }
       }
     },
     "serve": {
@@ -23,7 +25,8 @@
       "defaultConfiguration": "development",
       "options": {
         "buildTarget": "site:build",
-        "dev": true
+        "dev": true,
+        "port": 4300
       },
       "configurations": {
         "development": {

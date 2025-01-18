@@ -5,7 +5,7 @@ import { useSnapshot } from 'valtio/react';
 import { hv2 } from '@end/hexasphere';
 import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
-import { PortalPath, GameTabsV2 } from '@end/components';
+import { PortalPath, GameTabsV2, useResponsive } from '@end/components';
 import { OrbitControls } from '@react-three/drei';
 import { useWindowDimensions } from 'react-native';
 import { pipe } from 'effect';
@@ -32,8 +32,9 @@ function WarComponent({
   const { warService, conquestService, syncService } = services;
   const warStore = useSnapshot(warService.store);
   const { width } = useWindowDimensions();
+  const { bp } = useResponsive();
 
-  const [cameraResponsiveness, responsiveness] = useMemo(() => {
+  const [_, responsiveness] = useMemo(() => {
     if (width < 835) {
       return [[0, 300, 25], {}];
     }
@@ -74,12 +75,7 @@ function WarComponent({
 
     const unsubscribe = services.conquestService.connectToWarLog(
       params.id,
-      (r) =>
-        execute(
-          pipe(
-            services.warService.handleWarLogEntry(r)
-          )
-        )
+      (r) => execute(pipe(services.warService.handleWarLogEntry(r)))
     );
 
     return () => {
@@ -110,7 +106,10 @@ function WarComponent({
 
   return (
     <View style={{ overflow: 'hidden', height: '100%', width: '100%' }}>
-      <H2 paddingLeft="$1">{getOrUndefined(warStore.name)}</H2>
+      <View style={bp(['pl-10 flex items-start', 'hidden', 'block'])}>
+        <H4>{getOrUndefined(warStore.name)}</H4>
+        {/*<Badge title={params.id} />*/}
+      </View>
       <Canvas
         style={{
           flex: 1,
@@ -121,10 +120,7 @@ function WarComponent({
         <hv2.HexasphereV2 portalPath={PortalPath} />
         <OrbitControls />
       </Canvas>
-      <GameTabsV2
-        menuOpen={menuOpen}
-        setMenuOpen={setMenuOpen}
-      />
+      <GameTabsV2 menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
     </View>
   );
 }

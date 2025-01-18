@@ -1,6 +1,5 @@
 import React, {
   ComponentType,
-  ElementType,
   startTransition,
   useCallback,
   useEffect,
@@ -26,7 +25,6 @@ import {
   NormalBufferAttributes,
   Object3DEventMap,
 } from 'three';
-// import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 // @ts-ignore
 import tf from 'three/examples/fonts/helvetiker_regular.typeface.json';

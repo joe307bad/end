@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import * as Typography from '../Typography';
-import { Input, View, XStack, YStack } from 'tamagui';
-import { PrimaryButton } from '../Display';
+import { Input, View, XStack, YStack, Text } from 'tamagui';
+import { Badge, PrimaryButton } from '../Display';
 import { useAuth } from '@end/auth';
-import { Toast, useToastController, useToastState } from '@tamagui/toast';
+import { useToastController } from '@tamagui/toast';
 import { execute, servicesFactory } from '@end/data/core';
 import { CurrentToast } from '../components';
 
@@ -11,9 +11,10 @@ type Props = {
   goToHome?: () => void;
   goToRegister?: () => void;
   services: ReturnType<typeof servicesFactory>;
+  version?: string;
 };
 
-export function Landing({ goToHome, goToRegister, services }: Props) {
+export function Landing({ goToHome, goToRegister, services, version }: Props) {
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -72,6 +73,9 @@ export function Landing({ goToHome, goToRegister, services }: Props) {
       <PrimaryButton loading={loading} onPress={login}>
         Login
       </PrimaryButton>
+      <View alignContent="center" margin="$1">
+        <Badge color="purple" title={version} />
+      </View>
       <View flex={1} justifyContent="flex-end">
         <PrimaryButton onPress={goToRegister}>Register</PrimaryButton>
       </View>

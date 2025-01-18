@@ -1,6 +1,7 @@
 const { NxAppWebpackPlugin } = require('@nx/webpack/app-plugin');
 const { NxReactWebpackPlugin } = require('@nx/react/webpack-plugin');
 const path = require('path');
+const webpack = require('webpack');
 
 module.exports = {
   stats: { warnings: false },
@@ -30,6 +31,11 @@ module.exports = {
       styles: [],
       outputHashing: process.env['NODE_ENV'] === 'production' ? 'all' : 'none',
       optimization: process.env['NODE_ENV'] === 'production',
+    }),
+    new webpack.DefinePlugin({
+      'process.env.WEBSOCKET_URL': JSON.stringify(process.env.WEBSOCKET_URL),
+      'process.env.API_BASE_URL': JSON.stringify(process.env.API_BASE_URL),
+      'process.env.END_VERSION': JSON.stringify(process.env.END_VERSION),
     }),
     new NxReactWebpackPlugin({
       // Uncomment this line if you don't want to use SVGR

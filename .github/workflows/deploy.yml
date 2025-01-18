@@ -1,4 +1,4 @@
-name: Fly Deploy
+name: Fly Deploy Release
 on:
   push:
     branches:
@@ -22,17 +22,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - uses: haskell-actions/setup@v2
-
       - name: Set Node.js 20.x
         uses: actions/setup-node@v3
         with:
           node-version: 20.x
 
       - run: yarn install
-
-      - name: Set SHAs for nx affected
-        uses: nrwl/nx-set-shas@v3
 
       - name: Setup fly
         uses: superfly/flyctl-actions/setup-flyctl@master
@@ -49,6 +44,7 @@ jobs:
           envkey_HOST: 0.0.0.0
           envkey_REDIS_HOST: ${{ secrets.REDIS_HOST }}
           envkey_REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          envkey_REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
 
       - run: git pull --rebase
-      - run: yarn deploy
+      - run: yarn release

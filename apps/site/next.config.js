@@ -12,6 +12,7 @@ const nextConfig = {
     // See: https://github.com/gregberge/svgr
     svgr: false,
   },
+  rewrites: () => Promise.resolve([{source: '/app', destination: '/app/index.html'}])
 };
 
 const plugins = [

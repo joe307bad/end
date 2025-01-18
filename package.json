@@ -65,6 +65,7 @@
     "fastify-cli": "^5.9.0",
     "fastify-plugin": "~4.5.0",
     "gsap": "^3.12.5",
+    "html-webpack-plugin": "^5.6.3",
     "identity-obj-proxy": "^3.0.0",
     "ioredis": "^5.4.2",
     "isomorphic-fetch": "^3.0.0",
