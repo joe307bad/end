@@ -1,13 +1,16 @@
-import Head from 'next/head';
+import React from 'react';
+import { PrimaryButton, Badge } from '@end/ui/shared';
+import { H1, View, YStack } from 'tamagui';
 
-export function Index({ version, sha }: { version: string, sha: string }) {
+export function Index({ version, sha }: { version: string; sha: string }) {
   return (
-    <>
-      <Head>
-        <script src="/main.js"></script>
-      </Head>
-      <h1>{version ?? '0.0.0'} | {sha ?? '~commit sha~'}</h1>
-    </>
+    <View height="100%" justifyContent="center" alignContent="center">
+      <YStack width={500}>
+        <H1>This is the end</H1>
+        <PrimaryButton>Login</PrimaryButton>
+        <Badge color="purple" title={`${version ?? '0.0.0'} | ${sha ?? '~commit sha~'}`} />
+      </YStack>
+    </View>
   );
 }
 

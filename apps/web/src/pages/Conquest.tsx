@@ -181,7 +181,7 @@ function UserInfoEnhanced({
 
   return (
     <XStack cursor="pointer" alignItems="center" paddingTop={'$0.75'}>
-      <XStack flex={1} space="$0.5">
+      <XStack flex={1} gap="$0.5">
         {!users ? (
           <></>
         ) : (

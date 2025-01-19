@@ -7,3 +7,4 @@ export * from './lib/Display';
 export * from './lib/Tabs';
 export * from './lib/Select';
 export * from './lib/ActivityArrow';
+export * from './lib/tamagui.config'
