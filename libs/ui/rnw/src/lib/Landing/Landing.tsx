@@ -12,9 +12,10 @@ type Props = {
   goToRegister?: () => void;
   services: ReturnType<typeof servicesFactory>;
   version?: string;
+  sha?: string;
 };
 
-export function Landing({ goToHome, goToRegister, services, version }: Props) {
+export function Landing({ goToHome, goToRegister, services, version, sha }: Props) {
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -74,7 +75,7 @@ export function Landing({ goToHome, goToRegister, services, version }: Props) {
         Login
       </PrimaryButton>
       <View alignContent="center" margin="$1">
-        <Badge color="purple" title={version} />
+        <Badge color="purple" title={`${version} | ${sha}`} />
       </View>
       <View flex={1} justifyContent="flex-end">
         <PrimaryButton onPress={goToRegister}>Register</PrimaryButton>

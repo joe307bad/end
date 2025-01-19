@@ -208,6 +208,7 @@ function AppRoutes() {
                     <>
                       <Landing
                         version={process.env.END_VERSION ?? '0.0.0'}
+                        sha={process.env.END_COMMIT_SHA ?? '<commit sha>'}
                         services={services}
                         goToRegister={() => n('/register')}
                         goToHome={() => {

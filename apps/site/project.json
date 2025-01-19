@@ -4,6 +4,27 @@
   "sourceRoot": "site",
   "projectType": "application",
   "targets": {
+    "deploy": {
+      "dependsOn": ["build-release"],
+      "command": "flyctl deploy --config apps/site/fly.toml --dockerfile apps/site/Dockerfile"
+    },
+    "build-release": {
+      "dependsOn": ["web:build-release"],
+      "executor": "@nx/next:build",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/apps/site"
+      },
+      "configurations": {
+        "development": {
+          "outputPath": "site"
+        },
+        "production": {
+          "nextConfig": "{workspaceRoot}/apps/site/next.config.js"
+        }
+      }
+    },
     "build": {
       "executor": "@nx/next:build",
       "outputs": ["{options.outputPath}"],

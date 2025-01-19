@@ -5,7 +5,8 @@
   "license": "MIT",
   "scripts": {
     "build": "nx run-many -t build --parallel",
-    "deploy": "nx affected -t deploy",
+    "deploy": "nx affected -t deploy --exclude=site",
+    "deploy-release": "nx deploy site",
     "nest:dev": "nx serve nest",
     "site:dev": "nx serve site",
     "tsc": "nx run-many -t tsc --parallel"
@@ -200,7 +201,6 @@
     "webpack-cli": "^5.1.4",
     "webpack-merge": "^5.10.0"
   },
-  "packageManager": "yarn@4.0.2",
   "engines": {
     "yarn": "4.x"
   }
