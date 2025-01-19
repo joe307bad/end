@@ -4,12 +4,12 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "build": "nx run-many -t build --parallel",
-    "deploy": "nx affected -t deploy --exclude=site",
-    "deploy-release": "nx deploy site",
-    "nest:dev": "nx serve nest",
-    "site:dev": "nx serve site",
-    "tsc": "nx run-many -t tsc --parallel"
+    "build": "nx run-many -t build --parallel --no-cloud",
+    "deploy": "nx affected -t deploy --exclude=site --no-cloud",
+    "deploy-release": "nx deploy site --no-cloud",
+    "nest:dev": "nx serve nest --no-cloud",
+    "site:dev": "nx serve site --no-cloud",
+    "tsc": "nx run-many -t tsc --parallel --no-cloud"
   },
   "dependencies": {
     "@effect/schema": "^0.75.5",
