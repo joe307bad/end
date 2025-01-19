@@ -14,8 +14,8 @@ export function Index({ version, sha }: { version: string, sha: string }) {
 export async function getStaticProps() {
   return {
     props: {
-      version: process?.env?.END_VERSION,
-      sha: process?.env?.END_COMMIT_SHA,
+      version: process?.env?.END_VERSION ?? null,
+      sha: process?.env?.END_COMMIT_SHA ?? null,
     },
   };
 }
