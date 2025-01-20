@@ -6,7 +6,7 @@ export function Index({ version, sha }: { version: string; sha: string }) {
   return (
     <View height="100%" justifyContent="center" alignContent="center">
       <YStack width={500}>
-        <H1>This is the end | hey there! 565jythtr</H1>
+        <H1>This is the end | hey there! weterggr3</H1>
         <PrimaryButton>Login</PrimaryButton>
         <Badge
           color="purple"
