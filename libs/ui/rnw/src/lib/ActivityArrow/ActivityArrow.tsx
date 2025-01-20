@@ -1,6 +1,6 @@
 import { Pressable, View } from 'react-native';
 import { Popover, Spinner, Text, XStack, YStack } from 'tamagui';
-import { ArrowRight } from '@tamagui/lucide-icons';
+import { ArrowRight } from 'lucide-react-native';
 import React from 'react';
 
 export function ActivityArrow({
@@ -36,7 +36,7 @@ export function ActivityArrow({
 
           <Popover.Content
             borderWidth={1}
-            borderColor="red"
+            // borderColor="red"
             enterStyle={{ y: -10, opacity: 0 }}
             exitStyle={{ y: -10, opacity: 0 }}
             elevate

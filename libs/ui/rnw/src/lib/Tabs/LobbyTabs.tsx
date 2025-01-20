@@ -2,11 +2,11 @@ import { Text, View } from 'tamagui';
 import React, { useCallback } from 'react';
 import { useEndApi } from '@end/data/web';
 import { useSnapshot } from 'valtio';
-import { UserCircle2 } from '@tamagui/lucide-icons';
-import { PrimaryButton } from '../Display';
+import { UserCircle2 } from 'lucide-react-native';
+import { PrimaryButton } from '@end/ui/shared';
 import { useParams } from 'react-router-dom';
 import { execute } from '@end/data/core';
-import { Effect, pipe } from 'effect';
+import { pipe } from 'effect';
 
 export function LobbyTabs() {
   const { services } = useEndApi();
@@ -17,19 +17,14 @@ export function LobbyTabs() {
   const join = useCallback(async () => {
     await execute(
       pipe(
-        services.conquestService.addPlayer({ warId: params['id'] ?? '' }),
+        services.conquestService.addPlayer({ warId: params['id'] ?? '' })
         // Effect.flatMap(syncService.sync)
       )
     );
   }, []);
 
   const beginTurnNumber1 = useCallback(async () => {
-    await execute(
-      pipe(
-        services.conquestService.beginTurnNumber1(),
-        // Effect.flatMap(syncService.sync)
-      )
-    );
+    await execute(pipe(services.conquestService.beginTurnNumber1()));
   }, []);
 
   return (
@@ -40,7 +35,7 @@ export function LobbyTabs() {
       maxHeight={'100%'}
       height="100%"
       overflow="hidden"
-      borderColor="$borderColor"
+      // borderColor="$borderColor"
       backgroundColor="black"
       padding="$1"
     >

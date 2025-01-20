@@ -15,7 +15,7 @@ import {
   XStackProps,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
-import { Dot, Hexagon, UserCircle2 } from '@tamagui/lucide-icons';
+import { Dot, Hexagon, UserCircle2 } from 'lucide-react-native';
 import React, {
   Dispatch,
   ElementType,
@@ -24,7 +24,6 @@ import React, {
   useEffect,
   useMemo,
   useRef,
-  useState,
 } from 'react';
 import { useResponsive } from '../Layout';
 import { SelectDemoItem } from '../Select';
@@ -33,12 +32,11 @@ import { View } from 'react-native';
 import { useEndApi } from '@end/data/web';
 import { useSnapshot } from 'valtio';
 import { getOrUndefined } from 'effect/Option';
-import { useParams } from 'react-router-dom';
 import { execute } from '@end/data/core';
 import { ResponsiveTabs } from './ResponsiveTabs';
 import { LobbyTabs } from './LobbyTabs';
-import { Tile, TurnAction } from '@end/war/core';
-import { Badge, PrimaryButton } from '../Display';
+import { Tile } from '@end/war/core';
+import { Badge, PrimaryButton } from '@end/ui/shared';
 import { Checkbox } from '../Checkbox';
 
 function TileInfo({
@@ -251,7 +249,7 @@ export function GameTabsV2({
         maxHeight={'100%'}
         height="100%"
         overflow="hidden"
-        borderColor="$borderColor"
+        // borderColor="$borderColor"
       >
         <Tabs.List
           separator={<Separator vertical />}
@@ -520,7 +518,6 @@ function Scoreboard() {
 function WarStatusBadges() {
   const { services } = useEndApi();
   const { warService, conquestService } = services;
-  const warStore = useSnapshot(warService.store);
   const warDerived = useSnapshot(warService.derived);
   return (
     <V

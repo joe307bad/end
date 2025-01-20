@@ -10,8 +10,8 @@ import {
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
 import { tw } from '../components';
-import { PrimaryButton } from '../Display';
-import { CircleDot, Crosshair, Hexagon } from '@tamagui/lucide-icons';
+import { PrimaryButton } from '@end/ui/shared';
+import { CircleDot, Crosshair, Hexagon } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useResponsive } from '../Layout';
 import { useSnapshot } from 'valtio';
@@ -79,7 +79,7 @@ export function TabsContainer({
             maxHeight={'100%'}
             height="100%"
             overflow="hidden"
-            borderColor="$borderColor"
+            // borderColor="$borderColor"
             style={bp(['', `${menuOpen ? '' : 'hidden'}`, '', 'visible'])}
           >
             <Tabs.List

@@ -1,5 +1,5 @@
 import React, { ComponentType, ReactNode, useCallback, useState } from 'react';
-import { MenuSquare } from '@tamagui/lucide-icons';
+import * as Icons from 'lucide-react-native';
 import { Button, H4, Header, View, Text } from 'tamagui';
 import { tw } from '../components';
 import { useWindowDimensions } from 'react-native';
@@ -32,7 +32,7 @@ function NavButton({
 
   const style = {
     borderBottomWidth: active ? 2 : 0,
-    borderColor: 'white',
+    // borderColor: 'white',
     borderRightWidth: 0,
     borderLeftWidth: 0,
     borderTopWidth: 0,
@@ -128,13 +128,13 @@ export function ContainerWithNav({
   const { bp } = useResponsive(menuOpen);
 
   return (
-    <View style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+    <View width="100%" height="100%">
       <View style={bp(['flex flex-row w-full p-2', 'block', 'hidden'])}>
         <View style={bp(['flex-1', 'block', 'hidden'])}>
           <H4>{title}</H4>
         </View>
         <View onPress={() => toggleMenu((prevState) => !prevState)}>
-          <MenuSquare size="$2" />
+          <Icons.MenuSquare height="$2" />
         </View>
       </View>
       <View

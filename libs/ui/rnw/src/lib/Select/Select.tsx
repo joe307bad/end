@@ -1,4 +1,4 @@
-import { Check, ChevronDown, ChevronUp } from '@tamagui/lucide-icons';
+import { Check, ChevronDown, ChevronUp } from 'lucide-react-native';
 import React from 'react';
 
 import { useMemo, useState } from 'react';
@@ -25,7 +25,9 @@ export default function Select({
 } & SelectProps) {
   return (
     <XStack gap="$4">
-      <Label width="50%" htmlFor="select-demo-2">{label}</Label>
+      <Label width="50%" htmlFor="select-demo-2">
+        {label}
+      </Label>
       <XStack flex={1} alignItems="center" justifyContent="flex-end">
         <SelectDemoItem {...props} id="select-demo-2" items={items} native />
       </XStack>
@@ -56,9 +58,6 @@ export function SelectDemoItem(
         <S.Viewport style={{ maxWidth: '100%' }}>
           <S.Group>
             <S.Label>Number of players</S.Label>
-
-            {/* for longer lists memoizing these is useful */}
-
             {useMemo(
               () =>
                 props.items.map((item, i) => {
@@ -76,9 +75,6 @@ export function SelectDemoItem(
               [props.items]
             )}
           </S.Group>
-
-          {/* Native gets an extra icon */}
-
           {props.native && (
             <YStack
               position="absolute"

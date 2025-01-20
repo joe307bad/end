@@ -197,79 +197,84 @@ function AppRoutes() {
 
   const router = useMemo(
     () =>
-      createBrowserRouter([
-        {
-          path: '/',
-          element: (
-            <Container>
-              <WithNavigate>
-                {(n) => (
-                  <>
-                    <Landing
-                      services={services}
-                      goToRegister={() => n('/register')}
-                      goToHome={() => {
-                        const queryParams = new URLSearchParams(
-                          window.location.search
-                        );
-                        const returnPath = queryParams.get('return_path');
-                        n(returnPath ? returnPath : '/home');
-                      }}
-                    />
-                    {/*<Link to={'#'}>*/}
-                    {/*  <Badge title="Download the Android app" />*/}
-                    {/*</Link>*/}
-                  </>
-                )}
-              </WithNavigate>
-            </Container>
-          ),
-        },
-        {
-          path: '/register',
-          element: (
-            <View width="100%">
-              <WithNavigate>
-                {(n) => (
-                  <Register services={services} goToHome={() => n('/home')} />
-                )}
-              </WithNavigate>
-            </View>
-          ),
-        },
-        {
-          path: '/conquest',
-          element: (
-            <PrivateRoute>
-              <Conquest userId={warStore.userId} />
-            </PrivateRoute>
-          ),
-        },
-        {
-          path: '/citadel',
-          element: (
-            <PrivateRoute>
-              <Citadel />
-            </PrivateRoute>
-          ),
-        },
-        {
-          path: '/home',
-          element: (
-            <PrivateRoute>
-              <Home />
-            </PrivateRoute>
-          ),
-        },
-        {
-          path: '/war/:id',
-          element: (
-            <PrivateRoute>
-              <War />
-            </PrivateRoute>
-          ),
-        },
-      ]),
+      createBrowserRouter(
+        [
+          {
+            path: '/',
+            element: (
+              <Container>
+                <WithNavigate>
+                  {(n) => (
+                    <>
+                      <Landing
+                        version={process.env.END_VERSION ?? '0.0.0'}
+                        sha={process.env.END_COMMIT_SHA ?? '<commit sha>'}
+                        services={services}
+                        goToRegister={() => n('/register')}
+                        goToHome={() => {
+                          const queryParams = new URLSearchParams(
+                            window.location.search
+                          );
+                          const returnPath = queryParams.get('return_path');
+                          n(returnPath ? returnPath : '/home');
+                        }}
+                      />
+                      {/*<Link to={'#'}>*/}
+                      {/*  <Badge title="Download the Android app" />*/}
+                      {/*</Link>*/}
+                    </>
+                  )}
+                </WithNavigate>
+              </Container>
+            ),
+          },
+          {
+            path: '/register',
+            element: (
+              <View width="100%">
+                <WithNavigate>
+                  {(n) => (
+                    <Register services={services} goToHome={() => n('/home')} />
+                  )}
+                </WithNavigate>
+              </View>
+            ),
+          },
+          {
+            path: '/conquest',
+            element: (
+              <PrivateRoute>
+                <Conquest userId={warStore.userId} />
+              </PrivateRoute>
+            ),
+          },
+          {
+            path: '/citadel',
+            element: (
+              <PrivateRoute>
+                <Citadel />
+              </PrivateRoute>
+            ),
+          },
+          {
+            path: '/home',
+            element: (
+              <PrivateRoute>
+                <Home />
+              </PrivateRoute>
+            ),
+          },
+          {
+            path: '/war/:id',
+            element: (
+              <PrivateRoute>
+                <War />
+              </PrivateRoute>
+            ),
+          },
+        ],
+        { ...(process.env.END_VERSION ? { basename: '/app' } : undefined) }
+      ),
     [warStore.userId]
   );
 

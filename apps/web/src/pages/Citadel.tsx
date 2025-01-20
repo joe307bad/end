@@ -1,8 +1,8 @@
 import { Text, View, H3, H2, XStack, YStack, ListItem, Spinner } from 'tamagui';
 import React, { ComponentType } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trophy } from '@tamagui/lucide-icons';
-import { Badge, ResponsiveStack } from '@end/components';
+import { Trophy } from 'lucide-react-native';
+import { ResponsiveStack } from '@end/components';
 import { useEndApi } from '@end/data/web';
 import { useSnapshot } from 'valtio/react';
 import { toPairs } from 'remeda';
@@ -11,10 +11,11 @@ import {
   withDatabase,
   withObservables,
 } from '@nozbe/watermelondb/react';
-import { User, War } from '@end/wm/core';
-import { map, Observable } from 'rxjs';
+import { User } from '@end/wm/core';
+import { Observable } from 'rxjs';
 import { Database, Q } from '@nozbe/watermelondb';
 import { getReadableDate } from '@end/war/core';
+import { Badge } from '@end/ui/shared';
 
 function BattleWinRate({
   total,
@@ -149,6 +150,7 @@ export function Citadel() {
       width="100%"
       paddingTop="$1"
       paddingBottom="$1"
+      mobileProps={{flexDirection: 'column-reverse'}}
     >
       <View maxWidth="100%" width={500}>
         <H2 paddingBottom="$1">Latest victors</H2>
@@ -159,7 +161,7 @@ export function Citadel() {
               padding="$1"
               borderWidth={1}
               borderRadius={5}
-              borderColor={'white'}
+              // borderColor={'white'}
               backgroundColor="transparent"
               margin="0"
               cursor="pointer"
@@ -203,7 +205,7 @@ export function Citadel() {
                   maxWidth={400}
                   icon={
                     <View>
-                      <Trophy color={trophyColor(i)} size="$2" />
+                      <Trophy width={30} color={trophyColor(i)} size="$2" />
                     </View>
                   }
                   title={

@@ -23,7 +23,7 @@
         "outputPath": "dist/apps/web",
         "index": "apps/web/src/index.html",
         "baseHref": "/",
-        "main": "apps/web/src/main.tsx",
+        "main": "apps/web/src/main-web.tsx",
         "tsConfig": "apps/web/tsconfig.app.json",
         "assets": ["apps/web/src/favicon.ico", "apps/web/src/assets"],
         "styles": ["apps/web/src/styles.less"],
@@ -48,6 +48,46 @@
           "outputHashing": "all",
           "sourceMap": false,
           "namedChunks": false,
+          "extractLicenses": true,
+          "vendorChunk": false
+        }
+      }
+    },
+    "build-release": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "compiler": "babel",
+        "outputPath": "dist/apps/web",
+        "index": "apps/web/src/index.html",
+        "baseHref": "/app/",
+        "main": "apps/web/src/main-web.tsx",
+        "tsConfig": "apps/web/tsconfig.app.json",
+        "assets": ["apps/web/src/favicon.ico", "apps/web/src/assets"],
+        "styles": ["apps/web/src/styles.less"],
+        "scripts": [],
+        "webpackConfig": "apps/web/webpack.config.js",
+        "publicPath": "/app"
+      },
+      "configurations": {
+        "development": {
+          "extractLicenses": false,
+          "optimization": false,
+          "sourceMap": true,
+          "vendorChunk": true
+        },
+        "production": {
+          "fileReplacements": [
+            {
+              "replace": "apps/web/src/environments/environment.ts",
+              "with": "apps/web/src/environments/environment.prod.ts"
+            }
+          ],
+          "optimization": true,
+          "outputHashing": "all",
+          "sourceMap": false,
+          "namedChunks": true,
           "extractLicenses": true,
           "vendorChunk": false
         }
