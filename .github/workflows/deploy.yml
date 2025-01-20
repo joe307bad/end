@@ -48,4 +48,4 @@ jobs:
           envkey_END_COMMIT_SHA: ${{ github.sha }}
 
       - run: git pull --rebase
-      - run: yarn release
+      - run: yarn deploy
