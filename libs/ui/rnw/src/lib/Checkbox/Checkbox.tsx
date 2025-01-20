@@ -5,7 +5,7 @@ import {
   SizeTokens,
   CheckboxProps,
 } from 'tamagui';
-import { Check as CheckIcon } from '@tamagui/lucide-icons';
+import { Check as CheckIcon } from 'lucide-react-native';
 import React from 'react';
 
 export function Checkbox({

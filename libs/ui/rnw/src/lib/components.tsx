@@ -1,8 +1,14 @@
 import React, { ReactNode, useMemo } from 'react';
 import * as THREE from 'three';
-import { StackProps, TamaguiProvider, useMedia, XStack, YStack } from 'tamagui';
-import { config, tokens } from './tamagui.config';
-import { View } from 'react-native';
+import {
+  StackProps,
+  TamaguiProvider,
+  useMedia,
+  XStack,
+  YStack,
+  View,
+} from 'tamagui';
+import { config } from './tamagui.config';
 import t, { useDeviceContext } from 'twrnc';
 import { AuthProvider } from '@end/auth';
 import {
@@ -12,27 +18,23 @@ import {
   useToastState,
 } from '@tamagui/toast';
 import '@react-three/fiber';
-import {
-  differenceInDays,
-  differenceInHours,
-  differenceInMinutes,
-  format,
-} from 'date-fns';
 
 export const tw = t as any;
 
-export const tamaguiTokens = tokens;
-
 export function Providers({ children }: { children: ReactNode }) {
+  debugger;
+
+  const c = useMemo(() => config, []);
+
   // @ts-ignore
   useDeviceContext(tw);
   return (
     <ToastProvider burntOptions={{ from: 'bottom' }}>
       <AuthProvider>
-        <TamaguiProvider defaultTheme="dark" config={config}>
+        <TamaguiProvider defaultTheme="dark" config={c}>
           {children}
-          <ToastViewport bottom={0} />
         </TamaguiProvider>
+        <ToastViewport bottom={0} />
       </AuthProvider>
     </ToastProvider>
   );
@@ -40,12 +42,15 @@ export function Providers({ children }: { children: ReactNode }) {
 
 export function ResponsiveStack({
   children,
+  mobileProps,
   ...rest
-}: { children: ReactNode } & StackProps) {
+}: { children: ReactNode; mobileProps?: StackProps } & StackProps) {
   const media = useMedia();
 
   return media['sm'] ? (
-    <YStack {...rest} paddingHorizontal="$1">{children}</YStack>
+    <YStack {...rest} {...mobileProps} paddingHorizontal="$1">
+      {children}
+    </YStack>
   ) : (
     <XStack {...rest}>{children}</XStack>
   );
@@ -239,14 +244,10 @@ export const CurrentToast = () => {
 
 export function Container({ children }: { children: ReactNode }) {
   return (
-    <View
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        height: '100%',
-      }}
-    >
-      <View style={{ maxWidth: '100%', height: '100%' }}>{children}</View>
+    <View alignItems="center" height="100%" width="100%">
+      <View maxWidth="100%" height="100%">
+        {children}
+      </View>
     </View>
   );
 }

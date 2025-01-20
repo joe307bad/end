@@ -5,6 +5,8 @@ jobs:
   build:
     name: Type-check and build all apps
     runs-on: ubuntu-latest
+    env:
+      NODE_ENV: production
     steps:
       - uses: actions/checkout@v3
 

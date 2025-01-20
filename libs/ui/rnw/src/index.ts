@@ -3,7 +3,7 @@ export * from './lib/Landing';
 export * from './lib/Home';
 export * from './lib/Typography';
 export * from './lib/Layout';
-export * from './lib/Display';
 export * from './lib/Tabs';
 export * from './lib/Select';
 export * from './lib/ActivityArrow';
+export * from './lib/tamagui.config'

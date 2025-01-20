@@ -1,4 +1,4 @@
-import { Badge, ResponsiveStack } from '@end/components';
+import { ResponsiveStack } from '@end/components';
 import {
   compose,
   withDatabase,
@@ -15,13 +15,12 @@ import {
   XStack,
   Popover,
   H4,
-  StackProps,
-  useMedia,
+  StackProps
 } from 'tamagui';
+import { Badge } from '@end/ui/shared';
 import { combineLatest, map, Observable, of } from 'rxjs';
 import React, {
   ComponentType,
-  ReactNode,
   useEffect,
   useMemo,
   useState,
@@ -181,7 +180,7 @@ function UserInfoEnhanced({
 
   return (
     <XStack cursor="pointer" alignItems="center" paddingTop={'$0.75'}>
-      <XStack flex={1} space="$0.5">
+      <XStack flex={1} gap="$0.5">
         {!users ? (
           <></>
         ) : (
@@ -333,7 +332,7 @@ function Conquest({
             padding="$1"
             borderWidth={1}
             borderRadius={5}
-            borderColor={'white'}
+            // borderColor={'white'}
             backgroundColor="transparent"
             margin="0"
             cursor="pointer"
@@ -353,7 +352,7 @@ function Conquest({
         {warsWithUser.length > 0 ? (
           <WarStack
             borderBottomWidth={1}
-            borderColor="gray"
+            // borderColor="gray"
             offset={numberOfPinned}
             wars={warsWithUser}
             paddingBottom="$2"

@@ -1,7 +1,7 @@
 import { Section } from 'tamagui';
 import { Pressable, View } from 'react-native';
 import { tw } from '../components';
-import { CircleDot } from '@tamagui/lucide-icons';
+import { CircleDot } from 'lucide-react-native';
 import React, { Dispatch, ReactElement, SetStateAction } from 'react';
 import { useResponsive } from '../Layout';
 
