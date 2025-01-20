@@ -3,9 +3,11 @@ name: Build and Attach Release Artifacts
 on:
   release:
     types: [released]
+permissions:
+  contents: write
 
 jobs:
-  build:
+  build-release:
     runs-on: ubuntu-latest
     env:
       WEBSOCKET_URL: ${{ secrets.WEBSOCKET_URL }}
