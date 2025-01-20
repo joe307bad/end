@@ -15,10 +15,7 @@ RUN curl -s https://api.github.com/repos/joe307bad/end/releases/latest | tee lat
     echo "END_VERSION=$END_VERSION"
 
 COPY ./dist/apps/site ./
-
-RUN unzip end-release.zip -d ./
-COPY ./web ./public/app
-
+RUN unzip end-release.zip -d ./public/app
 
 RUN npm install @tamagui/next-plugin --force
 RUN npm install --frozen-lockfile --production
