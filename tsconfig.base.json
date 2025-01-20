@@ -22,7 +22,6 @@
       "@end/data/rn": ["libs/data/rn/src/index.ts"],
       "@end/data/web": ["libs/data/web/src/index.ts"],
       "@end/hexasphere": ["libs/hexasphere/src/index.ts"],
-      "@end/rnw": ["ui/src/index.ts"],
       "@end/shared": ["libs/shared/src/index.ts"],
       "@end/ui/shared": ["libs/ui/shared/src/index.ts"],
       "@end/war/core": ["libs/war/core/src/index.ts"],

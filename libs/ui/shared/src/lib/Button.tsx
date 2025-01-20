@@ -21,24 +21,16 @@ export function PrimaryButton({
       onPress={onPress}
       borderRadius={0}
       {...(!height ? {} : { height })}
-      width={withIcon ? undefined : "100%"}
+      width={withIcon ? undefined : '100%'}
       padding={0}
       disabled={disabled}
-      icon={
-        loading
-          ? () => (
-              <Spinner
-                size="small"
-                style={{ position: 'absolute', left: 10 }}
-              />
-            )
-          : undefined
-      }
+      icon={loading ? () => <Spinner size="small" /> : undefined}
     >
       {withIcon ? (
         children
       ) : (
-        <Text style={{ position: 'absolute' }}>{children}</Text>
+        // @ts-ignore
+        <Text>{children}</Text>
       )}
     </Button>
   );

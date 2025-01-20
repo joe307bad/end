@@ -95,10 +95,5 @@
         "serveStaticTargetName": "serve-static"
       }
     }
-  ],
-  "pluginsConfig": {
-    "@nx/js": {
-      "analyzeSourceFiles": false
-    }
-  }
+  ]
 }

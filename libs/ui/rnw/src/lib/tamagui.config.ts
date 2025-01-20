@@ -61,7 +61,7 @@ export const tokens = createTokens({
   },
 });
 
-export const config = createTamagui({
+export const config: any = createTamagui({
   animations: createAnimations({
     fast: {
       bounciness: 0,
