@@ -30,6 +30,9 @@ jobs:
 
       - run: yarn install
 
+      - name: Set SHAs for nx affected
+        uses: nrwl/nx-set-shas@v3
+
       - name: Setup fly
         uses: superfly/flyctl-actions/setup-flyctl@master
 
