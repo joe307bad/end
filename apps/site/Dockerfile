@@ -18,7 +18,7 @@ COPY ./dist/apps/site ./
 RUN unzip end-release.zip -d ./public/app
 
 RUN npm install @tamagui/next-plugin --force
-RUN npm install --frozen-lockfile --production
+RUN npm install --frozen-lockfile --production --force
 
 ARG END_COMMIT_SHA
 ARG END_VERSION
