@@ -2,7 +2,7 @@ import { Text, View, H3, H2, XStack, YStack, ListItem, Spinner } from 'tamagui';
 import React, { ComponentType } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trophy } from 'lucide-react-native';
-import { Badge, ResponsiveStack } from '@end/components';
+import { ResponsiveStack } from '@end/components';
 import { useEndApi } from '@end/data/web';
 import { useSnapshot } from 'valtio/react';
 import { toPairs } from 'remeda';
@@ -11,10 +11,11 @@ import {
   withDatabase,
   withObservables,
 } from '@nozbe/watermelondb/react';
-import { User, War } from '@end/wm/core';
-import { map, Observable } from 'rxjs';
+import { User } from '@end/wm/core';
+import { Observable } from 'rxjs';
 import { Database, Q } from '@nozbe/watermelondb';
 import { getReadableDate } from '@end/war/core';
+import { Badge } from '@end/ui/shared';
 
 function BattleWinRate({
   total,

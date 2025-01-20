@@ -2,5 +2,8 @@
   "name": "@end/ui/shared",
   "version": "0.0.1",
   "dependencies": {},
-  "private": true
+  "private": true,
+  "type": "commonjs",
+  "main": "./src/index.ts",
+  "typings": "./src/index.d.ts"
 }

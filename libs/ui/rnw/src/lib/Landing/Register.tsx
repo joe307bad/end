@@ -1,12 +1,11 @@
-import { Input, XStack, YStack } from 'tamagui';
+import { Input, YStack } from 'tamagui';
 import * as Typography from '../Typography';
-import { PrimaryButton } from '../Display';
+import { PrimaryButton } from '@end/ui/shared';
 import React, { useCallback, useEffect, useState } from 'react';
 import { execute, servicesFactory } from '@end/data/core';
 import { useToastController } from '@tamagui/toast';
 import { useAuth } from '@end/auth';
 import { CurrentToast } from '../components';
-import { Effect, pipe } from 'effect';
 
 export function Register({
   goToHome,

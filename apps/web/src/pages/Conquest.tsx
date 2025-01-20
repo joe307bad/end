@@ -1,4 +1,4 @@
-import { Badge, ResponsiveStack } from '@end/components';
+import { ResponsiveStack } from '@end/components';
 import {
   compose,
   withDatabase,
@@ -15,13 +15,12 @@ import {
   XStack,
   Popover,
   H4,
-  StackProps,
-  useMedia,
+  StackProps
 } from 'tamagui';
+import { Badge } from '@end/ui/shared';
 import { combineLatest, map, Observable, of } from 'rxjs';
 import React, {
   ComponentType,
-  ReactNode,
   useEffect,
   useMemo,
   useState,

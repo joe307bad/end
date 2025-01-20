@@ -1,3 +1,4 @@
+import React from 'react';
 import NextDocument, {
   DocumentContext,
   Head,
@@ -6,7 +7,7 @@ import NextDocument, {
   NextScript,
 } from 'next/document'
 import { StyleSheet } from 'react-native'
-import { tamaguiConfig } from './tamagui.config';
+import { tamaguiConfig } from '../tamagui.config';
 
 export default class Document extends NextDocument {
   // @ts-ignore

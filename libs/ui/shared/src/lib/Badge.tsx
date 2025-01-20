@@ -41,7 +41,7 @@ export function Badge({
       >
         <Text
           lineHeight={0}
-          fontWeight="semibold"
+          fontWeight="bold"
           textAlign="center"
           color={dark}
           fontSize={14}

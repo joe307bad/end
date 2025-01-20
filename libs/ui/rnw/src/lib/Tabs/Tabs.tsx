@@ -10,7 +10,7 @@ import {
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
 import { tw } from '../components';
-import { PrimaryButton } from '../Display';
+import { PrimaryButton } from '@end/ui/shared';
 import { CircleDot, Crosshair, Hexagon } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useResponsive } from '../Layout';

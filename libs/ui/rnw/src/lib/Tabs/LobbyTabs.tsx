@@ -3,7 +3,7 @@ import React, { useCallback } from 'react';
 import { useEndApi } from '@end/data/web';
 import { useSnapshot } from 'valtio';
 import { UserCircle2 } from 'lucide-react-native';
-import { PrimaryButton } from '../Display';
+import { PrimaryButton } from '@end/ui/shared';
 import { useParams } from 'react-router-dom';
 import { execute } from '@end/data/core';
 import { pipe } from 'effect';

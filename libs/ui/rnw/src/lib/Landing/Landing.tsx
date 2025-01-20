@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import * as Typography from '../Typography';
-import { Input, View, XStack, YStack, Text } from 'tamagui';
-import { Badge, PrimaryButton } from '../Display';
+import { Input, View, XStack, YStack } from 'tamagui';
+import { Badge, PrimaryButton } from '@end/ui/shared';
 import { useAuth } from '@end/auth';
 import { useToastController } from '@tamagui/toast';
 import { execute, servicesFactory } from '@end/data/core';
