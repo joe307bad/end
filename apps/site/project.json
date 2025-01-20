@@ -9,17 +9,7 @@
       "dependsOn": [
         "build"
       ],
-      "command": "flyctl deploy --config apps/site/fly.toml --dockerfile apps/site/Dockerfile",
-      "configurations": {
-        "production": {
-          "options": {
-
-          },
-          "environmentVariables": {
-            "NODE_ENV": "production"
-          }
-        }
-      }
+      "command": "flyctl deploy --config apps/site/fly.toml --dockerfile apps/site/Dockerfile"
     },
     "build": {
       "executor": "@nx/next:build",
@@ -27,9 +17,6 @@
         "{options.outputPath}"
       ],
       "defaultConfiguration": "production",
-      "inputs": [
-        { "externalDependencies": ["@tamagui/next-plugin"] }
-      ],
       "options": {
         "outputPath": "dist/apps/site",
         "generatePackageJson": true

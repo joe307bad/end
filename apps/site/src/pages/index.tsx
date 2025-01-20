@@ -8,7 +8,10 @@ export function Index({ version, sha }: { version: string; sha: string }) {
       <YStack width={500}>
         <H1>This is the end</H1>
         <PrimaryButton>Login</PrimaryButton>
-        <Badge color="purple" title={`${version ?? '0.0.0'} | ${sha ?? '~commit sha~'}`} />
+        <Badge
+          color="purple"
+          title={`${version ?? '0.0.0'} | ${sha ?? '~commit sha~'}`}
+        />
       </YStack>
     </View>
   );
