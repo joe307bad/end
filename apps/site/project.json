@@ -9,7 +9,7 @@
       "dependsOn": [
         "build-release"
       ],
-      "command": "flyctl deploy --config apps/site/fly.toml --dockerfile apps/site/Dockerfile"
+      "command": "flyctl deploy --config apps/site/fly.toml --dockerfile apps/site/Dockerfile --no-cache"
     },
     "build-release": {
       "command": "chmod +x ./apps/site/build-release.sh && ./apps/site/build-release.sh"
