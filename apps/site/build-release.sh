@@ -11,4 +11,4 @@ export END_VERSION
 echo "END_COMMIT_SHA=$END_COMMIT_SHA"
 echo "END_VERSION=$END_VERSION"
 
-./node_modules/.bin/nx build site
+./node_modules/.bin/nx build site --no-cloud
