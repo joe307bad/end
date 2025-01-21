@@ -7,9 +7,12 @@
     "deploy": {
       "defaultConfiguration": "production",
       "dependsOn": [
-        "build"
+        "build-release"
       ],
       "command": "flyctl deploy --config apps/site/fly.toml --dockerfile apps/site/Dockerfile"
+    },
+    "build-release": {
+      "command": "chmod +x ./apps/site/build-release.sh && ./apps/site/build-release.sh"
     },
     "build": {
       "executor": "@nx/next:build",
