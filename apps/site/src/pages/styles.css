@@ -10,11 +10,13 @@ html {
   line-height: 1.5;
   tab-size: 4;
   scroll-behavior: smooth;
+  height: 100%;
 }
 body {
   font-family: inherit;
   line-height: inherit;
   margin: 0;
+  height: 100%;
 }
 h1,
 h2,
@@ -410,4 +412,23 @@ summary svg {
   #middle-content {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+#__next {
+  height: 100%;
+}
+
+h1{
+  font-family: "Bebas Neue", serif !important;
+  font-weight: 400;
+  font-style: normal;
+  transition: color 1s ease-in-out;
+}
+
+svg{
+  transition: stroke 1s ease-in-out;
+}
+
+#logo{
+  transition: border-color 1s ease-in-out;
 }

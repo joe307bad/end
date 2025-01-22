@@ -10277,7 +10277,7 @@ var require_UIManager = __commonJS({
           }
         }
       },
-      configureNextLayoutAnimation(config2, onAnimationDidEnd) {
+      configureNextLayoutAnimation(config, onAnimationDidEnd) {
         onAnimationDidEnd();
       },
       // mocks
@@ -11422,8 +11422,8 @@ var require_ResponderSystem = __commonJS({
     }
     __name(changeCurrentResponder, "changeCurrentResponder");
     function getResponderConfig(id) {
-      var config2 = responderListenersMap.get(id);
-      return config2 != null ? config2 : emptyObject;
+      var config = responderListenersMap.get(id);
+      return config != null ? config : emptyObject;
     }
     __name(getResponderConfig, "getResponderConfig");
     function eventListener(domEvent) {
@@ -11565,8 +11565,8 @@ var require_ResponderSystem = __commonJS({
         var shouldSetCallbackBubbleName = shouldSetCallbacks[1];
         var bubbles = shouldSetCallbacks[2].bubbles;
         var check = /* @__PURE__ */ __name(function check2(id2, node2, callbackName) {
-          var config2 = getResponderConfig(id2);
-          var shouldSetCallback = config2[callbackName];
+          var config = getResponderConfig(id2);
+          var shouldSetCallback = config[callbackName];
           if (shouldSetCallback != null) {
             responderEvent.currentTarget = node2;
             if (shouldSetCallback(responderEvent) === true) {
@@ -11689,9 +11689,9 @@ var require_ResponderSystem = __commonJS({
       }
     }
     __name(attachListeners, "attachListeners");
-    function addNode(id, node, config2) {
+    function addNode(id, node, config) {
       (0, _utils.setResponderId)(node, id);
-      responderListenersMap.set(id, config2);
+      responderListenersMap.set(id, config);
     }
     __name(addNode, "addNode");
     function removeNode(id) {
@@ -11744,9 +11744,9 @@ var require_useResponderEvents = __commonJS({
       return ref.current;
     }
     __name(useStable, "useStable");
-    function useResponderEvents(hostRef, config2) {
-      if (config2 === void 0) {
-        config2 = emptyObject;
+    function useResponderEvents(hostRef, config) {
+      if (config === void 0) {
+        config = emptyObject;
       }
       var id = useStable(() => idCounter++);
       var isAttachedRef = React77.useRef(false);
@@ -11757,21 +11757,21 @@ var require_useResponderEvents = __commonJS({
         };
       }, [id]);
       React77.useEffect(() => {
-        var _config = config2, onMoveShouldSetResponder = _config.onMoveShouldSetResponder, onMoveShouldSetResponderCapture = _config.onMoveShouldSetResponderCapture, onScrollShouldSetResponder = _config.onScrollShouldSetResponder, onScrollShouldSetResponderCapture = _config.onScrollShouldSetResponderCapture, onSelectionChangeShouldSetResponder = _config.onSelectionChangeShouldSetResponder, onSelectionChangeShouldSetResponderCapture = _config.onSelectionChangeShouldSetResponderCapture, onStartShouldSetResponder = _config.onStartShouldSetResponder, onStartShouldSetResponderCapture = _config.onStartShouldSetResponderCapture;
+        var _config = config, onMoveShouldSetResponder = _config.onMoveShouldSetResponder, onMoveShouldSetResponderCapture = _config.onMoveShouldSetResponderCapture, onScrollShouldSetResponder = _config.onScrollShouldSetResponder, onScrollShouldSetResponderCapture = _config.onScrollShouldSetResponderCapture, onSelectionChangeShouldSetResponder = _config.onSelectionChangeShouldSetResponder, onSelectionChangeShouldSetResponderCapture = _config.onSelectionChangeShouldSetResponderCapture, onStartShouldSetResponder = _config.onStartShouldSetResponder, onStartShouldSetResponderCapture = _config.onStartShouldSetResponderCapture;
         var requiresResponderSystem = onMoveShouldSetResponder != null || onMoveShouldSetResponderCapture != null || onScrollShouldSetResponder != null || onScrollShouldSetResponderCapture != null || onSelectionChangeShouldSetResponder != null || onSelectionChangeShouldSetResponderCapture != null || onStartShouldSetResponder != null || onStartShouldSetResponderCapture != null;
         var node = hostRef.current;
         if (requiresResponderSystem) {
-          ResponderSystem.addNode(id, node, config2);
+          ResponderSystem.addNode(id, node, config);
           isAttachedRef.current = true;
         } else if (isAttachedRef.current) {
           ResponderSystem.removeNode(id);
           isAttachedRef.current = false;
         }
-      }, [config2, hostRef, id]);
+      }, [config, hostRef, id]);
       React77.useDebugValue({
         isResponder: hostRef.current === ResponderSystem.getResponderNode()
       });
-      React77.useDebugValue(config2);
+      React77.useDebugValue(config);
     }
     __name(useResponderEvents, "useResponderEvents");
     module2.exports = exports2.default;
@@ -13895,9 +13895,9 @@ var require_ViewabilityHelper = __commonJS({
       static {
         __name(this, "ViewabilityHelper");
       }
-      constructor(config2) {
-        if (config2 === void 0) {
-          config2 = {
+      constructor(config) {
+        if (config === void 0) {
+          config = {
             viewAreaCoveragePercentThreshold: 0
           };
         }
@@ -13905,7 +13905,7 @@ var require_ViewabilityHelper = __commonJS({
         this._timers = /* @__PURE__ */ new Set();
         this._viewableIndices = [];
         this._viewableItems = /* @__PURE__ */ new Map();
-        this._config = config2;
+        this._config = config;
       }
       /**
        * Cleanup, e.g. on unmount. Clears any pending timers.
@@ -16267,11 +16267,11 @@ var require_NativeAnimatedHelper = __commonJS({
           fn(...args);
         }
       }, "queueOperation"),
-      createAnimatedNode: /* @__PURE__ */ __name(function createAnimatedNode(tag, config2) {
+      createAnimatedNode: /* @__PURE__ */ __name(function createAnimatedNode(tag, config) {
         (0, _invariant.default)(nativeOps, "Native animated module is not available");
-        API.queueOperation(nativeOps.createAnimatedNode, tag, config2);
+        API.queueOperation(nativeOps.createAnimatedNode, tag, config);
       }, "createAnimatedNode"),
-      updateAnimatedNodeConfig: /* @__PURE__ */ __name(function updateAnimatedNodeConfig(tag, config2) {
+      updateAnimatedNodeConfig: /* @__PURE__ */ __name(function updateAnimatedNodeConfig(tag, config) {
         (0, _invariant.default)(nativeOps, "Native animated module is not available");
       }, "updateAnimatedNodeConfig"),
       startListeningToAnimatedNodeValue: /* @__PURE__ */ __name(function startListeningToAnimatedNodeValue(tag) {
@@ -16290,15 +16290,15 @@ var require_NativeAnimatedHelper = __commonJS({
         (0, _invariant.default)(nativeOps, "Native animated module is not available");
         API.queueOperation(nativeOps.disconnectAnimatedNodes, parentTag, childTag);
       }, "disconnectAnimatedNodes"),
-      startAnimatingNode: /* @__PURE__ */ __name(function startAnimatingNode(animationId, nodeTag, config2, endCallback) {
+      startAnimatingNode: /* @__PURE__ */ __name(function startAnimatingNode(animationId, nodeTag, config, endCallback) {
         (0, _invariant.default)(nativeOps, "Native animated module is not available");
         if (useSingleOpBatching) {
           if (endCallback) {
             eventListenerAnimationFinishedCallbacks[animationId] = endCallback;
           }
-          API.queueOperation(nativeOps.startAnimatingNode, animationId, nodeTag, config2);
+          API.queueOperation(nativeOps.startAnimatingNode, animationId, nodeTag, config);
         } else {
-          API.queueOperation(nativeOps.startAnimatingNode, animationId, nodeTag, config2, endCallback);
+          API.queueOperation(nativeOps.startAnimatingNode, animationId, nodeTag, config, endCallback);
         }
       }, "startAnimatingNode"),
       stopAnimation: /* @__PURE__ */ __name(function stopAnimation(animationId) {
@@ -16431,9 +16431,9 @@ var require_NativeAnimatedHelper = __commonJS({
     }
     __name(isSupportedInterpolationParam, "isSupportedInterpolationParam");
     function validateTransform(configs) {
-      configs.forEach((config2) => {
-        if (!isSupportedTransformProp(config2.property)) {
-          throw new Error("Property '" + config2.property + "' is not supported by native animated module");
+      configs.forEach((config) => {
+        if (!isSupportedTransformProp(config.property)) {
+          throw new Error("Property '" + config.property + "' is not supported by native animated module");
         }
       });
     }
@@ -16446,8 +16446,8 @@ var require_NativeAnimatedHelper = __commonJS({
       }
     }
     __name(validateStyles, "validateStyles");
-    function validateInterpolation(config2) {
-      for (var _key3 in config2) {
+    function validateInterpolation(config) {
+      for (var _key3 in config) {
         if (!isSupportedInterpolationParam(_key3)) {
           throw new Error("Interpolation property '" + _key3 + "' is not supported by native animated module");
         }
@@ -16467,18 +16467,18 @@ var require_NativeAnimatedHelper = __commonJS({
     }
     __name(assertNativeAnimatedModule, "assertNativeAnimatedModule");
     var _warnedMissingNativeAnimated = false;
-    function shouldUseNativeDriver(config2) {
-      if (config2.useNativeDriver == null) {
+    function shouldUseNativeDriver(config) {
+      if (config.useNativeDriver == null) {
         console.warn("Animated: `useNativeDriver` was not specified. This is a required option and must be explicitly set to `true` or `false`");
       }
-      if (config2.useNativeDriver === true && !NativeAnimatedModule) {
+      if (config.useNativeDriver === true && !NativeAnimatedModule) {
         if (!_warnedMissingNativeAnimated) {
           console.warn("Animated: `useNativeDriver` is not supported because the native animated module is missing. Falling back to JS-based animation. To resolve this, add `RCTAnimation` module to this app, or remove `useNativeDriver`. Make sure to run `bundle exec pod install` first. Read more about autolinking: https://github.com/react-native-community/cli/blob/master/docs/autolinking.md");
           _warnedMissingNativeAnimated = true;
         }
         return false;
       }
-      return config2.useNativeDriver || false;
+      return config.useNativeDriver || false;
     }
     __name(shouldUseNativeDriver, "shouldUseNativeDriver");
     function transformDataType(value) {
@@ -16657,11 +16657,11 @@ var require_AnimatedNode = __commonJS({
         var nativeTag = (_this$__nativeTag = this.__nativeTag) !== null && _this$__nativeTag !== void 0 ? _this$__nativeTag : _NativeAnimatedHelper.default.generateNewNodeTag();
         if (this.__nativeTag == null) {
           this.__nativeTag = nativeTag;
-          var config2 = this.__getNativeConfig();
+          var config = this.__getNativeConfig();
           if (this._platformConfig) {
-            config2.platformConfig = this._platformConfig;
+            config.platformConfig = this._platformConfig;
           }
-          _NativeAnimatedHelper.default.API.createAnimatedNode(nativeTag, config2);
+          _NativeAnimatedHelper.default.API.createAnimatedNode(nativeTag, config);
           this.__shouldUpdateListenersForNewNativeTag = true;
         }
         return nativeTag;
@@ -16771,30 +16771,30 @@ var require_AnimatedInterpolation = __commonJS({
     var _normalizeColors = _interopRequireDefault(require_normalize_colors());
     var __DEV__ = process.env.NODE_ENV !== "production";
     var linear = /* @__PURE__ */ __name((t2) => t2, "linear");
-    function createInterpolation(config2) {
-      if (config2.outputRange && typeof config2.outputRange[0] === "string") {
-        return createInterpolationFromStringOutputRange(config2);
+    function createInterpolation(config) {
+      if (config.outputRange && typeof config.outputRange[0] === "string") {
+        return createInterpolationFromStringOutputRange(config);
       }
-      var outputRange = config2.outputRange;
-      var inputRange = config2.inputRange;
+      var outputRange = config.outputRange;
+      var inputRange = config.inputRange;
       if (__DEV__) {
         checkInfiniteRange("outputRange", outputRange);
         checkInfiniteRange("inputRange", inputRange);
         checkValidInputRange(inputRange);
         (0, _invariant.default)(inputRange.length === outputRange.length, "inputRange (" + inputRange.length + ") and outputRange (" + outputRange.length + ") must have the same length");
       }
-      var easing = config2.easing || linear;
+      var easing = config.easing || linear;
       var extrapolateLeft = "extend";
-      if (config2.extrapolateLeft !== void 0) {
-        extrapolateLeft = config2.extrapolateLeft;
-      } else if (config2.extrapolate !== void 0) {
-        extrapolateLeft = config2.extrapolate;
+      if (config.extrapolateLeft !== void 0) {
+        extrapolateLeft = config.extrapolateLeft;
+      } else if (config.extrapolate !== void 0) {
+        extrapolateLeft = config.extrapolate;
       }
       var extrapolateRight = "extend";
-      if (config2.extrapolateRight !== void 0) {
-        extrapolateRight = config2.extrapolateRight;
-      } else if (config2.extrapolate !== void 0) {
-        extrapolateRight = config2.extrapolate;
+      if (config.extrapolateRight !== void 0) {
+        extrapolateRight = config.extrapolateRight;
+      } else if (config.extrapolate !== void 0) {
+        extrapolateRight = config.extrapolate;
       }
       return (input) => {
         (0, _invariant.default)(typeof input === "number", "Cannot interpolation an input which is not a number");
@@ -16862,8 +16862,8 @@ var require_AnimatedInterpolation = __commonJS({
     }
     __name(colorToRgba, "colorToRgba");
     var stringShapeRegex = /[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g;
-    function createInterpolationFromStringOutputRange(config2) {
-      var outputRange = config2.outputRange;
+    function createInterpolationFromStringOutputRange(config) {
+      var outputRange = config.outputRange;
       (0, _invariant.default)(outputRange.length >= 2, "Bad output range");
       outputRange = outputRange.map(colorToRgba);
       checkPattern(outputRange);
@@ -16874,7 +16874,7 @@ var require_AnimatedInterpolation = __commonJS({
         });
       });
       var interpolations = outputRange[0].match(stringShapeRegex).map((value, i) => {
-        return createInterpolation((0, _objectSpread2.default)((0, _objectSpread2.default)({}, config2), {}, {
+        return createInterpolation((0, _objectSpread2.default)((0, _objectSpread2.default)({}, config), {}, {
           outputRange: outputRanges[i]
         }));
       });
@@ -16938,11 +16938,11 @@ var require_AnimatedInterpolation = __commonJS({
         __name(this, "AnimatedInterpolation");
       }
       // Export for testing.
-      constructor(parent, config2) {
+      constructor(parent, config) {
         super();
         this._parent = parent;
-        this._config = config2;
-        this._interpolation = createInterpolation(config2);
+        this._config = config;
+        this._interpolation = createInterpolation(config);
       }
       __makeNative(platformConfig) {
         this._parent.__makeNative(platformConfig);
@@ -16953,8 +16953,8 @@ var require_AnimatedInterpolation = __commonJS({
         (0, _invariant.default)(typeof parentValue === "number", "Cannot interpolate an input which is not a number.");
         return this._interpolation(parentValue);
       }
-      interpolate(config2) {
-        return new _AnimatedInterpolation(this, config2);
+      interpolate(config) {
+        return new _AnimatedInterpolation(this, config);
       }
       __attach() {
         this._parent.__addChild(this);
@@ -17022,7 +17022,7 @@ var require_AnimatedValue = __commonJS({
       static {
         __name(this, "AnimatedValue");
       }
-      constructor(value, config2) {
+      constructor(value, config) {
         super();
         if (typeof value !== "number") {
           throw new Error("AnimatedValue: Attempting to set value to undefined");
@@ -17030,7 +17030,7 @@ var require_AnimatedValue = __commonJS({
         this._startingValue = this._value = value;
         this._offset = 0;
         this._animation = null;
-        if (config2 && config2.useNativeDriver) {
+        if (config && config.useNativeDriver) {
           this.__makeNative();
         }
       }
@@ -17147,8 +17147,8 @@ var require_AnimatedValue = __commonJS({
        * Interpolates the value before updating the property, e.g. mapping 0-1 to
        * 0-10.
        */
-      interpolate(config2) {
-        return new _AnimatedInterpolation.default(this, config2);
+      interpolate(config) {
+        return new _AnimatedInterpolation.default(this, config);
       }
       /**
        * Typically only used internally, but could be used by a custom Animation
@@ -17293,21 +17293,21 @@ var require_AnimatedEvent = __commonJS({
       static {
         __name(this, "AnimatedEvent");
       }
-      constructor(argMapping, config2) {
+      constructor(argMapping, config) {
         this._listeners = [];
         this._argMapping = argMapping;
-        if (config2 == null) {
+        if (config == null) {
           console.warn("Animated.event now requires a second argument for options");
-          config2 = {
+          config = {
             useNativeDriver: false
           };
         }
-        if (config2.listener) {
-          this.__addListener(config2.listener);
+        if (config.listener) {
+          this.__addListener(config.listener);
         }
         this._callListeners = this._callListeners.bind(this);
         this._attachedEvent = null;
-        this.__isNative = (0, _NativeAnimatedHelper.shouldUseNativeDriver)(config2);
+        this.__isNative = (0, _NativeAnimatedHelper.shouldUseNativeDriver)(config);
       }
       __addListener(callback) {
         this._listeners.push(callback);
@@ -19199,8 +19199,8 @@ var require_AnimatedAddition = __commonJS({
       __getValue() {
         return this._a.__getValue() + this._b.__getValue();
       }
-      interpolate(config2) {
-        return new _AnimatedInterpolation.default(this, config2);
+      interpolate(config) {
+        return new _AnimatedInterpolation.default(this, config);
       }
       __attach() {
         this._a.__addChild(this);
@@ -19247,8 +19247,8 @@ var require_AnimatedDiffClamp = __commonJS({
         this._a.__makeNative(platformConfig);
         super.__makeNative(platformConfig);
       }
-      interpolate(config2) {
-        return new _AnimatedInterpolation.default(this, config2);
+      interpolate(config) {
+        return new _AnimatedInterpolation.default(this, config);
       }
       __getValue() {
         var value = this._a.__getValue();
@@ -19320,8 +19320,8 @@ var require_AnimatedDivision = __commonJS({
         this._warnedAboutDivideByZero = false;
         return a / b;
       }
-      interpolate(config2) {
-        return new _AnimatedInterpolation.default(this, config2);
+      interpolate(config) {
+        return new _AnimatedInterpolation.default(this, config);
       }
       __attach() {
         this._a.__addChild(this);
@@ -19369,8 +19369,8 @@ var require_AnimatedModulo = __commonJS({
       __getValue() {
         return (this._a.__getValue() % this._modulus + this._modulus) % this._modulus;
       }
-      interpolate(config2) {
-        return new _AnimatedInterpolation.default(this, config2);
+      interpolate(config) {
+        return new _AnimatedInterpolation.default(this, config);
       }
       __attach() {
         this._a.__addChild(this);
@@ -19419,8 +19419,8 @@ var require_AnimatedMultiplication = __commonJS({
       __getValue() {
         return this._a.__getValue() * this._b.__getValue();
       }
-      interpolate(config2) {
-        return new _AnimatedInterpolation.default(this, config2);
+      interpolate(config) {
+        return new _AnimatedInterpolation.default(this, config);
       }
       __attach() {
         this._a.__addChild(this);
@@ -19470,8 +19470,8 @@ var require_AnimatedSubtraction = __commonJS({
       __getValue() {
         return this._a.__getValue() - this._b.__getValue();
       }
-      interpolate(config2) {
-        return new _AnimatedInterpolation.default(this, config2);
+      interpolate(config) {
+        return new _AnimatedInterpolation.default(this, config);
       }
       __attach() {
         this._a.__addChild(this);
@@ -19768,13 +19768,13 @@ var require_Animation = __commonJS({
         startNativeAnimationNextId += 1;
         _NativeAnimatedHelper.default.API.setWaitingForIdentifier(startNativeAnimationWaitId);
         try {
-          var config2 = this.__getNativeAnimationConfig();
-          animatedValue.__makeNative(config2.platformConfig);
+          var config = this.__getNativeAnimationConfig();
+          animatedValue.__makeNative(config.platformConfig);
           this.__nativeId = _NativeAnimatedHelper.default.generateNewAnimationId();
           _NativeAnimatedHelper.default.API.startAnimatingNode(
             this.__nativeId,
             animatedValue.__getNativeTag(),
-            config2,
+            config,
             // $FlowFixMe[method-unbinding] added when improving typing for this parameters
             this.__debouncedOnEnd.bind(this)
           );
@@ -19803,14 +19803,14 @@ var require_DecayAnimation = __commonJS({
       static {
         __name(this, "DecayAnimation");
       }
-      constructor(config2) {
+      constructor(config) {
         var _config$deceleration, _config$isInteraction, _config$iterations;
         super();
-        this._deceleration = (_config$deceleration = config2.deceleration) !== null && _config$deceleration !== void 0 ? _config$deceleration : 0.998;
-        this._velocity = config2.velocity;
-        this._useNativeDriver = (0, _NativeAnimatedHelper.shouldUseNativeDriver)(config2);
-        this.__isInteraction = (_config$isInteraction = config2.isInteraction) !== null && _config$isInteraction !== void 0 ? _config$isInteraction : !this._useNativeDriver;
-        this.__iterations = (_config$iterations = config2.iterations) !== null && _config$iterations !== void 0 ? _config$iterations : 1;
+        this._deceleration = (_config$deceleration = config.deceleration) !== null && _config$deceleration !== void 0 ? _config$deceleration : 0.998;
+        this._velocity = config.velocity;
+        this._useNativeDriver = (0, _NativeAnimatedHelper.shouldUseNativeDriver)(config);
+        this.__isInteraction = (_config$isInteraction = config.isInteraction) !== null && _config$isInteraction !== void 0 ? _config$isInteraction : !this._useNativeDriver;
+        this.__iterations = (_config$iterations = config.iterations) !== null && _config$iterations !== void 0 ? _config$iterations : 1;
       }
       __getNativeAnimationConfig() {
         return {
@@ -20009,7 +20009,7 @@ var require_AnimatedColor = __commonJS({
       static {
         __name(this, "AnimatedColor");
       }
-      constructor(valueIn, config2) {
+      constructor(valueIn, config) {
         super();
         this._listeners = {};
         var value = valueIn !== null && valueIn !== void 0 ? valueIn : defaultColor;
@@ -20036,7 +20036,7 @@ var require_AnimatedColor = __commonJS({
           this.b = new _AnimatedValue.default(initColor.b);
           this.a = new _AnimatedValue.default(initColor.a);
         }
-        if (this.nativeColor || config2 && config2.useNativeDriver) {
+        if (this.nativeColor || config && config.useNativeDriver) {
           this.__makeNative();
         }
       }
@@ -20232,36 +20232,36 @@ var require_SpringAnimation = __commonJS({
       static {
         __name(this, "SpringAnimation");
       }
-      constructor(config2) {
+      constructor(config) {
         var _config$overshootClam, _config$restDisplacem, _config$restSpeedThre, _config$velocity, _config$velocity2, _config$delay, _config$isInteraction, _config$iterations;
         super();
-        this._overshootClamping = (_config$overshootClam = config2.overshootClamping) !== null && _config$overshootClam !== void 0 ? _config$overshootClam : false;
-        this._restDisplacementThreshold = (_config$restDisplacem = config2.restDisplacementThreshold) !== null && _config$restDisplacem !== void 0 ? _config$restDisplacem : 1e-3;
-        this._restSpeedThreshold = (_config$restSpeedThre = config2.restSpeedThreshold) !== null && _config$restSpeedThre !== void 0 ? _config$restSpeedThre : 1e-3;
-        this._initialVelocity = (_config$velocity = config2.velocity) !== null && _config$velocity !== void 0 ? _config$velocity : 0;
-        this._lastVelocity = (_config$velocity2 = config2.velocity) !== null && _config$velocity2 !== void 0 ? _config$velocity2 : 0;
-        this._toValue = config2.toValue;
-        this._delay = (_config$delay = config2.delay) !== null && _config$delay !== void 0 ? _config$delay : 0;
-        this._useNativeDriver = (0, _NativeAnimatedHelper.shouldUseNativeDriver)(config2);
-        this._platformConfig = config2.platformConfig;
-        this.__isInteraction = (_config$isInteraction = config2.isInteraction) !== null && _config$isInteraction !== void 0 ? _config$isInteraction : !this._useNativeDriver;
-        this.__iterations = (_config$iterations = config2.iterations) !== null && _config$iterations !== void 0 ? _config$iterations : 1;
-        if (config2.stiffness !== void 0 || config2.damping !== void 0 || config2.mass !== void 0) {
+        this._overshootClamping = (_config$overshootClam = config.overshootClamping) !== null && _config$overshootClam !== void 0 ? _config$overshootClam : false;
+        this._restDisplacementThreshold = (_config$restDisplacem = config.restDisplacementThreshold) !== null && _config$restDisplacem !== void 0 ? _config$restDisplacem : 1e-3;
+        this._restSpeedThreshold = (_config$restSpeedThre = config.restSpeedThreshold) !== null && _config$restSpeedThre !== void 0 ? _config$restSpeedThre : 1e-3;
+        this._initialVelocity = (_config$velocity = config.velocity) !== null && _config$velocity !== void 0 ? _config$velocity : 0;
+        this._lastVelocity = (_config$velocity2 = config.velocity) !== null && _config$velocity2 !== void 0 ? _config$velocity2 : 0;
+        this._toValue = config.toValue;
+        this._delay = (_config$delay = config.delay) !== null && _config$delay !== void 0 ? _config$delay : 0;
+        this._useNativeDriver = (0, _NativeAnimatedHelper.shouldUseNativeDriver)(config);
+        this._platformConfig = config.platformConfig;
+        this.__isInteraction = (_config$isInteraction = config.isInteraction) !== null && _config$isInteraction !== void 0 ? _config$isInteraction : !this._useNativeDriver;
+        this.__iterations = (_config$iterations = config.iterations) !== null && _config$iterations !== void 0 ? _config$iterations : 1;
+        if (config.stiffness !== void 0 || config.damping !== void 0 || config.mass !== void 0) {
           var _config$stiffness, _config$damping, _config$mass;
-          (0, _invariant.default)(config2.bounciness === void 0 && config2.speed === void 0 && config2.tension === void 0 && config2.friction === void 0, "You can define one of bounciness/speed, tension/friction, or stiffness/damping/mass, but not more than one");
-          this._stiffness = (_config$stiffness = config2.stiffness) !== null && _config$stiffness !== void 0 ? _config$stiffness : 100;
-          this._damping = (_config$damping = config2.damping) !== null && _config$damping !== void 0 ? _config$damping : 10;
-          this._mass = (_config$mass = config2.mass) !== null && _config$mass !== void 0 ? _config$mass : 1;
-        } else if (config2.bounciness !== void 0 || config2.speed !== void 0) {
+          (0, _invariant.default)(config.bounciness === void 0 && config.speed === void 0 && config.tension === void 0 && config.friction === void 0, "You can define one of bounciness/speed, tension/friction, or stiffness/damping/mass, but not more than one");
+          this._stiffness = (_config$stiffness = config.stiffness) !== null && _config$stiffness !== void 0 ? _config$stiffness : 100;
+          this._damping = (_config$damping = config.damping) !== null && _config$damping !== void 0 ? _config$damping : 10;
+          this._mass = (_config$mass = config.mass) !== null && _config$mass !== void 0 ? _config$mass : 1;
+        } else if (config.bounciness !== void 0 || config.speed !== void 0) {
           var _config$bounciness, _config$speed;
-          (0, _invariant.default)(config2.tension === void 0 && config2.friction === void 0 && config2.stiffness === void 0 && config2.damping === void 0 && config2.mass === void 0, "You can define one of bounciness/speed, tension/friction, or stiffness/damping/mass, but not more than one");
-          var springConfig = _SpringConfig.default.fromBouncinessAndSpeed((_config$bounciness = config2.bounciness) !== null && _config$bounciness !== void 0 ? _config$bounciness : 8, (_config$speed = config2.speed) !== null && _config$speed !== void 0 ? _config$speed : 12);
+          (0, _invariant.default)(config.tension === void 0 && config.friction === void 0 && config.stiffness === void 0 && config.damping === void 0 && config.mass === void 0, "You can define one of bounciness/speed, tension/friction, or stiffness/damping/mass, but not more than one");
+          var springConfig = _SpringConfig.default.fromBouncinessAndSpeed((_config$bounciness = config.bounciness) !== null && _config$bounciness !== void 0 ? _config$bounciness : 8, (_config$speed = config.speed) !== null && _config$speed !== void 0 ? _config$speed : 12);
           this._stiffness = springConfig.stiffness;
           this._damping = springConfig.damping;
           this._mass = 1;
         } else {
           var _config$tension, _config$friction;
-          var _springConfig = _SpringConfig.default.fromOrigamiTensionAndFriction((_config$tension = config2.tension) !== null && _config$tension !== void 0 ? _config$tension : 40, (_config$friction = config2.friction) !== null && _config$friction !== void 0 ? _config$friction : 7);
+          var _springConfig = _SpringConfig.default.fromOrigamiTensionAndFriction((_config$tension = config.tension) !== null && _config$tension !== void 0 ? _config$tension : 40, (_config$friction = config.friction) !== null && _config$friction !== void 0 ? _config$friction : 7);
           this._stiffness = _springConfig.stiffness;
           this._damping = _springConfig.damping;
           this._mass = 1;
@@ -20754,17 +20754,17 @@ var require_TimingAnimation = __commonJS({
       static {
         __name(this, "TimingAnimation");
       }
-      constructor(config2) {
+      constructor(config) {
         var _config$easing, _config$duration, _config$delay, _config$iterations, _config$isInteraction;
         super();
-        this._toValue = config2.toValue;
-        this._easing = (_config$easing = config2.easing) !== null && _config$easing !== void 0 ? _config$easing : easeInOut();
-        this._duration = (_config$duration = config2.duration) !== null && _config$duration !== void 0 ? _config$duration : 500;
-        this._delay = (_config$delay = config2.delay) !== null && _config$delay !== void 0 ? _config$delay : 0;
-        this.__iterations = (_config$iterations = config2.iterations) !== null && _config$iterations !== void 0 ? _config$iterations : 1;
-        this._useNativeDriver = (0, _NativeAnimatedHelper.shouldUseNativeDriver)(config2);
-        this._platformConfig = config2.platformConfig;
-        this.__isInteraction = (_config$isInteraction = config2.isInteraction) !== null && _config$isInteraction !== void 0 ? _config$isInteraction : !this._useNativeDriver;
+        this._toValue = config.toValue;
+        this._easing = (_config$easing = config.easing) !== null && _config$easing !== void 0 ? _config$easing : easeInOut();
+        this._duration = (_config$duration = config.duration) !== null && _config$duration !== void 0 ? _config$duration : 500;
+        this._delay = (_config$delay = config.delay) !== null && _config$delay !== void 0 ? _config$delay : 0;
+        this.__iterations = (_config$iterations = config.iterations) !== null && _config$iterations !== void 0 ? _config$iterations : 1;
+        this._useNativeDriver = (0, _NativeAnimatedHelper.shouldUseNativeDriver)(config);
+        this._platformConfig = config.platformConfig;
+        this.__isInteraction = (_config$isInteraction = config.isInteraction) !== null && _config$isInteraction !== void 0 ? _config$isInteraction : !this._useNativeDriver;
       }
       __getNativeAnimationConfig() {
         var frameDuration = 1e3 / 60;
@@ -20888,22 +20888,22 @@ var require_AnimatedImplementation = __commonJS({
     var diffClamp = /* @__PURE__ */ __name(function diffClamp2(a, min2, max2) {
       return new _AnimatedDiffClamp.default(a, min2, max2);
     }, "diffClamp");
-    var _combineCallbacks = /* @__PURE__ */ __name(function _combineCallbacks2(callback, config2) {
-      if (callback && config2.onComplete) {
+    var _combineCallbacks = /* @__PURE__ */ __name(function _combineCallbacks2(callback, config) {
+      if (callback && config.onComplete) {
         return function() {
-          config2.onComplete && config2.onComplete(...arguments);
+          config.onComplete && config.onComplete(...arguments);
           callback && callback(...arguments);
         };
       } else {
-        return callback || config2.onComplete;
+        return callback || config.onComplete;
       }
     }, "_combineCallbacks");
-    var maybeVectorAnim = /* @__PURE__ */ __name(function maybeVectorAnim2(value, config2, anim) {
+    var maybeVectorAnim = /* @__PURE__ */ __name(function maybeVectorAnim2(value, config, anim) {
       if (value instanceof _AnimatedValueXY.default) {
-        var configX = (0, _objectSpread2.default)({}, config2);
-        var configY = (0, _objectSpread2.default)({}, config2);
-        for (var key in config2) {
-          var _config$key = config2[key], x = _config$key.x, y = _config$key.y;
+        var configX = (0, _objectSpread2.default)({}, config);
+        var configY = (0, _objectSpread2.default)({}, config);
+        for (var key in config) {
+          var _config$key = config[key], x = _config$key.x, y = _config$key.y;
           if (x !== void 0 && y !== void 0) {
             configX[key] = x;
             configY[key] = y;
@@ -20915,12 +20915,12 @@ var require_AnimatedImplementation = __commonJS({
           stopTogether: false
         });
       } else if (value instanceof _AnimatedColor.default) {
-        var configR = (0, _objectSpread2.default)({}, config2);
-        var configG = (0, _objectSpread2.default)({}, config2);
-        var configB = (0, _objectSpread2.default)({}, config2);
-        var configA = (0, _objectSpread2.default)({}, config2);
-        for (var _key in config2) {
-          var _config$_key = config2[_key], r = _config$_key.r, g = _config$_key.g, b = _config$_key.b, a = _config$_key.a;
+        var configR = (0, _objectSpread2.default)({}, config);
+        var configG = (0, _objectSpread2.default)({}, config);
+        var configB = (0, _objectSpread2.default)({}, config);
+        var configA = (0, _objectSpread2.default)({}, config);
+        for (var _key in config) {
+          var _config$_key = config[_key], r = _config$_key.r, g = _config$_key.g, b = _config$_key.b, a = _config$_key.a;
           if (r !== void 0 && g !== void 0 && b !== void 0 && a !== void 0) {
             configR[_key] = r;
             configG[_key] = g;
@@ -20938,7 +20938,7 @@ var require_AnimatedImplementation = __commonJS({
       }
       return null;
     }, "maybeVectorAnim");
-    var spring = /* @__PURE__ */ __name(function spring2(value, config2) {
+    var spring = /* @__PURE__ */ __name(function spring2(value, config) {
       var _start = /* @__PURE__ */ __name(function start(animatedValue, configuration, callback) {
         callback = _combineCallbacks(callback, configuration);
         var singleValue = animatedValue;
@@ -20950,9 +20950,9 @@ var require_AnimatedImplementation = __commonJS({
           singleValue.animate(new _SpringAnimation.default(singleConfig), callback);
         }
       }, "start");
-      return maybeVectorAnim(value, config2, spring2) || {
+      return maybeVectorAnim(value, config, spring2) || {
         start: /* @__PURE__ */ __name(function start(callback) {
-          _start(value, config2, callback);
+          _start(value, config, callback);
         }, "start"),
         stop: /* @__PURE__ */ __name(function stop() {
           value.stopAnimation();
@@ -20961,17 +20961,17 @@ var require_AnimatedImplementation = __commonJS({
           value.resetAnimation();
         }, "reset"),
         _startNativeLoop: /* @__PURE__ */ __name(function _startNativeLoop(iterations) {
-          var singleConfig = (0, _objectSpread2.default)((0, _objectSpread2.default)({}, config2), {}, {
+          var singleConfig = (0, _objectSpread2.default)((0, _objectSpread2.default)({}, config), {}, {
             iterations
           });
           _start(value, singleConfig);
         }, "_startNativeLoop"),
         _isUsingNativeDriver: /* @__PURE__ */ __name(function _isUsingNativeDriver() {
-          return config2.useNativeDriver || false;
+          return config.useNativeDriver || false;
         }, "_isUsingNativeDriver")
       };
     }, "spring");
-    var timing = /* @__PURE__ */ __name(function timing2(value, config2) {
+    var timing = /* @__PURE__ */ __name(function timing2(value, config) {
       var _start2 = /* @__PURE__ */ __name(function start(animatedValue, configuration, callback) {
         callback = _combineCallbacks(callback, configuration);
         var singleValue = animatedValue;
@@ -20983,9 +20983,9 @@ var require_AnimatedImplementation = __commonJS({
           singleValue.animate(new _TimingAnimation.default(singleConfig), callback);
         }
       }, "start");
-      return maybeVectorAnim(value, config2, timing2) || {
+      return maybeVectorAnim(value, config, timing2) || {
         start: /* @__PURE__ */ __name(function start(callback) {
-          _start2(value, config2, callback);
+          _start2(value, config, callback);
         }, "start"),
         stop: /* @__PURE__ */ __name(function stop() {
           value.stopAnimation();
@@ -20994,17 +20994,17 @@ var require_AnimatedImplementation = __commonJS({
           value.resetAnimation();
         }, "reset"),
         _startNativeLoop: /* @__PURE__ */ __name(function _startNativeLoop(iterations) {
-          var singleConfig = (0, _objectSpread2.default)((0, _objectSpread2.default)({}, config2), {}, {
+          var singleConfig = (0, _objectSpread2.default)((0, _objectSpread2.default)({}, config), {}, {
             iterations
           });
           _start2(value, singleConfig);
         }, "_startNativeLoop"),
         _isUsingNativeDriver: /* @__PURE__ */ __name(function _isUsingNativeDriver() {
-          return config2.useNativeDriver || false;
+          return config.useNativeDriver || false;
         }, "_isUsingNativeDriver")
       };
     }, "timing");
-    var decay = /* @__PURE__ */ __name(function decay2(value, config2) {
+    var decay = /* @__PURE__ */ __name(function decay2(value, config) {
       var _start3 = /* @__PURE__ */ __name(function start(animatedValue, configuration, callback) {
         callback = _combineCallbacks(callback, configuration);
         var singleValue = animatedValue;
@@ -21012,9 +21012,9 @@ var require_AnimatedImplementation = __commonJS({
         singleValue.stopTracking();
         singleValue.animate(new _DecayAnimation.default(singleConfig), callback);
       }, "start");
-      return maybeVectorAnim(value, config2, decay2) || {
+      return maybeVectorAnim(value, config, decay2) || {
         start: /* @__PURE__ */ __name(function start(callback) {
-          _start3(value, config2, callback);
+          _start3(value, config, callback);
         }, "start"),
         stop: /* @__PURE__ */ __name(function stop() {
           value.stopAnimation();
@@ -21023,13 +21023,13 @@ var require_AnimatedImplementation = __commonJS({
           value.resetAnimation();
         }, "reset"),
         _startNativeLoop: /* @__PURE__ */ __name(function _startNativeLoop(iterations) {
-          var singleConfig = (0, _objectSpread2.default)((0, _objectSpread2.default)({}, config2), {}, {
+          var singleConfig = (0, _objectSpread2.default)((0, _objectSpread2.default)({}, config), {}, {
             iterations
           });
           _start3(value, singleConfig);
         }, "_startNativeLoop"),
         _isUsingNativeDriver: /* @__PURE__ */ __name(function _isUsingNativeDriver() {
-          return config2.useNativeDriver || false;
+          return config.useNativeDriver || false;
         }, "_isUsingNativeDriver")
       };
     }, "decay");
@@ -21078,10 +21078,10 @@ var require_AnimatedImplementation = __commonJS({
         }, "_isUsingNativeDriver")
       };
     }, "sequence");
-    var parallel = /* @__PURE__ */ __name(function parallel2(animations, config2) {
+    var parallel = /* @__PURE__ */ __name(function parallel2(animations, config) {
       var doneCount = 0;
       var hasEnded = {};
-      var stopTogether = !(config2 && config2.stopTogether === false);
+      var stopTogether = !(config && config.stopTogether === false);
       var result = {
         start: /* @__PURE__ */ __name(function start(callback) {
           if (doneCount === animations.length) {
@@ -21216,8 +21216,8 @@ var require_AnimatedImplementation = __commonJS({
       }
     }
     __name(unforkEvent, "unforkEvent");
-    var event = /* @__PURE__ */ __name(function event2(argMapping, config2) {
-      var animatedEvent = new _AnimatedEvent.AnimatedEvent(argMapping, config2);
+    var event = /* @__PURE__ */ __name(function event2(argMapping, config) {
+      var animatedEvent = new _AnimatedEvent.AnimatedEvent(argMapping, config);
       if (animatedEvent.__isNative) {
         return animatedEvent;
       } else {
@@ -21448,35 +21448,35 @@ var require_AnimatedMock = __commonJS({
         });
       })
     }), "mockCompositeAnimation");
-    var spring = /* @__PURE__ */ __name(function spring2(value, config2) {
+    var spring = /* @__PURE__ */ __name(function spring2(value, config) {
       var anyValue = value;
       return (0, _objectSpread2.default)((0, _objectSpread2.default)({}, emptyAnimation), {}, {
         start: mockAnimationStart((callback) => {
-          anyValue.setValue(config2.toValue);
+          anyValue.setValue(config.toValue);
           callback == null ? void 0 : callback({
             finished: true
           });
         })
       });
     }, "spring");
-    var timing = /* @__PURE__ */ __name(function timing2(value, config2) {
+    var timing = /* @__PURE__ */ __name(function timing2(value, config) {
       var anyValue = value;
       return (0, _objectSpread2.default)((0, _objectSpread2.default)({}, emptyAnimation), {}, {
         start: mockAnimationStart((callback) => {
-          anyValue.setValue(config2.toValue);
+          anyValue.setValue(config.toValue);
           callback == null ? void 0 : callback({
             finished: true
           });
         })
       });
     }, "timing");
-    var decay = /* @__PURE__ */ __name(function decay2(value, config2) {
+    var decay = /* @__PURE__ */ __name(function decay2(value, config) {
       return emptyAnimation;
     }, "decay");
     var sequence = /* @__PURE__ */ __name(function sequence2(animations) {
       return mockCompositeAnimation(animations);
     }, "sequence");
-    var parallel = /* @__PURE__ */ __name(function parallel2(animations, config2) {
+    var parallel = /* @__PURE__ */ __name(function parallel2(animations, config) {
       return mockCompositeAnimation(animations);
     }, "parallel");
     var delay = /* @__PURE__ */ __name(function delay2(time) {
@@ -21745,8 +21745,8 @@ var require_AppRegistry = __commonJS({
         };
         return appKey;
       }
-      static registerConfig(config2) {
-        config2.forEach((_ref) => {
+      static registerConfig(config) {
+        config.forEach((_ref) => {
           var appKey = _ref.appKey, component = _ref.component, run = _ref.run;
           if (run) {
             _AppRegistry.registerRunnable(appKey, run);
@@ -21990,10 +21990,10 @@ var require_LayoutAnimation = __commonJS({
     var _Platform = _interopRequireDefault(require_Platform());
     var _UIManager = _interopRequireDefault(require_UIManager());
     var __DEV__ = process.env.NODE_ENV !== "production";
-    function configureNext(config2, onAnimationDidEnd) {
+    function configureNext(config, onAnimationDidEnd) {
       if (!_Platform.default.isTesting) {
         _UIManager.default.configureNextLayoutAnimation(
-          config2,
+          config,
           onAnimationDidEnd !== null && onAnimationDidEnd !== void 0 ? onAnimationDidEnd : function() {
           },
           function() {
@@ -22502,7 +22502,7 @@ var require_PanResponder = __commonJS({
        *  accordingly. (numberActiveTouches) may not be totally accurate unless you
        *  are the responder.
        */
-      create(config2) {
+      create(config) {
         var interactionState = {
           handle: null,
           shouldCancelClick: false,
@@ -22524,17 +22524,17 @@ var require_PanResponder = __commonJS({
         };
         var panHandlers = {
           onStartShouldSetResponder(event) {
-            return config2.onStartShouldSetPanResponder == null ? false : config2.onStartShouldSetPanResponder(event, gestureState);
+            return config.onStartShouldSetPanResponder == null ? false : config.onStartShouldSetPanResponder(event, gestureState);
           },
           onMoveShouldSetResponder(event) {
-            return config2.onMoveShouldSetPanResponder == null ? false : config2.onMoveShouldSetPanResponder(event, gestureState);
+            return config.onMoveShouldSetPanResponder == null ? false : config.onMoveShouldSetPanResponder(event, gestureState);
           },
           onStartShouldSetResponderCapture(event) {
             if (event.nativeEvent.touches.length === 1) {
               PanResponder2._initializeGestureState(gestureState);
             }
             gestureState.numberActiveTouches = event.touchHistory.numberActiveTouches;
-            return config2.onStartShouldSetPanResponderCapture != null ? config2.onStartShouldSetPanResponderCapture(event, gestureState) : false;
+            return config.onStartShouldSetPanResponderCapture != null ? config.onStartShouldSetPanResponderCapture(event, gestureState) : false;
           },
           onMoveShouldSetResponderCapture(event) {
             var touchHistory = event.touchHistory;
@@ -22542,7 +22542,7 @@ var require_PanResponder = __commonJS({
               return false;
             }
             PanResponder2._updateGestureStateOnMove(gestureState, touchHistory);
-            return config2.onMoveShouldSetPanResponderCapture ? config2.onMoveShouldSetPanResponderCapture(event, gestureState) : false;
+            return config.onMoveShouldSetPanResponderCapture ? config.onMoveShouldSetPanResponderCapture(event, gestureState) : false;
           },
           onResponderGrant(event) {
             if (!interactionState.handle) {
@@ -22556,24 +22556,24 @@ var require_PanResponder = __commonJS({
             gestureState.y0 = currentCentroidY(event.touchHistory);
             gestureState.dx = 0;
             gestureState.dy = 0;
-            if (config2.onPanResponderGrant) {
-              config2.onPanResponderGrant(event, gestureState);
+            if (config.onPanResponderGrant) {
+              config.onPanResponderGrant(event, gestureState);
             }
-            return config2.onShouldBlockNativeResponder == null ? true : config2.onShouldBlockNativeResponder(event, gestureState);
+            return config.onShouldBlockNativeResponder == null ? true : config.onShouldBlockNativeResponder(event, gestureState);
           },
           onResponderReject(event) {
-            clearInteractionHandle(interactionState, config2.onPanResponderReject, event, gestureState);
+            clearInteractionHandle(interactionState, config.onPanResponderReject, event, gestureState);
           },
           onResponderRelease(event) {
-            clearInteractionHandle(interactionState, config2.onPanResponderRelease, event, gestureState);
+            clearInteractionHandle(interactionState, config.onPanResponderRelease, event, gestureState);
             setInteractionTimeout(interactionState);
             PanResponder2._initializeGestureState(gestureState);
           },
           onResponderStart(event) {
             var touchHistory = event.touchHistory;
             gestureState.numberActiveTouches = touchHistory.numberActiveTouches;
-            if (config2.onPanResponderStart) {
-              config2.onPanResponderStart(event, gestureState);
+            if (config.onPanResponderStart) {
+              config.onPanResponderStart(event, gestureState);
             }
           },
           onResponderMove(event) {
@@ -22582,22 +22582,22 @@ var require_PanResponder = __commonJS({
               return;
             }
             PanResponder2._updateGestureStateOnMove(gestureState, touchHistory);
-            if (config2.onPanResponderMove) {
-              config2.onPanResponderMove(event, gestureState);
+            if (config.onPanResponderMove) {
+              config.onPanResponderMove(event, gestureState);
             }
           },
           onResponderEnd(event) {
             var touchHistory = event.touchHistory;
             gestureState.numberActiveTouches = touchHistory.numberActiveTouches;
-            clearInteractionHandle(interactionState, config2.onPanResponderEnd, event, gestureState);
+            clearInteractionHandle(interactionState, config.onPanResponderEnd, event, gestureState);
           },
           onResponderTerminate(event) {
-            clearInteractionHandle(interactionState, config2.onPanResponderTerminate, event, gestureState);
+            clearInteractionHandle(interactionState, config.onPanResponderTerminate, event, gestureState);
             setInteractionTimeout(interactionState);
             PanResponder2._initializeGestureState(gestureState);
           },
           onResponderTerminationRequest(event) {
-            return config2.onPanResponderTerminationRequest == null ? true : config2.onPanResponderTerminationRequest(event, gestureState);
+            return config.onPanResponderTerminationRequest == null ? true : config.onPanResponderTerminationRequest(event, gestureState);
           },
           // We do not want to trigger 'click' activated gestures or native behaviors
           // on any pan target that is under a mouse cursor when it is released.
@@ -22895,7 +22895,7 @@ var require_PressResponder = __commonJS({
       static {
         __name(this, "PressResponder");
       }
-      constructor(config2) {
+      constructor(config) {
         this._eventHandlers = null;
         this._isPointerTouch = false;
         this._longPressDelayTimeout = null;
@@ -22904,10 +22904,10 @@ var require_PressResponder = __commonJS({
         this._pressOutDelayTimeout = null;
         this._touchState = NOT_RESPONDER;
         this._responderElement = null;
-        this.configure(config2);
+        this.configure(config);
       }
-      configure(config2) {
-        this._config = config2;
+      configure(config) {
+        this._config = config;
       }
       /**
        * Resets any pending timers. This should be called on unmount.
@@ -23220,21 +23220,21 @@ var require_usePressEvents = __commonJS({
     exports2.default = usePressEvents;
     var _PressResponder = _interopRequireDefault(require_PressResponder());
     var _react = require("react");
-    function usePressEvents(hostRef, config2) {
+    function usePressEvents(hostRef, config) {
       var pressResponderRef = (0, _react.useRef)(null);
       if (pressResponderRef.current == null) {
-        pressResponderRef.current = new _PressResponder.default(config2);
+        pressResponderRef.current = new _PressResponder.default(config);
       }
       var pressResponder = pressResponderRef.current;
       (0, _react.useEffect)(() => {
-        pressResponder.configure(config2);
-      }, [config2, pressResponder]);
+        pressResponder.configure(config);
+      }, [config, pressResponder]);
       (0, _react.useEffect)(() => {
         return () => {
           pressResponder.reset();
         };
       }, [pressResponder]);
-      (0, _react.useDebugValue)(config2);
+      (0, _react.useDebugValue)(config);
       return pressResponder.getEventHandlers();
     }
     __name(usePressEvents, "usePressEvents");
@@ -24432,8 +24432,8 @@ var require_useHover = __commonJS({
       return pointerType != null ? pointerType : (0, _modality.getModality)();
     }
     __name(getPointerType, "getPointerType");
-    function useHover2(targetRef, config2) {
-      var contain = config2.contain, disabled = config2.disabled, onHoverStart = config2.onHoverStart, onHoverChange = config2.onHoverChange, onHoverUpdate = config2.onHoverUpdate, onHoverEnd = config2.onHoverEnd;
+    function useHover2(targetRef, config) {
+      var contain = config.contain, disabled = config.disabled, onHoverStart = config.onHoverStart, onHoverChange = config.onHoverChange, onHoverUpdate = config.onHoverUpdate, onHoverEnd = config.onHoverEnd;
       var canUsePE = supportsPointerEvent();
       var addMoveListener = (0, _useEvent.default)(canUsePE ? "pointermove" : "mousemove", opts);
       var addEnterListener = (0, _useEvent.default)(canUsePE ? "pointerenter" : "mouseenter", opts);
@@ -26847,10 +26847,10 @@ var require_dist = __commonJS({
   }
 });
 
-// ../../libs/ui/rnw/src/lib/tamagui.config.ts
+// ../../libs/ui/shared/src/lib/tamagui.config.ts
 var tamagui_config_exports = {};
 __export(tamagui_config_exports, {
-  config: () => config,
+  tamaguiConfig: () => tamaguiConfig,
   tokens: () => tokens2
 });
 module.exports = __toCommonJS(tamagui_config_exports);
@@ -32494,13 +32494,13 @@ function computeCoordsFromPlacement(_ref, placement, rtl) {
   return coords;
 }
 __name(computeCoordsFromPlacement, "computeCoordsFromPlacement");
-var computePosition = /* @__PURE__ */ __name(async (reference, floating, config2) => {
+var computePosition = /* @__PURE__ */ __name(async (reference, floating, config) => {
   const {
     placement = "bottom",
     strategy = "absolute",
     middleware = [],
     platform: platform2
-  } = config2;
+  } = config;
   const validMiddleware = middleware.filter(Boolean);
   const rtl = await (platform2.isRTL == null ? void 0 : platform2.isRTL(floating));
   let rects = await platform2.getElementRects({
@@ -33941,15 +33941,15 @@ function useFloating(options) {
     if (!referenceRef.current || !floatingRef.current) {
       return;
     }
-    const config2 = {
+    const config = {
       placement,
       strategy,
       middleware: latestMiddleware
     };
     if (platformRef.current) {
-      config2.platform = platformRef.current;
+      config.platform = platformRef.current;
     }
-    computePosition2(referenceRef.current, floatingRef.current, config2).then((data2) => {
+    computePosition2(referenceRef.current, floatingRef.current, config).then((data2) => {
       const fullData = {
         ...data2,
         // The floating element's position may be recomputed while it's closed
@@ -41410,19 +41410,19 @@ function _mutateTheme(props) {
     process.env.NODE_ENV === "development" && console.warn("Theme mutation is not supported on server side");
     return;
   }
-  const config2 = (0, import_web16.getConfig)(), {
+  const config = (0, import_web16.getConfig)(), {
     name: themeName,
     theme: themeIn,
     insertCSS,
     mutationType
   } = props;
   if (process.env.NODE_ENV === "development") {
-    if (!config2) throw new Error("No config");
-    const theme2 = config2.themes[props.name];
+    if (!config) throw new Error("No config");
+    const theme2 = config.themes[props.name];
     if (mutationType !== "add" && !theme2) throw new Error(`${mutationType === "replace" ? "Replace" : "Update"} theme failed! Theme ${props.name} does not exist`);
   }
   const theme = {
-    ...mutationType === "update" ? config2.themes[themeName] ?? {} : {},
+    ...mutationType === "update" ? config.themes[themeName] ?? {} : {},
     ...themeIn
   };
   for (const key in theme) (0, import_web16.ensureThemeVariable)(theme, key);
@@ -41437,8 +41437,8 @@ function _mutateTheme(props) {
 }
 __name(_mutateTheme, "_mutateTheme");
 function updateThemeConfig(themeName, theme) {
-  const config2 = (0, import_web16.getConfig)();
-  config2.themes[themeName] = theme, (0, import_web16.updateConfig)("themes", config2.themes);
+  const config = (0, import_web16.getConfig)();
+  config.themes[themeName] = theme, (0, import_web16.updateConfig)("themes", config.themes);
 }
 __name(updateThemeConfig, "updateThemeConfig");
 function notifyThemeManagersOfUpdate(themeName, theme) {
@@ -41451,11 +41451,11 @@ function notifyThemeManagersOfUpdate(themeName, theme) {
 }
 __name(notifyThemeManagersOfUpdate, "notifyThemeManagersOfUpdate");
 function insertThemeCSS(themes, batch = false) {
-  const config2 = (0, import_web16.getConfig)();
+  const config = (0, import_web16.getConfig)();
   let cssRules = [];
   for (const themeName in themes) {
     const theme = themes[themeName], rules = (0, import_web16.getThemeCSSRules)({
-      config: config2,
+      config,
       themeName,
       names: [themeName],
       hasDarkLight: true,
@@ -42129,10 +42129,10 @@ VisuallyHidden.isVisuallyHidden = true;
 // ../../node_modules/tamagui/dist/esm/createTamagui.mjs
 var import_core45 = require("@tamagui/core");
 var createTamagui = process.env.NODE_ENV !== "development" ? import_core45.createTamagui : (conf) => {
-  const sizeTokenKeys = ["$true"], hasKeys = /* @__PURE__ */ __name((expectedKeys, obj) => expectedKeys.every((k) => typeof obj[k] < "u"), "hasKeys"), tamaguiConfig = (0, import_core45.createTamagui)(conf);
+  const sizeTokenKeys = ["$true"], hasKeys = /* @__PURE__ */ __name((expectedKeys, obj) => expectedKeys.every((k) => typeof obj[k] < "u"), "hasKeys"), tamaguiConfig2 = (0, import_core45.createTamagui)(conf);
   for (const name of ["size", "space"]) {
-    const tokenSet = tamaguiConfig.tokensParsed[name];
-    if (!tokenSet) throw new Error(`Expected tokens for "${name}" in ${Object.keys(tamaguiConfig.tokensParsed).join(", ")}`);
+    const tokenSet = tamaguiConfig2.tokensParsed[name];
+    if (!tokenSet) throw new Error(`Expected tokens for "${name}" in ${Object.keys(tamaguiConfig2.tokensParsed).join(", ")}`);
     if (!hasKeys(sizeTokenKeys, tokenSet)) throw new Error(`
 createTamagui() missing expected tokens.${name}:
 
@@ -42154,9 +42154,9 @@ size: {
 
 `);
   }
-  const expected = Object.keys(tamaguiConfig.tokensParsed.size);
+  const expected = Object.keys(tamaguiConfig2.tokensParsed.size);
   for (const name of ["radius", "zIndex"]) {
-    const tokenSet = tamaguiConfig.tokensParsed[name], received = Object.keys(tokenSet);
+    const tokenSet = tamaguiConfig2.tokensParsed[name], received = Object.keys(tokenSet);
     if (!received.some((rk) => expected.includes(rk))) throw new Error(`
 createTamagui() invalid tokens.${name}:
 
@@ -42166,7 +42166,7 @@ Expected a subset of: ${expected.join(", ")}
 
 `);
   }
-  return tamaguiConfig;
+  return tamaguiConfig2;
 };
 
 // ../../node_modules/tamagui/dist/esm/views/TamaguiProvider.mjs
@@ -46404,7 +46404,7 @@ function useAnimatedNumber(initial) {
     },
     setValue(next, {
       type,
-      ...config2
+      ...config
     } = {
       type: "spring"
     }, onFinish) {
@@ -46415,7 +46415,7 @@ function useAnimatedNumber(initial) {
       else if (type === "spring") {
         state.current.composite?.stop();
         const composite = import_react_native_web13.Animated.spring(val, {
-          ...config2,
+          ...config,
           toValue: next,
           useNativeDriver: !isWeb
         });
@@ -46423,7 +46423,7 @@ function useAnimatedNumber(initial) {
       } else {
         state.current.composite?.stop();
         const composite = import_react_native_web13.Animated.timing(val, {
-          ...config2,
+          ...config,
           toValue: next,
           useNativeDriver: !isWeb
         });
@@ -46624,7 +46624,7 @@ function getValue(input, isColor = false) {
 }
 __name(getValue, "getValue");
 
-// ../../libs/ui/rnw/src/lib/tamagui.config.ts
+// ../../libs/ui/shared/src/lib/tamagui.config.ts
 var headingFont = createInterFont({
   size: {
     6: 15
@@ -46667,7 +46667,6 @@ var bodyFont = createInterFont(
     sizeLineHeight: /* @__PURE__ */ __name((size5) => Math.round(size5 * 1.1 + (size5 > 20 ? 10 : 10)), "sizeLineHeight")
   }
 );
-debugger;
 var tokens2 = (0, import_core55.createTokens)({
   size: size4,
   space: { ...size4, "-1": -5, "-2": -10 },
@@ -46678,7 +46677,7 @@ var tokens2 = (0, import_core55.createTokens)({
     black: "black"
   }
 });
-var config = createTamagui({
+var tamaguiConfig = createTamagui({
   animations: createAnimations({
     fast: {
       bounciness: 0,
@@ -46731,7 +46730,7 @@ var config = createTamagui({
 });
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  config,
+  tamaguiConfig,
   tokens
 });
 /*! Bundled license information:

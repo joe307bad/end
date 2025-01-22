@@ -62,3 +62,6 @@ apps/mobile-e2e/artifacts
 /.nx/
 /.vscode/
 **/.next
+
+apps/site/.contentlayer
+/.contentlayer/

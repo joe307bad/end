@@ -28,7 +28,8 @@
       "@end/war/server": ["libs/war/server/src/index.ts"],
       "@end/wm/core": ["libs/wm/core/src/index.ts"],
       "@end/wm/rn": ["libs/wm/rn/src/index.ts"],
-      "@end/wm/web": ["libs/wm/web/src/index.ts"]
+      "@end/wm/web": ["libs/wm/web/src/index.ts"],
+      "contentlayer/generated": [".contentlayer/generated"]
     }
   },
   "exclude": ["node_modules", "tmp"]

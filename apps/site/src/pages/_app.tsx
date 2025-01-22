@@ -3,9 +3,7 @@ import { AppProps } from 'next/app';
 import Head from 'next/head';
 import './styles.css';
 import { TamaguiProvider } from 'tamagui';
-import { tamaguiConfig } from '../tamagui.config';
-
-
+import { tamaguiConfig } from '@end/ui/shared';
 
 function CustomApp({ Component, pageProps }: AppProps) {
   return (
@@ -13,8 +11,12 @@ function CustomApp({ Component, pageProps }: AppProps) {
       <Head>
         <title>Welcome to site!</title>
       </Head>
-      <main className="app">
-        <TamaguiProvider config={tamaguiConfig} disableInjectCSS disableRootThemeClass>
+      <main style={{ height: '100%' }} className="app">
+        <TamaguiProvider
+          config={tamaguiConfig}
+          disableInjectCSS
+          disableRootThemeClass
+        >
           <Component {...pageProps} />
         </TamaguiProvider>
       </main>
