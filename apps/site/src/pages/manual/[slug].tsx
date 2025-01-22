@@ -1,15 +1,16 @@
 import React from 'react';
 import { allManuals, Manual } from 'contentlayer/generated';
 import { H1 } from 'tamagui';
+import { GetStaticPropsContext } from 'next';
 
-export default function ManualPage({ manual }: Manual | undefined) {
-  return <H1>{manual.title ?? ''}</H1>;
+export default function ManualPage({ manual }: { manual: Manual | undefined }) {
+  return <H1>{manual?.title ?? ''}</H1>;
 }
 
-export async function getStaticProps(context) {
+export async function getStaticProps(context: GetStaticPropsContext) {
   return {
     props: {
-      manual: allManuals.find((manual) => manual.url === context.params.slug),
+      manual: allManuals.find((manual) => manual.url === context.params?.slug),
     },
   };
 }

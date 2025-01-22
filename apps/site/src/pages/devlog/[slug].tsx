@@ -1,18 +1,21 @@
 import React from 'react';
 import { allDevlogs, Devlog } from 'contentlayer/generated';
 import { H1 } from 'tamagui';
+import { GetStaticProps, GetStaticPropsContext } from 'next';
 
-export default function DevlogPage({ manual }: Devlog | undefined) {
-  return <H1>{manual.title ?? ''}</H1>;
+export default function DevlogPage({ devlog }: { devlog: Devlog | undefined }) {
+  return <H1>{devlog?.title ?? ''}</H1>;
 }
 
-export async function getStaticProps(context) {
+export const getStaticProps: GetStaticProps = async (
+  context: GetStaticPropsContext
+) => {
   return {
     props: {
-      manual: allDevlogs.find((manual) => manual.url === context.params.slug),
+      devlog: allDevlogs.find((manual) => manual.url === context.params?.slug),
     },
   };
-}
+};
 
 export async function getStaticPaths() {
   const paths = allDevlogs.map((manual) => ({

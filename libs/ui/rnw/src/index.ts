@@ -6,4 +6,3 @@ export * from './lib/Layout';
 export * from './lib/Tabs';
 export * from './lib/Select';
 export * from './lib/ActivityArrow';
-export * from '../../shared/src/lib/tamagui.config'
