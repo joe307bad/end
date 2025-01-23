@@ -422,13 +422,13 @@ h1{
   font-family: "Bebas Neue", serif !important;
   font-weight: 400;
   font-style: normal;
-  transition: color 1s ease-in-out;
+  transition: color 5s ease-in-out;
 }
 
 svg{
-  transition: stroke 1s ease-in-out;
+  transition: stroke 5s ease-in-out !important;
 }
 
 #logo{
-  transition: border-color 1s ease-in-out;
+  transition: border-color 5s ease-in-out;
 }

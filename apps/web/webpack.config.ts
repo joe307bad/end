@@ -1,7 +1,7 @@
-const { NxAppWebpackPlugin } = require('@nx/webpack/app-plugin');
-const { NxReactWebpackPlugin } = require('@nx/react/webpack-plugin');
-const path = require('path');
-const webpack = require('webpack');
+import { NxAppWebpackPlugin } from '@nx/webpack/app-plugin';
+import { NxReactWebpackPlugin } from '@nx/react/webpack-plugin';
+import { DefinePlugin } from 'webpack';
+import { routes } from '../../routes.json';
 
 module.exports = {
   stats: { warnings: false },
@@ -32,7 +32,8 @@ module.exports = {
       outputHashing: process.env['NODE_ENV'] === 'production' ? 'all' : 'none',
       optimization: process.env['NODE_ENV'] === 'production',
     }),
-    new webpack.DefinePlugin({
+    new DefinePlugin({
+      ALL_ROUTES: JSON.stringify(routes),
       'process.env.WEBSOCKET_URL': JSON.stringify(process.env.WEBSOCKET_URL),
       'process.env.API_BASE_URL': JSON.stringify(process.env.API_BASE_URL),
       'process.env.END_VERSION': JSON.stringify(process.env.END_VERSION),

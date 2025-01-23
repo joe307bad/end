@@ -4,6 +4,12 @@
   "sourceRoot": "site",
   "projectType": "application",
   "targets": {
+    "contentlayer": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn build:contentlayer"
+      }
+    },
     "deploy": {
       "defaultConfiguration": "production",
       "dependsOn": [
@@ -19,6 +25,7 @@
       "outputs": [
         "{options.outputPath}"
       ],
+      "dependsOn": ["contentlayer"],
       "defaultConfiguration": "production",
       "options": {
         "outputPath": "dist/apps/site",

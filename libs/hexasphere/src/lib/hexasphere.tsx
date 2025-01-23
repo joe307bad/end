@@ -255,7 +255,7 @@ const TroopCount = React.memo(
     troopCount: number;
     ringColor: string;
   }) => {
-    console.log("efweefw")
+
     const textPositionX = React.useRef<number>();
     const textPositionY = React.useRef<number>();
     const textPositionZ = React.useRef<number>();
@@ -778,8 +778,6 @@ export const HexasphereV2 = React.memo(
       }, {});
     }, [warStore.players]);
 
-    console.log("hexa rendered")
-    console.log(warStore.tiles)
 
     return (
       <>

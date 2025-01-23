@@ -1,4 +1,4 @@
-import { H2, H4, View } from 'tamagui';
+import { H2, H4, Text, View } from 'tamagui';
 import { useEndApi } from '@end/data/web';
 import React, { ComponentType, useEffect, useMemo, useState } from 'react';
 import { useSnapshot } from 'valtio/react';
@@ -106,6 +106,12 @@ function WarComponent({
 
   return (
     <View style={{ overflow: 'hidden', height: '100%', width: '100%' }}>
+      {
+        // @ts-ignore
+        ALL_ROUTES.map((r) => (
+          <Text>{r.title}</Text>
+        ))
+      }
       <View style={bp(['pl-10 flex items-start', 'hidden', 'block'])}>
         <H4>{getOrUndefined(warStore.name)}</H4>
         {/*<Badge title={params.id} />*/}

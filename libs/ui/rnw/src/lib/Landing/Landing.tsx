@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Input, View, XStack, YStack } from 'tamagui';
+import { Input, View, XStack, YStack, Text } from 'tamagui';
 import { Badge, Logo, PrimaryButton } from '@end/ui/shared';
 import { useAuth } from '@end/auth';
 import { useToastController } from '@tamagui/toast';
@@ -15,7 +15,13 @@ type Props = {
   sha?: string;
 };
 
-export function Landing({ goToHome, goToRegister, services, version, sha }: Props) {
+export function Landing({
+  goToHome,
+  goToRegister,
+  services,
+  version,
+  sha,
+}: Props) {
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);

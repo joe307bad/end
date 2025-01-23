@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    }
+  ],
+  "compilerOptions": {
+    "paths": {
+      "contentlayer/generated": [
+        ".contentlayer/generated/index.mjs"
+      ]
+    },
+    "esModuleInterop": true
+  }
+}

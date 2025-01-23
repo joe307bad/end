@@ -5,7 +5,9 @@
   "projectType": "application",
   "targets": {
     "deploy": {
-      "dependsOn": ["build"],
+      "dependsOn": [
+        "build"
+      ],
       "command": "flyctl deploy --config apps/web/fly.toml --dockerfile apps/web/Dockerfile"
     },
     "tsc": {
@@ -16,8 +18,18 @@
     },
     "build": {
       "executor": "@nx/webpack:webpack",
-      "outputs": ["{options.outputPath}"],
+      "outputs": [
+        "{options.outputPath}"
+      ],
       "defaultConfiguration": "production",
+      "dependsOn": [
+        {
+          "projects": [
+            "cli"
+          ],
+          "target": "run-main"
+        }
+      ],
       "options": {
         "compiler": "babel",
         "outputPath": "dist/apps/web",
@@ -25,10 +37,15 @@
         "baseHref": "/",
         "main": "apps/web/src/main-web.tsx",
         "tsConfig": "apps/web/tsconfig.app.json",
-        "assets": ["apps/web/src/favicon.ico", "apps/web/src/assets"],
-        "styles": ["apps/web/src/styles.less"],
+        "assets": [
+          "apps/web/src/favicon.ico",
+          "apps/web/src/assets"
+        ],
+        "styles": [
+          "apps/web/src/styles.less"
+        ],
         "scripts": [],
-        "webpackConfig": "apps/web/webpack.config.js"
+        "webpackConfig": "apps/web/webpack.config.ts"
       },
       "configurations": {
         "development": {
@@ -55,7 +72,9 @@
     },
     "build-release": {
       "executor": "@nx/webpack:webpack",
-      "outputs": ["{options.outputPath}"],
+      "outputs": [
+        "{options.outputPath}"
+      ],
       "defaultConfiguration": "production",
       "options": {
         "compiler": "babel",
@@ -64,10 +83,15 @@
         "baseHref": "/app/",
         "main": "apps/web/src/main-web.tsx",
         "tsConfig": "apps/web/tsconfig.app.json",
-        "assets": ["apps/web/src/favicon.ico", "apps/web/src/assets"],
-        "styles": ["apps/web/src/styles.less"],
+        "assets": [
+          "apps/web/src/favicon.ico",
+          "apps/web/src/assets"
+        ],
+        "styles": [
+          "apps/web/src/styles.less"
+        ],
         "scripts": [],
-        "webpackConfig": "apps/web/webpack.config.js",
+        "webpackConfig": "apps/web/webpack.config.ts",
         "publicPath": "/app"
       },
       "configurations": {
@@ -112,17 +136,23 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"]
+      "outputs": [
+        "{options.outputFile}"
+      ]
     },
     "test": {
       "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "outputs": [
+        "{workspaceRoot}/coverage/{projectRoot}"
+      ],
       "options": {
         "jestConfig": "apps/web/jest.config.ts"
       }
     },
     "docker-build": {
-      "dependsOn": ["build"],
+      "dependsOn": [
+        "build"
+      ],
       "command": "docker build -f apps/web/Dockerfile . -t web"
     }
   },
