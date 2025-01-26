@@ -22,7 +22,6 @@ import { tamaguiConfig } from '@end/ui/shared';
 export const tw = t as any;
 
 export function Providers({ children }: { children: ReactNode }) {
-  debugger;
 
   const c = useMemo(() => tamaguiConfig, []);
 

@@ -1,14 +1,12 @@
-import React from 'react';
+import React, { ReactElement } from 'react';
 import { View } from 'tamagui';
 import { allPages, Page as TPage } from 'contentlayer/generated';
 import { GetStaticPropsContext } from 'next';
-import { Nav } from '@end/ui/shared';
-import { routes } from 'routes.json';
-import { useLiveReload, useMDXComponent } from 'next-contentlayer2/hooks';
+import { useLiveReload } from 'next-contentlayer2/hooks';
 import { MDXRemote } from 'next-mdx-remote';
 import { serialize } from 'next-mdx-remote/serialize';
-import { useRouter } from 'next/router';
 import { usePersistentState } from '../utlis';
+import { Nav } from '../components/Nav';
 
 export default function Page({
   page,
@@ -18,19 +16,9 @@ export default function Page({
   source: any;
 }) {
   useLiveReload();
-  const router = useRouter();
-  const [menuOpen, toggleMenu] = usePersistentState('menuOpen', false);
 
   return (
-    <Nav
-      navigate={(r) => router.push(`/${r}`)}
-      activePage={page?.url}
-      title={page?.title}
-      menuOpen={menuOpen}
-      toggleMenu={toggleMenu}
-      // @ts-ignore
-      routes={routes}
-    >
+    <Nav activePage={page?.url} title={page?.title}>
       <View id="markdown">
         <MDXRemote {...source} />
       </View>

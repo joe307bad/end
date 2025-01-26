@@ -38,6 +38,7 @@ module.exports = {
       'process.env.API_BASE_URL': JSON.stringify(process.env.API_BASE_URL),
       'process.env.END_VERSION': JSON.stringify(process.env.END_VERSION),
       'process.env.END_COMMIT_SHA': JSON.stringify(process.env.END_COMMIT_SHA),
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     }),
     new NxReactWebpackPlugin({
       // Uncomment this line if you don't want to use SVGR

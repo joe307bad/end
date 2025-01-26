@@ -4,12 +4,9 @@ import { View } from 'tamagui';
 import { GetStaticPropsContext } from 'next';
 import path from 'path';
 import { useLiveReload } from 'next-contentlayer2/hooks';
-import { useRouter } from 'next/router';
-import { Nav } from '@end/ui/shared';
+import { Nav } from '../../components/Nav';
 import { MDXRemote } from 'next-mdx-remote';
 import { serialize } from 'next-mdx-remote/serialize';
-import { routes } from 'routes.json';
-import { usePersistentState } from '../../utlis';
 
 export default function ManualPage({
   page,
@@ -19,19 +16,9 @@ export default function ManualPage({
   source: any;
 }) {
   useLiveReload();
-  const router = useRouter();
-  const [menuOpen, toggleMenu] = usePersistentState('menuOpen', false);
 
   return (
-    <Nav
-      menuOpen={menuOpen}
-      toggleMenu={toggleMenu}
-      navigate={(r) => router.push(`/${r}`)}
-      activePage={page?.url}
-      title={page?.title}
-      // @ts-ignore
-      routes={routes}
-    >
+    <Nav activePage={page?.url} title={page?.title}>
       <View id="markdown">
         <MDXRemote {...source} />
       </View>

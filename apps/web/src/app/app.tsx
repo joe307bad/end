@@ -1,5 +1,7 @@
 import React, {
   ComponentType,
+  FC,
+  ReactElement,
   ReactNode,
   useCallback,
   useEffect,
@@ -143,22 +145,25 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     getToken().then((t) => {
+      // TODO this sync method is throwing s JSON parsing error
       execute(services.syncService.sync())
         .then(async (r) => {
           setToken(t);
-          services.warService.store.userId = await execute(
-            services.authService.getUserId()
-          );
-          unsubscribe.current = services.endApi.connectToUserLog();
+          // services.warService.store.userId = await execute(
+          //   services.authService.getUserId()
+          // );
+          // unsubscribe.current = services.endApi.connectToUserLog();
         })
         .catch((e) => {
           try {
             const statusCode = JSON.parse(e.message).statusCode;
             console.error(e);
             if (statusCode === 401) {
+              debugger;
               setToken(null);
             }
           } catch (e) {
+            debugger;
             setToken(null);
           }
         });
@@ -179,16 +184,19 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
     return null;
   }
 
+  console.log({token})
+
   return token ? (
     <PageRouteComponent userId={jwtDecode(token).sub}>
       {children}
     </PageRouteComponent>
   ) : (
-    <Navigate
-      to={`/?return_path=${encodeURIComponent(
-        window.location.pathname + window.location.search
-      )}`}
-    />
+    <h1>hey</h1>
+    // <Navigate
+    //   to={`/?return_path=${encodeURIComponent(
+    //     window.location.pathname + window.location.search
+    //   )}`}
+    // />
   );
 };
 
@@ -287,16 +295,30 @@ function AppRoutes() {
     <DatabaseProvider database={services.endApi.database}>
       <Nav
         full
-        navigate={(r) => router.navigate(r)}
         routes={routes}
         menuOpen={menuOpen}
         toggleMenu={toggleMenu}
+        LinkWrapper={LinkWrapper}
       >
         <RouterProvider router={router} />
       </Nav>
     </DatabaseProvider>
   );
 }
+
+const LinkWrapper: FC<{ children: ReactElement; href: string }> = ({
+  children,
+  href: h,
+}) => {
+  const href = (() => {
+    if (h.startsWith('/app') && process.env.NODE_ENV === 'development') {
+      return h.slice(4);
+    }
+    return h;
+  })();
+
+  return <a href={`${href}`}>{children}</a>;
+};
 
 export function App() {
   return (

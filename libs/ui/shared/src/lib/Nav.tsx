@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { FC, ReactElement } from 'react';
 import {
   H1,
   View,
@@ -17,18 +17,16 @@ import MenuOpen from '@mui/icons-material/CloseSharp';
 function Item({
   route,
   activePage,
-  onPress,
 }: {
   route: {
     url: string;
     title: string;
     type: string;
   };
-  onPress: () => void;
   activePage?: string | null;
 }) {
   return (
-    <XStack onPress={onPress}>
+    <XStack>
       {activePage === route.url ? (
         <Text position="absolute" marginTop={2.5}>
           ⬥
@@ -55,18 +53,18 @@ export function Nav({
   activePage = null,
   title,
   children,
-  navigate,
   menuOpen,
   toggleMenu,
+  LinkWrapper,
 }: {
   full?: boolean;
   menuOpen: boolean;
   toggleMenu: (value: ((prevState: boolean) => boolean) | boolean) => void;
-  navigate: (route: string) => void;
   title?: string;
   activePage?: string | null;
   children: JSX.Element;
   routes: { title: string; url: string; type: string }[];
+  LinkWrapper: FC<{ children: ReactElement; href: string }>;
 }) {
   const grouped = groupBy<{ type: string; title: string; url: string }>(
     // @ts-ignore
@@ -81,12 +79,7 @@ export function Nav({
       height="100%"
       width="100%"
     >
-      <YStack
-        flex={1}
-        alignItems="center"
-        width="100%"
-        height="100%"
-      >
+      <YStack flex={1} alignItems="center" width="100%" height="100%">
         {!full ? (
           <H1
             maxWidth="100%"
@@ -136,11 +129,9 @@ export function Nav({
         >
           <View minHeight="auto" flex={1}>
             {grouped['app'].map((route) => (
-              <Item
-                onPress={() => navigate(route.url)}
-                route={route}
-                activePage={activePage}
-              />
+              <LinkWrapper key={route.title} href={route.url ?? ''}>
+                <Item route={route} activePage={activePage} />
+              </LinkWrapper>
             ))}
             <Separator
               marginVertical="$3"
@@ -149,7 +140,7 @@ export function Nav({
             />
           </View>
           {Object.keys(grouped).map((t) => (
-            <YStack display="flex">
+            <YStack key={t} display="flex">
               {(() => {
                 switch (t) {
                   case 'app':
@@ -158,11 +149,9 @@ export function Nav({
                     return (
                       <YStack>
                         {grouped[t].map((route) => (
-                          <Item
-                            onPress={() => navigate(route.url)}
-                            route={route}
-                            activePage={activePage}
-                          />
+                          <LinkWrapper key={route.title} href={route.url ?? ''}>
+                            <Item route={route} activePage={activePage} />
+                          </LinkWrapper>
                         ))}
                         <Separator
                           borderStyle="dotted"
@@ -176,11 +165,9 @@ export function Nav({
                       <YStack>
                         <H5 color="gray">{t.toUpperCase()}</H5>
                         {grouped[t].map((route) => (
-                          <Item
-                            onPress={() => navigate(route.url)}
-                            route={route}
-                            activePage={activePage}
-                          />
+                          <LinkWrapper key={route.title} href={route.url ?? ''}>
+                            <Item route={route} activePage={activePage} />
+                          </LinkWrapper>
                         ))}
                         <Separator
                           borderStyle="dotted"
