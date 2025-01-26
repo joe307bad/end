@@ -1,18 +1,28 @@
 import { allDocuments } from 'contentlayer/generated';
 import * as fs from 'fs';
 
-// Example array to write
+const docs = allDocuments.map((d) => ({
+  title: d.title,
+  url: d.url,
+  type: d.type,
+}));
+
 const dataArray = {
-  routes: allDocuments.map((d) => ({
-    title: d.title,
-    url: d.url,
-  })),
+  routes: [
+    ...[
+      { title: 'Explore', url: '/app/home', type: 'app' },
+      { title: 'Conquest', url: '/app/conquest', type: 'app' },
+      { title: 'Citadel', url: '/app/citadel', type: 'app' },
+      { title: 'Logout', type: 'app' },
+      { title: 'Index', type: 'Page', url: "/" },
+    ],
+    ...docs,
+  ],
 };
 
-// Function to write the array to a JSON file
 const writeArrayToJsonFile = (filePath: string, data: any): void => {
   try {
-    const jsonContent = JSON.stringify(data, null, 2); // Pretty-print with 2 spaces
+    const jsonContent = JSON.stringify(data, null, 2);
     fs.writeFileSync(filePath, jsonContent, 'utf8');
     console.log(`Data successfully written to ${filePath}`);
   } catch (error) {
@@ -20,8 +30,8 @@ const writeArrayToJsonFile = (filePath: string, data: any): void => {
   }
 };
 
-// Specify the file path
-const filePath = './routes.json';
+const filePaths = ['./routes.json' /*', ./apps/site/public/routes.json'*/];
 
-// Call the function
-writeArrayToJsonFile(filePath, dataArray);
+filePaths.forEach((p) => {
+  writeArrayToJsonFile(p, dataArray);
+});

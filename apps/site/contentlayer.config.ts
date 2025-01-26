@@ -7,18 +7,23 @@ export const Devlog = defineDocumentType(() => ({
   fields: {
     title: { type: 'string', required: true },
     summary: { type: 'string', required: true },
-    date: { type: 'date', required: true }
+    date: { type: 'date', required: true },
   },
   computedFields: {
     url: {
       type: 'string',
-      resolve: (post) => path.basename(
-        post._raw.sourceFileName,
-        path.extname(post._raw.sourceFileName)
-      )
-    }
-  }
+      resolve: (post) => toUrl(post._raw.sourceFilePath),
+    },
+  },
 }));
+
+const toUrl = (p: string) => {
+  const parsedPath = path.parse(p);
+
+  const b = path.join(parsedPath.dir, parsedPath.name);
+  debugger;
+  return b;
+};
 
 export const Manual = defineDocumentType(() => ({
   name: 'Manual',
@@ -26,17 +31,14 @@ export const Manual = defineDocumentType(() => ({
   fields: {
     title: { type: 'string', required: true },
     summary: { type: 'string', required: true },
-    date: { type: 'date', required: true }
+    date: { type: 'date', required: true },
   },
   computedFields: {
     url: {
       type: 'string',
-      resolve: (post) => path.basename(
-        post._raw.sourceFileName,
-        path.extname(post._raw.sourceFileName)
-      )
-    }
-  }
+      resolve: (post) => toUrl(post._raw.sourceFilePath),
+    },
+  },
 }));
 
 export const Page = defineDocumentType(() => ({
@@ -45,20 +47,21 @@ export const Page = defineDocumentType(() => ({
   fields: {
     title: { type: 'string', required: true },
     summary: { type: 'string', required: true },
-    date: { type: 'date', required: true }
+    date: { type: 'date', required: true },
   },
   computedFields: {
     url: {
       type: 'string',
-      resolve: (post) => path.basename(
-        post._raw.sourceFileName,
-        path.extname(post._raw.sourceFileName)
-      )
-    }
-  }
+      resolve: (post) =>
+        path.basename(
+          post._raw.sourceFileName,
+          path.extname(post._raw.sourceFileName)
+        ),
+    },
+  },
 }));
 
 export default makeSource({
   contentDirPath: 'apps/site/content',
-  documentTypes: [Devlog, Manual, Page]
+  documentTypes: [Devlog, Manual, Page],
 });

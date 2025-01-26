@@ -10,20 +10,10 @@ export function Index({ version, sha }: { version: string; sha: string }) {
     <View height="100%" justifyContent="center" alignItems="center">
       <YStack gap="$2" alignItems="center" maxWidth="100%" width={800}>
         <Logo Hexagon={Hexagon} />
-        <View maxWidth="100%" width={500}>
-          <H3
-            fontFamily="Funnel Sans"
-            letterSpacing={1}
-            fontWeight="300"
-            textAlign="center"
-          >
-            <Text fontFamily="Funnel Sans" fontWeight="900">
-              end
-            </Text>{' '}
-            is the codename for a strategy game focused on conquest and
-            interactive fiction.
-          </H3>
-        </View>
+        <Text maxWidth="100%" width={200}>
+          void is the codename for a strategy game focused on conquest and
+          interactive fiction.
+        </Text>
         <View maxWidth="100%" width={500}>
           <XStack justifyContent="center" width="100%" gap="$1">
             <Link style={{ display: 'block', width: '30%' }} href="/about">

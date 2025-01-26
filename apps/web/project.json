@@ -27,7 +27,7 @@
           "projects": [
             "cli"
           ],
-          "target": "run-main"
+          "target": "r"
         }
       ],
       "options": {

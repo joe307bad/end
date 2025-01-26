@@ -70,7 +70,9 @@ export default function Home() {
 
   return (
     <View overflow="hidden" height="100%" width="100%">
-      <H2 paddingLeft="$1">{getOrUndefined(warStore.name)}</H2>
+      <H2 position="absolute" padding="$1">
+        {getOrUndefined(warStore.name)}
+      </H2>
       <Canvas
         style={{
           flex: 1,

@@ -26,7 +26,7 @@ const c = shuffle([
   '#FFFF00',
 ]);
 
-export function Logo({ }: { Hexagon: ComponentType<any> }) {
+export function Logo({}: { Hexagon: ComponentType<any> }) {
   const [colorIndex, setColorIndex] = useState(0);
   const [bgColorIndex, setBgColorIndex] = useState(1);
   const [colorIndex2, setColorIndex2] = useState(2);
@@ -58,13 +58,22 @@ export function Logo({ }: { Hexagon: ComponentType<any> }) {
       // width={182}
       // backgroundColor={colors[bgColorIndex]}
     >
-      <View marginLeft={-5}>
+      <View marginLeft={-5}></View>
+      <H1
+        textAlign="center"
+        fontSize="$12"
+        letterSpacing="$1"
+        height={49}
+        margin={0}
+        color={colors[bgColorIndex]}
+        display="flex"
+      >
         <Text
           alignItems="center"
           display="flex"
           height={60}
           fontSize="53px"
-          paddingRight={8}
+          marginTop={-5}
         >
           <Hexagon
             fontSize="inherit"
@@ -75,16 +84,7 @@ export function Logo({ }: { Hexagon: ComponentType<any> }) {
             }}
           />
         </Text>
-      </View>
-      <H1
-        textAlign="center"
-        fontSize="$12"
-        letterSpacing="$1"
-        height={49}
-        margin={0}
-        color={colors[bgColorIndex]}
-      >
-        end
+        Void
       </H1>
     </XStack>
   );

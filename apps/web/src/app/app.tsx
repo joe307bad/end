@@ -44,6 +44,7 @@ import { View } from 'tamagui';
 import { useSnapshot } from 'valtio/react';
 import { Citadel } from '../pages/Citadel';
 import { jwtDecode } from 'jwt-decode';
+import { Nav } from '@end/ui/shared';
 
 function WithNavigate({
   children,
@@ -277,10 +278,22 @@ function AppRoutes() {
       ),
     [warStore.userId]
   );
+  // @ts-ignore
+  const routes = ALL_ROUTES;
+
+  const [menuOpen, toggleMenu] = useState(false);
 
   return (
     <DatabaseProvider database={services.endApi.database}>
-      <RouterProvider router={router} />
+      <Nav
+        full
+        navigate={(r) => router.navigate(r)}
+        routes={routes}
+        menuOpen={menuOpen}
+        toggleMenu={toggleMenu}
+      >
+        <RouterProvider router={router} />
+      </Nav>
     </DatabaseProvider>
   );
 }

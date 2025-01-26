@@ -46634,6 +46634,7 @@ var headingFont = createInterFont({
     7: "none"
   },
   weight: {
+    5: "200",
     6: "400",
     7: "700"
   },
@@ -46642,7 +46643,7 @@ var headingFont = createInterFont({
     7: "$color"
   },
   letterSpacing: {
-    5: 2,
+    5: 1,
     6: 1,
     7: 0,
     8: -1,

@@ -1,11 +1,11 @@
 import React from 'react';
-import { View, Text } from 'tamagui';
+import { View, Text, ViewProps } from 'tamagui';
 
-const colors = (color?: string ) => {
+const colors = (color?: string) => {
   switch (color) {
     case 'red':
       return ['lightcoral', 'darkred'];
-    case 'green' :
+    case 'green':
       return ['lightgreen', 'green'];
     case 'purple':
       return ['#e4acef', '#490049'];
@@ -18,20 +18,21 @@ const colors = (color?: string ) => {
     default:
       return ['lightblue', 'blue'];
   }
-}
+};
 
 export function Badge({
   title,
   color: c,
   styles,
+  ...rest
 }: {
   title?: string;
   color?: string;
   styles?: string;
-}) {
+} & ViewProps) {
   const [light, dark] = colors(c);
   return (
-    <View alignItems="center">
+    <View alignItems="center" {...rest}>
       <View
         backgroundColor={light}
         paddingHorizontal="14px"

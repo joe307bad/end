@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Input, View, XStack, YStack, Text } from 'tamagui';
+import { Input, View, XStack, YStack } from 'tamagui';
 import { Badge, Logo, PrimaryButton } from '@end/ui/shared';
 import { useAuth } from '@end/auth';
 import { useToastController } from '@tamagui/toast';
