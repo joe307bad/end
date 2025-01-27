@@ -14,6 +14,8 @@ COPY ./dist/apps/site ./
 
 RUN unzip -j -o end-release.zip -d ./public/app
 
+RUN npm install @floating-ui/react --force
+RUN npm install @emotion/styled --force
 RUN npm install @tamagui/next-plugin --force
 RUN npm install --frozen-lockfile --production --force
 
