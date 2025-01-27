@@ -81,7 +81,7 @@ export function Landing({
         Login
       </PrimaryButton>
       <View alignContent="center" margin="$1">
-        <Badge color="purple" title={`${version} | ${sha}`} />
+        <Badge color="purple" title={version} />
       </View>
       <View flex={1} width="100%" justifyContent="flex-end">
         <PrimaryButton onPress={goToRegister}>Register</PrimaryButton>

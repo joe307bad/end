@@ -14,7 +14,7 @@ const colors = (color?: string) => {
     case 'blue':
       return ['lightblue', 'blue'];
     case 'yellow':
-      return ['lightyellow', 'darkyellow'];
+      return ['#39ff99', '#00853d'];
     default:
       return ['lightblue', 'blue'];
   }

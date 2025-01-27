@@ -26,6 +26,7 @@ import {
   useParams,
   createBrowserRouter,
   RouterProvider,
+  Link,
 } from 'react-router-dom';
 import Home from '../pages/Home';
 import { useAuth } from '@end/auth';
@@ -145,25 +146,22 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     getToken().then((t) => {
-      // TODO this sync method is throwing s JSON parsing error
       execute(services.syncService.sync())
         .then(async (r) => {
           setToken(t);
-          // services.warService.store.userId = await execute(
-          //   services.authService.getUserId()
-          // );
-          // unsubscribe.current = services.endApi.connectToUserLog();
+          services.warService.store.userId = await execute(
+            services.authService.getUserId()
+          );
+          unsubscribe.current = services.endApi.connectToUserLog();
         })
         .catch((e) => {
           try {
             const statusCode = JSON.parse(e.message).statusCode;
             console.error(e);
             if (statusCode === 401) {
-              debugger;
               setToken(null);
             }
           } catch (e) {
-            debugger;
             setToken(null);
           }
         });
@@ -183,20 +181,16 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
   if (token === 'LOADING') {
     return null;
   }
-
-  console.log({token})
-
   return token ? (
     <PageRouteComponent userId={jwtDecode(token).sub}>
       {children}
     </PageRouteComponent>
   ) : (
-    <h1>hey</h1>
-    // <Navigate
-    //   to={`/?return_path=${encodeURIComponent(
-    //     window.location.pathname + window.location.search
-    //   )}`}
-    // />
+    <Navigate
+      to={`/?return_path=${encodeURIComponent(
+        window.location.pathname + window.location.search
+      )}`}
+    />
   );
 };
 
@@ -217,7 +211,6 @@ function AppRoutes() {
                     <>
                       <Landing
                         version={process.env.END_VERSION ?? '0.0.0'}
-                        sha={process.env.END_COMMIT_SHA ?? '<commit sha>'}
                         services={services}
                         goToRegister={() => n('/register')}
                         goToHome={() => {
@@ -299,6 +292,7 @@ function AppRoutes() {
         menuOpen={menuOpen}
         toggleMenu={toggleMenu}
         LinkWrapper={LinkWrapper}
+        router={router}
       >
         <RouterProvider router={router} />
       </Nav>
@@ -306,10 +300,19 @@ function AppRoutes() {
   );
 }
 
-const LinkWrapper: FC<{ children: ReactElement; href: string }> = ({
-  children,
-  href: h,
-}) => {
+const LinkWrapper: FC<{
+  children: ReactElement;
+  href: string;
+  router?: {
+    navigate: (to: string, options?: { replace: boolean }) => Promise<any>;
+  };
+}> = ({ children, href: h, router }) => {
+  const { deleteToken } = useAuth();
+
+  if (!h.startsWith('/app') && h !== '') {
+    return <a href={h}>{children}</a>;
+  }
+
   const href = (() => {
     if (h.startsWith('/app') && process.env.NODE_ENV === 'development') {
       return h.slice(4);
@@ -317,7 +320,22 @@ const LinkWrapper: FC<{ children: ReactElement; href: string }> = ({
     return h;
   })();
 
-  return <a href={`${href}`}>{children}</a>;
+  return (
+    <a
+      onClick={async (e) => {
+        if (href === '') {
+          await deleteToken();
+          router?.navigate('/', { replace: true });
+        }
+
+        e.preventDefault();
+        router?.navigate(href);
+      }}
+      href={href}
+    >
+      {children}
+    </a>
+  );
 };
 
 export function App() {

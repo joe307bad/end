@@ -19,10 +19,7 @@ export const Devlog = defineDocumentType(() => ({
 
 const toUrl = (p: string) => {
   const parsedPath = path.parse(p);
-
-  const b = path.join(parsedPath.dir, parsedPath.name);
-  debugger;
-  return b;
+  return path.join(parsedPath.dir, parsedPath.name);
 };
 
 export const Manual = defineDocumentType(() => ({

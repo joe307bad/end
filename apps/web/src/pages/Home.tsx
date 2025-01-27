@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useWindowDimensions } from 'react-native';
 import { OrbitControls } from '@react-three/drei';
-import { H2, View } from 'tamagui';
+import { H1, View } from 'tamagui';
 import { useEndApi } from '@end/data/web';
 import { execute } from '@end/data/core';
 import { useNavigate } from 'react-router-dom';
@@ -70,9 +70,9 @@ export default function Home() {
 
   return (
     <View overflow="hidden" height="100%" width="100%">
-      <H2 position="absolute" padding="$1">
+      <H1 letterSpacing="$1" zIndex={9} position="absolute" padding="$1">
         {getOrUndefined(warStore.name)}
-      </H2>
+      </H1>
       <Canvas
         style={{
           flex: 1,

@@ -56,6 +56,7 @@ export function Nav({
   menuOpen,
   toggleMenu,
   LinkWrapper,
+  router,
 }: {
   full?: boolean;
   menuOpen: boolean;
@@ -64,7 +65,12 @@ export function Nav({
   activePage?: string | null;
   children: JSX.Element;
   routes: { title: string; url: string; type: string }[];
-  LinkWrapper: FC<{ children: ReactElement; href: string }>;
+  LinkWrapper: FC<{
+    children: ReactElement;
+    href: string;
+    router?: { navigate: (to: string) => Promise<any> };
+  }>;
+  router?: { navigate: (to: string) => Promise<any> };
 }) {
   const grouped = groupBy<{ type: string; title: string; url: string }>(
     // @ts-ignore
@@ -129,7 +135,11 @@ export function Nav({
         >
           <View minHeight="auto" flex={1}>
             {grouped['app'].map((route) => (
-              <LinkWrapper key={route.title} href={route.url ?? ''}>
+              <LinkWrapper
+                router={router}
+                key={route.title}
+                href={route.url ?? ''}
+              >
                 <Item route={route} activePage={activePage} />
               </LinkWrapper>
             ))}
@@ -149,7 +159,11 @@ export function Nav({
                     return (
                       <YStack>
                         {grouped[t].map((route) => (
-                          <LinkWrapper key={route.title} href={route.url ?? ''}>
+                          <LinkWrapper
+                            router={router}
+                            key={route.title}
+                            href={route.url ?? ''}
+                          >
                             <Item route={route} activePage={activePage} />
                           </LinkWrapper>
                         ))}
@@ -165,7 +179,11 @@ export function Nav({
                       <YStack>
                         <H5 color="gray">{t.toUpperCase()}</H5>
                         {grouped[t].map((route) => (
-                          <LinkWrapper key={route.title} href={route.url ?? ''}>
+                          <LinkWrapper
+                            router={router}
+                            key={route.title}
+                            href={route.url ?? ''}
+                          >
                             <Item route={route} activePage={activePage} />
                           </LinkWrapper>
                         ))}

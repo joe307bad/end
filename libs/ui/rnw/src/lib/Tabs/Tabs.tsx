@@ -61,7 +61,7 @@ export function TabsContainer({
 
   return (
     <Section
-      paddingTop={70}
+      paddingTop={62}
       style={bp([
         'z-8 max-w-full',
         'relative w-full h-[50%]',
