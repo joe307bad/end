@@ -1,19 +1,27 @@
-
 const { composePlugins, withNx } = require('@nx/next');
-const { withTamagui } = require('@tamagui/next-plugin')
+const { withTamagui } = require('@tamagui/next-plugin');
+const { createContentlayerPlugin } = require('next-contentlayer2');
 
 const nextConfig = {
   nx: {
     svgr: false,
   },
-  rewrites: () => Promise.resolve([{source: '/app', destination: '/app/index.html'}]),
+  rewrites: () =>
+    Promise.resolve([
+      { source: '/app/:slug*', destination: '/app/index.html' },
+    ]),
 };
 
+const contentLayerConfig = () =>
+  createContentlayerPlugin({
+    configPath: 'apps/site/contentlayer.config.ts',
+  });
+
 const plugins = [
-  // Add more Next.js plugins to this list if needed.
+  contentLayerConfig,
   withNx,
   withTamagui({
-    config: '../../libs/ui/rnw/src/lib/tamagui.config.ts',
+    config: '../../libs/ui/shared/src/lib/tamagui.config.ts',
     components: ['tamagui'],
   })
 ];

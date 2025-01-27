@@ -19,18 +19,22 @@ const SyncLive = Layer.effect(
     const sync = syncFactory(yield* database());
     const { getToken } = yield* AuthService;
 
+    const semaphore = yield* Effect.makeSemaphore(1);
+
     return SyncService.of({
       sync: () =>
-        pipe(
-          Effect.match(getToken(), {
-            onSuccess: (token) => getOrUndefined(token),
-            onFailure: () => 'Token required',
-          }),
-          Effect.flatMap((token) =>
-            Effect.tryPromise({
-              try: () => sync(token, config.apiUrl),
-              catch: (error) => error?.toString?.() as string,
-            })
+        semaphore.withPermits(1)(
+          pipe(
+            Effect.match(getToken(), {
+              onSuccess: (token) => getOrUndefined(token),
+              onFailure: () => 'Token required',
+            }),
+            Effect.flatMap((token) =>
+              Effect.tryPromise({
+                try: () => sync(token, config.apiUrl),
+                catch: (error) => error?.toString?.() as string,
+              })
+            )
           )
         ),
     });

@@ -1,11 +1,11 @@
 import { Input, YStack } from 'tamagui';
-import * as Typography from '../Typography';
-import { PrimaryButton } from '@end/ui/shared';
+import { Logo, PrimaryButton } from '@end/ui/shared';
 import React, { useCallback, useEffect, useState } from 'react';
 import { execute, servicesFactory } from '@end/data/core';
 import { useToastController } from '@tamagui/toast';
 import { useAuth } from '@end/auth';
 import { CurrentToast } from '../components';
+import { Hexagon } from 'lucide-react-native';
 
 export function Register({
   goToHome,
@@ -52,7 +52,7 @@ export function Register({
       space="$0.5"
       style={{ alignItems: 'center' }}
     >
-      <Typography.H1>end</Typography.H1>
+      <Logo Hexagon={Hexagon} />
       <YStack maxWidth={438} width="100%" space="$0.5">
         <Input
           placeholder="Username"

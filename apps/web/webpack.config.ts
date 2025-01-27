@@ -1,7 +1,16 @@
-const { NxAppWebpackPlugin } = require('@nx/webpack/app-plugin');
-const { NxReactWebpackPlugin } = require('@nx/react/webpack-plugin');
-const path = require('path');
-const webpack = require('webpack');
+import { NxAppWebpackPlugin } from '@nx/webpack/app-plugin';
+import { NxReactWebpackPlugin } from '@nx/react/webpack-plugin';
+import { DefinePlugin } from 'webpack';
+import { readFileSync } from 'fs';
+
+function getRoutes() {
+  try {
+    return JSON.parse(readFileSync('./routes.json', 'utf8'));
+  } catch (e) {
+    console.error(e.message);
+    return '{}';
+  }
+}
 
 module.exports = {
   stats: { warnings: false },
@@ -32,11 +41,13 @@ module.exports = {
       outputHashing: process.env['NODE_ENV'] === 'production' ? 'all' : 'none',
       optimization: process.env['NODE_ENV'] === 'production',
     }),
-    new webpack.DefinePlugin({
+    new DefinePlugin({
+      ALL_ROUTES: JSON.stringify(getRoutes()),
       'process.env.WEBSOCKET_URL': JSON.stringify(process.env.WEBSOCKET_URL),
       'process.env.API_BASE_URL': JSON.stringify(process.env.API_BASE_URL),
       'process.env.END_VERSION': JSON.stringify(process.env.END_VERSION),
       'process.env.END_COMMIT_SHA': JSON.stringify(process.env.END_COMMIT_SHA),
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     }),
     new NxReactWebpackPlugin({
       // Uncomment this line if you don't want to use SVGR

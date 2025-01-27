@@ -1,11 +1,11 @@
-import { H2, H4, View } from 'tamagui';
+import { H1, H2, H4, Text, View } from 'tamagui';
 import { useEndApi } from '@end/data/web';
 import React, { ComponentType, useEffect, useMemo, useState } from 'react';
 import { useSnapshot } from 'valtio/react';
 import { hv2 } from '@end/hexasphere';
 import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
-import { PortalPath, GameTabsV2, useResponsive } from '@end/components';
+import { PortalPath, GameTabsV2, useResponsive, TabsContainer } from '@end/components';
 import { OrbitControls } from '@react-three/drei';
 import { useWindowDimensions } from 'react-native';
 import { pipe } from 'effect';
@@ -105,11 +105,10 @@ function WarComponent({
   }
 
   return (
-    <View style={{ overflow: 'hidden', height: '100%', width: '100%' }}>
-      <View style={bp(['pl-10 flex items-start', 'hidden', 'block'])}>
-        <H4>{getOrUndefined(warStore.name)}</H4>
-        {/*<Badge title={params.id} />*/}
-      </View>
+    <View overflow="hidden" height="100%" width="100%">
+      <H1 letterSpacing="$1" zIndex={9} position="absolute" padding="$1">
+        {getOrUndefined(warStore.name)}
+      </H1>
       <Canvas
         style={{
           flex: 1,
@@ -122,7 +121,7 @@ function WarComponent({
       </Canvas>
       <GameTabsV2 menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
     </View>
-  );
+  )
 }
 
 const EnhancedWarComponent = compose(
