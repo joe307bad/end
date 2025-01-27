@@ -1,5 +1,6 @@
 import { allDocuments } from 'contentlayer/generated';
 import * as fs from 'fs';
+import path from 'path';
 
 const docs = allDocuments.map((d) => ({
   title: d.title,
@@ -14,7 +15,7 @@ const dataArray = {
       { title: 'Conquest', url: '/app/conquest', type: 'app' },
       { title: 'Citadel', url: '/app/citadel', type: 'app' },
       { title: 'Logout', type: 'app' },
-      { title: 'Index', type: 'Page', url: "/" },
+      { title: 'Index', type: 'Page', url: '/' },
     ],
     ...docs,
   ],
@@ -30,7 +31,16 @@ const writeArrayToJsonFile = (filePath: string, data: any): void => {
   }
 };
 
-const filePaths = ['./routes.json' /*', ./apps/site/public/routes.json'*/];
+const directoryPath = 'dist'
+
+if (!fs.existsSync(directoryPath)) {
+  fs.mkdirSync(directoryPath, { recursive: true });
+  console.log(`Directory created: ${directoryPath}`);
+} else {
+  console.log(`Directory already exists: ${directoryPath}`);
+}
+
+const filePaths = ['./routes.json', './dist/routes.json'];
 
 filePaths.forEach((p) => {
   writeArrayToJsonFile(p, dataArray);

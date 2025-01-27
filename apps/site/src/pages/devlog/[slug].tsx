@@ -7,18 +7,21 @@ import { useLiveReload } from 'next-contentlayer2/hooks';
 import { Nav } from '../../components/Nav';
 import { MDXRemote } from 'next-mdx-remote';
 import { serialize } from 'next-mdx-remote/serialize';
+import { readFileSync } from 'fs';
 
 export default function DevlogPage({
   page,
   source,
+  routes,
 }: {
   page: Devlog | undefined;
   source: any;
+  routes: { url: string; title: string; type: string }[];
 }) {
   useLiveReload();
 
   return (
-    <Nav activePage={page?.url} title={page?.title}>
+    <Nav routes={routes} activePage={page?.url} title={page?.title}>
       <View id="markdown">
         <MDXRemote {...source} />
       </View>
@@ -27,6 +30,15 @@ export default function DevlogPage({
 }
 
 export async function getStaticProps(context: GetStaticPropsContext) {
+  const data = (() => {
+    try {
+      // @ts-ignore
+      return JSON.parse(readFileSync(path.resolve(process.cwd(), '../../dist/routes.json'), 'utf8'));
+    } catch (e: any) {
+      console.error(e.message);
+      return '{}';
+    }
+  })()
   const page = allDevlogs.find(
     (devlog) =>
       path.basename(
@@ -39,6 +51,7 @@ export async function getStaticProps(context: GetStaticPropsContext) {
   return {
     props: {
       page,
+      routes: data.routes,
       source: compiledMdx,
     },
   };

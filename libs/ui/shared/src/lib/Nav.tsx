@@ -56,7 +56,7 @@ export function Nav({
   menuOpen,
   toggleMenu,
   LinkWrapper,
-  router,
+  router
 }: {
   full?: boolean;
   menuOpen: boolean;

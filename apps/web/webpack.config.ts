@@ -1,7 +1,16 @@
 import { NxAppWebpackPlugin } from '@nx/webpack/app-plugin';
 import { NxReactWebpackPlugin } from '@nx/react/webpack-plugin';
 import { DefinePlugin } from 'webpack';
-import { routes } from '../../routes.json';
+import { readFileSync } from 'fs';
+
+function getRoutes() {
+  try {
+    return JSON.parse(readFileSync('./routes.json', 'utf8'));
+  } catch (e) {
+    console.error(e.message);
+    return '{}';
+  }
+}
 
 module.exports = {
   stats: { warnings: false },
@@ -33,7 +42,7 @@ module.exports = {
       optimization: process.env['NODE_ENV'] === 'production',
     }),
     new DefinePlugin({
-      'ALL_ROUTES': JSON.stringify(routes),
+      ALL_ROUTES: JSON.stringify(getRoutes()),
       'process.env.WEBSOCKET_URL': JSON.stringify(process.env.WEBSOCKET_URL),
       'process.env.API_BASE_URL': JSON.stringify(process.env.API_BASE_URL),
       'process.env.END_VERSION': JSON.stringify(process.env.END_VERSION),

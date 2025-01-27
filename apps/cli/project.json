@@ -9,9 +9,6 @@
       "outputs": [
         "{options.outputPath}"
       ],
-      "dependsOn": [
-        { "projects": ["site"], "target": "build" }
-      ],
       "defaultConfiguration": "production",
       "options": {
         "platform": "node",
@@ -71,6 +68,12 @@
       "executor": "nx:run-commands",
       "options": {
         "command": "node dist/apps/cli/main.js"
+      }
+    },
+    "build-contentlayer": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yarn build:contentlayer"
       }
     }
   },

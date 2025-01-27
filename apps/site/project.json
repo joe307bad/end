@@ -25,7 +25,12 @@
       "outputs": [
         "{options.outputPath}"
       ],
-      "dependsOn": ["contentlayer"],
+      "dependsOn": [
+        {
+          "project": "cli",
+          "target": "r"
+        }
+      ],
       "defaultConfiguration": "production",
       "options": {
         "outputPath": "dist/apps/site",
