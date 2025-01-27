@@ -51,4 +51,5 @@ jobs:
           envkey_END_COMMIT_SHA: ${{ github.sha }}
 
       - run: git pull --rebase
+      - run: yarn build:contentlayer
       - run: yarn deploy

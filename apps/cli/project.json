@@ -9,6 +9,9 @@
       "outputs": [
         "{options.outputPath}"
       ],
+      "dependsOn": [
+        "contentlayer"
+      ],
       "defaultConfiguration": "production",
       "options": {
         "platform": "node",
