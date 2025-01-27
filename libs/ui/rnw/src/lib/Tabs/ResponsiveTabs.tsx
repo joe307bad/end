@@ -17,8 +17,9 @@ export function ResponsiveTabs({
   const { bp } = useResponsive(menuOpen, 1000);
   return (
     <Section
+      paddingTop={62}
       style={bp([
-        'z-10 max-w-full',
+        'z-9 max-w-full',
         `relative w-full ${menuOpen ? 'h-[75%]' : ''}`,
         '',
         'absolute w-[500px] pb-5 right-[20px] w-[500px] h-full',

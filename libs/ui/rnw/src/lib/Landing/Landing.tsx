@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import * as Typography from '../Typography';
 import { Input, View, XStack, YStack } from 'tamagui';
-import { Badge, PrimaryButton } from '@end/ui/shared';
+import { Badge, Logo, PrimaryButton } from '@end/ui/shared';
 import { useAuth } from '@end/auth';
 import { useToastController } from '@tamagui/toast';
 import { execute, servicesFactory } from '@end/data/core';
 import { CurrentToast } from '../components';
+import { Hexagon } from 'lucide-react-native';
 
 type Props = {
   goToHome?: () => void;
@@ -15,7 +15,13 @@ type Props = {
   sha?: string;
 };
 
-export function Landing({ goToHome, goToRegister, services, version, sha }: Props) {
+export function Landing({
+  goToHome,
+  goToRegister,
+  services,
+  version,
+  sha,
+}: Props) {
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -47,9 +53,9 @@ export function Landing({ goToHome, goToRegister, services, version, sha }: Prop
   }, []);
 
   return (
-    <YStack height="100%" padding="$0.5" space="$0.5">
-      <View display="flex" alignItems="center">
-        <Typography.H1>end</Typography.H1>
+    <YStack alignItems="center" height="100%" padding="$0.5" space="$0.5">
+      <View margin="$2">
+        <Logo Hexagon={Hexagon} />
       </View>
       <XStack space="$0.5">
         <Input
@@ -75,9 +81,9 @@ export function Landing({ goToHome, goToRegister, services, version, sha }: Prop
         Login
       </PrimaryButton>
       <View alignContent="center" margin="$1">
-        <Badge color="purple" title={`${version} | ${sha}`} />
+        <Badge color="purple" title={version} />
       </View>
-      <View flex={1} justifyContent="flex-end">
+      <View flex={1} width="100%" justifyContent="flex-end">
         <PrimaryButton onPress={goToRegister}>Register</PrimaryButton>
       </View>
       <CurrentToast />

@@ -8,7 +8,6 @@ import {
   YStack,
   View,
 } from 'tamagui';
-import { config } from './tamagui.config';
 import t, { useDeviceContext } from 'twrnc';
 import { AuthProvider } from '@end/auth';
 import {
@@ -18,13 +17,13 @@ import {
   useToastState,
 } from '@tamagui/toast';
 import '@react-three/fiber';
+import { tamaguiConfig } from '@end/ui/shared';
 
 export const tw = t as any;
 
 export function Providers({ children }: { children: ReactNode }) {
-  debugger;
 
-  const c = useMemo(() => config, []);
+  const c = useMemo(() => tamaguiConfig, []);
 
   // @ts-ignore
   useDeviceContext(tw);

@@ -1,9 +1,10 @@
+import { createTamagui, createTokens, createFont } from 'tamagui';
 import { createInterFont } from '@tamagui/font-inter';
-import { createTamagui, createTokens } from 'tamagui';
-import { size, themes } from '@tamagui/themes';
-import { createAnimations } from '@tamagui/animations-react-native';
 import { shorthands } from '@tamagui/shorthands';
+import { themes, size } from '@tamagui/themes';
 import { createMedia } from '@tamagui/react-native-media-driver';
+import { createAnimations } from '@tamagui/animations-react-native';
+import { undefined } from 'effect/Match';
 
 const headingFont = createInterFont({
   size: {
@@ -14,6 +15,7 @@ const headingFont = createInterFont({
     7: 'none',
   },
   weight: {
+    5: '200',
     6: '400',
     7: '700',
   },
@@ -22,7 +24,7 @@ const headingFont = createInterFont({
     7: '$color',
   },
   letterSpacing: {
-    5: 2,
+    5: 1,
     6: 1,
     7: 0,
     8: -1,
@@ -49,7 +51,6 @@ const bodyFont = createInterFont(
     sizeLineHeight: (size) => Math.round(size * 1.1 + (size > 20 ? 10 : 10)),
   }
 );
-debugger;
 export const tokens = createTokens({
   size,
   space: { ...size, '-1': -5, '-2': -10 },
@@ -61,7 +62,7 @@ export const tokens = createTokens({
   },
 });
 
-export const tamaguiConfig = createTamagui({
+export const tamaguiConfig: any = createTamagui({
   animations: createAnimations({
     fast: {
       bounciness: 0,
