@@ -12,6 +12,14 @@
     },
     "tsc": {
       "executor": "nx:run-commands",
+      "dependsOn": [
+        {
+          "projects": [
+            "cli"
+          ],
+          "target": "r"
+        }
+      ],
       "options": {
         "command": "tsc --noEmit -p apps/web/tsconfig.app.json"
       }
