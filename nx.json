@@ -31,6 +31,11 @@
     "e2e": {
       "cache": true,
       "inputs": ["default", "^production"]
+    },
+    "@nx/esbuild:esbuild": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
     }
   },
   "namedInputs": {
@@ -47,6 +52,7 @@
     ],
     "sharedGlobals": []
   },
+  "neverConnectToCloud": true,
   "generators": {
     "@nx/react": {
       "application": {

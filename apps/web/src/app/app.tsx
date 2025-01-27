@@ -1,5 +1,7 @@
 import React, {
   ComponentType,
+  FC,
+  ReactElement,
   ReactNode,
   useCallback,
   useEffect,
@@ -24,6 +26,7 @@ import {
   useParams,
   createBrowserRouter,
   RouterProvider,
+  Link,
 } from 'react-router-dom';
 import Home from '../pages/Home';
 import { useAuth } from '@end/auth';
@@ -44,6 +47,7 @@ import { View } from 'tamagui';
 import { useSnapshot } from 'valtio/react';
 import { Citadel } from '../pages/Citadel';
 import { jwtDecode } from 'jwt-decode';
+import { Nav } from '@end/ui/shared';
 
 function WithNavigate({
   children,
@@ -177,7 +181,6 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
   if (token === 'LOADING') {
     return null;
   }
-
   return token ? (
     <PageRouteComponent userId={jwtDecode(token).sub}>
       {children}
@@ -208,7 +211,6 @@ function AppRoutes() {
                     <>
                       <Landing
                         version={process.env.END_VERSION ?? '0.0.0'}
-                        sha={process.env.END_COMMIT_SHA ?? '<commit sha>'}
                         services={services}
                         goToRegister={() => n('/register')}
                         goToHome={() => {
@@ -277,13 +279,64 @@ function AppRoutes() {
       ),
     [warStore.userId]
   );
+  // @ts-ignore
+  const routes: any = ALL_ROUTES;
+
+  const [menuOpen, toggleMenu] = useState(false);
 
   return (
     <DatabaseProvider database={services.endApi.database}>
-      <RouterProvider router={router} />
+      <Nav
+        full
+        routes={routes}
+        menuOpen={menuOpen}
+        toggleMenu={toggleMenu}
+        LinkWrapper={LinkWrapper}
+        router={router}
+      >
+        <RouterProvider router={router} />
+      </Nav>
     </DatabaseProvider>
   );
 }
+
+const LinkWrapper: FC<{
+  children: ReactElement;
+  href: string;
+  router?: {
+    navigate: (to: string, options?: { replace: boolean }) => Promise<any>;
+  };
+}> = ({ children, href: h, router }) => {
+  const { deleteToken } = useAuth();
+
+  if (!h.startsWith('/app') && h !== '') {
+    return <a href={h}>{children}</a>;
+  }
+
+  const href = (() => {
+    if (h.startsWith('/app') && process.env.NODE_ENV === 'development') {
+      return h.slice(4);
+    }
+    return h;
+  })();
+
+  return (
+    <a
+      onClick={async (e) => {
+        if (href === '') {
+          await deleteToken();
+          router?.navigate('/', { replace: true });
+        }
+
+        e.preventDefault();
+        router?.navigate(href);
+      }}
+      href={href}
+    >
+      {children}
+    </a>
+  );
+};
 
 export function App() {
   return (
