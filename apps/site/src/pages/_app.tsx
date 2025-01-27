@@ -3,18 +3,16 @@ import { AppProps } from 'next/app';
 import Head from 'next/head';
 import './styles.css';
 import { TamaguiProvider } from 'tamagui';
-import { tamaguiConfig } from '../tamagui.config';
-
-
+import { tamaguiConfig } from '@end/ui/shared';
 
 function CustomApp({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
-        <title>Welcome to site!</title>
+        <title>end | strategy game of conquest and interactive fiction</title>
       </Head>
-      <main className="app">
-        <TamaguiProvider config={tamaguiConfig} disableInjectCSS disableRootThemeClass>
+      <main style={{ height: '100%' }} className="app">
+        <TamaguiProvider config={tamaguiConfig} disableInjectCSS>
           <Component {...pageProps} />
         </TamaguiProvider>
       </main>

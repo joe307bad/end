@@ -34,6 +34,7 @@ jobs:
           envkey_END_COMMIT_SHA: ${{ github.sha }}
 
       - run: yarn install
+      - run: yarn build:contentlayer
       - run: yarn build-release:web
 
       - name: Zip artifacts
