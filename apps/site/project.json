@@ -11,20 +11,19 @@
       }
     },
     "deploy": {
-      "defaultConfiguration": "production",
+      "executor": "nx:run-commands",
       "dependsOn": [
         "build-release"
       ],
-      "command": "flyctl deploy --config apps/site/fly.toml --dockerfile apps/site/Dockerfile --no-cache"
+      "options": {
+        "command": "flyctl deploy --config apps/site/fly.toml --dockerfile apps/site/Dockerfile --no-cache"
+      }
     },
     "build-release": {
-      "dependsOn": [
-        {
-          "project": "cli",
-          "target": "r"
-        }
-      ],
-      "command": "chmod +x ./apps/site/build-release.sh && ./apps/site/build-release.sh"
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "chmod +x ./apps/site/build-release.sh && ./apps/site/build-release.sh"
+      }
     },
     "build": {
       "executor": "@nx/next:build",
@@ -33,7 +32,7 @@
       ],
       "dependsOn": [
         {
-          "project": "cli",
+          "projects": "cli",
           "target": "r"
         }
       ],
