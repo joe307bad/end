@@ -33,12 +33,17 @@ export async function getStaticProps(context: GetStaticPropsContext) {
   const data = (() => {
     try {
       // @ts-ignore
-      return JSON.parse(readFileSync(path.resolve(process.cwd(), '../../dist/routes.json'), 'utf8'));
+      return JSON.parse(
+        readFileSync(
+          path.resolve(process.cwd(), '../../dist/routes.json'),
+          'utf8'
+        )
+      );
     } catch (e: any) {
       console.error(e.message);
       return '{}';
     }
-  })()
+  })();
   const page = allDevlogs.find(
     (devlog) =>
       path.basename(
@@ -51,7 +56,7 @@ export async function getStaticProps(context: GetStaticPropsContext) {
   return {
     props: {
       page,
-      routes: data.routes,
+      routes: data.routes ?? null,
       source: compiledMdx,
     },
   };
