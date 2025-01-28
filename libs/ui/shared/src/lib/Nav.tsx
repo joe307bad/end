@@ -132,6 +132,7 @@ export function Nav({
           borderColor="gray"
           backgroundColor="black"
           display={menuOpen ? 'flex' : 'none'}
+          overflow="scroll"
         >
           <View minHeight="auto" flex={1}>
             {grouped['app'].map((route) => (
