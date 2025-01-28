@@ -19,7 +19,7 @@ export const Devlog = defineDocumentType(() => ({
 
 const toUrl = (p: string) => {
   const parsedPath = path.parse(p);
-  return path.join(parsedPath.dir, parsedPath.name);
+  return `/${path.join(parsedPath.dir, parsedPath.name)}`;
 };
 
 export const Manual = defineDocumentType(() => ({
@@ -50,10 +50,10 @@ export const Page = defineDocumentType(() => ({
     url: {
       type: 'string',
       resolve: (post) =>
-        path.basename(
+        `/${path.basename(
           post._raw.sourceFileName,
           path.extname(post._raw.sourceFileName)
-        ),
+        )}`,
     },
   },
 }));

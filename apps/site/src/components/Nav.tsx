@@ -21,7 +21,12 @@ export function Nav({
   children: JSX.Element;
   routes: { url: string; title: string; type: string }[];
 }) {
-  const [menuOpen, toggleMenu] = usePersistentState('menuOpen', false);
+  const [menuOpen, toggleMenu] = usePersistentState('menuOpen', true);
+
+  if (menuOpen === null) {
+    return null;
+  }
+
   return (
     <N
       activePage={activePage}

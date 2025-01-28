@@ -30,16 +30,23 @@ export default function Page({
 }
 
 export async function getStaticProps(context: GetStaticPropsContext) {
-  const page = allPages.find((manual) => manual.url === context.params?.slug);
+  const page = allPages.find(
+    (manual) => manual.url.replace('/', '') === context.params?.slug
+  );
   const data = (() => {
     try {
       // @ts-ignore
-      return JSON.parse(readFileSync(path.resolve(process.cwd(), '../../dist/routes.json'), 'utf8'));
+      return JSON.parse(
+        readFileSync(
+          path.resolve(process.cwd(), '../../dist/routes.json'),
+          'utf8'
+        )
+      );
     } catch (e: any) {
       console.error(e.message);
       return '{}';
     }
-  })()
+  })();
   // @ts-ignore
   const compiledMdx = await serialize(page.body.raw);
   return {
@@ -53,8 +60,8 @@ export async function getStaticProps(context: GetStaticPropsContext) {
 
 export async function getStaticPaths() {
   const paths = allPages.map((p) => ({
-    params: { slug: p.url },
+    params: { slug: p.url.replace('/', '') },
   }));
-
+;
   return { paths, fallback: false };
 }

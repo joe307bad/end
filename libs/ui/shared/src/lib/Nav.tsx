@@ -56,7 +56,7 @@ export function Nav({
   menuOpen,
   toggleMenu,
   LinkWrapper,
-  router
+  router,
 }: {
   full?: boolean;
   menuOpen: boolean;
@@ -97,7 +97,7 @@ export function Nav({
             {title}
           </H1>
         ) : null}
-        <View maxWidth="100%" height="100%" width={full ? '100%' : 500}>
+        <View maxWidth="100%" width={full ? '100%' : 500}>
           {children}
         </View>
       </YStack>

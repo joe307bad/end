@@ -8,7 +8,7 @@ const nextConfig = {
   },
   rewrites: () =>
     Promise.resolve([
-      { source: '/app/:slug*', destination: '/app/index.html' },
+      { source: '/b/:slug', destination: '/app-source/index.html', permanent: true },
     ]),
 };
 
