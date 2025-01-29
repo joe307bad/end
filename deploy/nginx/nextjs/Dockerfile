@@ -4,7 +4,7 @@ ENV NODE_ENV=production
 
 WORKDIR /app
 
-COPY dist/apps/site ./
+COPY ./dist/apps/site ./
 
 RUN npm install @floating-ui/react --force
 RUN npm install @emotion/styled --force
