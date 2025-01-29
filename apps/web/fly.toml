@@ -1,25 +1,16 @@
-# fly.toml file generated for holy-bird-5691 on 2023-12-30T21:05:37-05:00
+app = 'void-web'
+primary_region = 'iad'
 
-app = "holy-bird-5691"
-kill_signal = "SIGINT"
-kill_timeout = 5
-mounts = []
-processes = []
+[http_service]
+  internal_port = 80
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
 
 [[services]]
+  protocol = 'tcp'
   internal_port = 80
-  processes = ["app"]
-  protocol = "tcp"
-  [services.concurrency]
-    hard_limit = 25
-    soft_limit = 20
-    type = "connections"
 
   [[services.ports]]
-    force_https = true
-    handlers = ["http"]
     port = 80
-
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = 443

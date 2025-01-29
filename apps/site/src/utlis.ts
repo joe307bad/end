@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 
-export const usePersistentState = (key: string, defaultValue: any) => {
-  const [state, setState] = useState(null);
-
+export const usePersistentState = (
+  key: string,
+  defaultValue: any
+): [boolean | null, Dispatch<SetStateAction<boolean | null>>] => {
+  const [state, setState] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {

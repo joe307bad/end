@@ -59,8 +59,8 @@ export function Nav({
   router,
 }: {
   full?: boolean;
-  menuOpen: boolean;
-  toggleMenu: (value: ((prevState: boolean) => boolean) | boolean) => void;
+  menuOpen: boolean | null;
+  toggleMenu: (value: ((prevState: boolean | null) => boolean | null) | boolean | null) => void;
   title?: string;
   activePage?: string | null;
   children: JSX.Element;
@@ -108,7 +108,7 @@ export function Nav({
         height="100%"
       >
         <View
-          onPress={() => toggleMenu((prev: boolean) => !prev)}
+          onPress={() => toggleMenu((prev: boolean | null) => !prev)}
           cursor="pointer"
           padding="$1"
           position="absolute"

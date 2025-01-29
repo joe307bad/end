@@ -282,7 +282,7 @@ function AppRoutes() {
   // @ts-ignore
   const { routes }: any = ALL_ROUTES;
 
-  const [menuOpen, toggleMenu] = useState(false);
+  const [menuOpen, toggleMenu] = useState<boolean | null>(false);
 
   return (
     <DatabaseProvider database={services.endApi.database}>

@@ -1,4 +1,4 @@
-import React, { FC, ReactElement } from 'react';
+import React, { Dispatch, FC, ReactElement, SetStateAction } from 'react';
 import { Nav as N } from '@end/ui/shared';
 import { usePersistentState } from '../utlis';
 import Link from 'next/link';
@@ -21,7 +21,10 @@ export function Nav({
   children: JSX.Element;
   routes: { url: string; title: string; type: string }[];
 }) {
-  const [menuOpen, toggleMenu] = usePersistentState('menuOpen', true);
+  const [menuOpen, toggleMenu]: [
+    boolean | null,
+    Dispatch<SetStateAction<boolean | null>>
+  ] = usePersistentState('menuOpen', true);
 
   if (menuOpen === null) {
     return null;
