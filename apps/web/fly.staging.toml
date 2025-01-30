@@ -1,0 +1,16 @@
+app = "holy-bird-5691"
+primary_region = 'iad'
+
+[http_service]
+  internal_port = 80
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 80
+
+[[services.ports]]
+  port = 80
