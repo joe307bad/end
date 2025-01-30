@@ -8,7 +8,13 @@
       "dependsOn": [
         "build"
       ],
-      "command": "flyctl deploy --config apps/web/fly.toml --dockerfile apps/web/Dockerfile --flycast --no-cache"
+      "command": "flyctl deploy --config apps/web/fly.staging.toml --dockerfile apps/web/Dockerfile --flycast --no-cache"
+    },
+    "deploy-release": {
+      "dependsOn": [
+        "build-release"
+      ],
+      "command": "flyctl deploy --config apps/web/fly.prod.toml --dockerfile apps/web/Dockerfile --flycast --no-cache"
     },
     "tsc": {
       "executor": "nx:run-commands",
@@ -80,6 +86,14 @@
     },
     "build-release": {
       "executor": "@nx/webpack:webpack",
+      "dependsOn": [
+        {
+          "projects": [
+            "cli"
+          ],
+          "target": "r"
+        }
+      ],
       "outputs": [
         "{options.outputPath}"
       ],
