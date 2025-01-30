@@ -56,11 +56,11 @@ export function Nav({
   menuOpen,
   toggleMenu,
   LinkWrapper,
-  router
+  router,
 }: {
   full?: boolean;
-  menuOpen: boolean;
-  toggleMenu: (value: ((prevState: boolean) => boolean) | boolean) => void;
+  menuOpen: boolean | null;
+  toggleMenu: (value: ((prevState: boolean | null) => boolean | null) | boolean | null) => void;
   title?: string;
   activePage?: string | null;
   children: JSX.Element;
@@ -97,7 +97,7 @@ export function Nav({
             {title}
           </H1>
         ) : null}
-        <View maxWidth="100%" height="100%" width={full ? '100%' : 500}>
+        <View maxWidth="100%" width={full ? '100%' : 500}>
           {children}
         </View>
       </YStack>
@@ -108,7 +108,7 @@ export function Nav({
         height="100%"
       >
         <View
-          onPress={() => toggleMenu((prev: boolean) => !prev)}
+          onPress={() => toggleMenu((prev: boolean | null) => !prev)}
           cursor="pointer"
           padding="$1"
           position="absolute"
@@ -132,6 +132,7 @@ export function Nav({
           borderColor="gray"
           backgroundColor="black"
           display={menuOpen ? 'flex' : 'none'}
+          overflow="scroll"
         >
           <View minHeight="auto" flex={1}>
             {grouped['app'].map((route) => (

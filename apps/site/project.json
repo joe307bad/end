@@ -16,7 +16,7 @@
         "build-release"
       ],
       "options": {
-        "command": "flyctl deploy --config apps/site/fly.toml --dockerfile apps/site/Dockerfile --no-cache"
+        "command": "flyctl deploy --config apps/site/fly.toml --dockerfile apps/site/Dockerfile --flycast --no-cache"
       }
     },
     "build-release": {

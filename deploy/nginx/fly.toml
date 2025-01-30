@@ -1,0 +1,12 @@
+app = "void-prod"
+primary_region = 'iad'
+
+[http_service]
+  internal_port = 80
+  force_https = true
+
+[[services]]
+  internal_port = 80
+
+[[services.ports]]
+  port = 80
