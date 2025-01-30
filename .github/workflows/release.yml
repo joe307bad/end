@@ -36,12 +36,13 @@ jobs:
       - run: yarn install
       - run: yarn build:contentlayer
       - run: yarn build-release:web
+      - run: yarn deploy-release:web
 
       - name: Zip artifacts
         run: |
-          mkdir artifacts
+          mkdir -p artifacts
           cp -r dist/apps/web/* artifacts/
-          zip -r end-artifacts.zip artifacts
+          zip -r void-artifacts-${{ github.event.release.tag_name }}.zip artifacts
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1

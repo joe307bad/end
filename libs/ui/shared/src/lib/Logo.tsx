@@ -51,7 +51,6 @@ export function Logo({}: { Hexagon: ComponentType<any> }) {
       id="logo"
       alignItems="center"
       justifyContent="center"
-      padding={30}
       borderColor={colors[colorIndex2]}
       gap="$0.5"
       // height={75}
