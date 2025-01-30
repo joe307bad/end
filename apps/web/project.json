@@ -8,7 +8,7 @@
       "dependsOn": [
         "build"
       ],
-      "command": "flyctl deploy --config apps/web/fly.staging.toml --dockerfile apps/web/Dockerfile --flycast --no-cache"
+      "command": "flyctl deploy --config apps/web/fly.staging.toml --dockerfile apps/web/Dockerfile --no-cache"
     },
     "deploy-release": {
       "dependsOn": [
