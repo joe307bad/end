@@ -1,23 +1,8 @@
-# fly.toml app configuration file generated for end-site on 2025-01-18T23:30:43-05:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
-app = 'end-site'
-primary_region = 'ewr'
-kill_signal = 'SIGINT'
-kill_timeout = '5s'
-
-[build]
-  [build.args]
-    NEXT_PUBLIC_EXAMPLE = 'Value goes here'
-
-[env]
-  PORT = '8080'
+app = 'void-site'
+primary_region = 'iad'
 
 [http_service]
-  internal_port = 8080
-  force_https = true
+  internal_port = 3000
   auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 0
@@ -25,24 +10,7 @@ kill_timeout = '5s'
 
 [[services]]
   protocol = 'tcp'
-  internal_port = 80
-  processes = ['app']
+  internal_port = 3000
 
   [[services.ports]]
-    port = 80
-    handlers = ['http']
-    force_https = true
-
-  [[services.ports]]
-    port = 443
-    handlers = ['tls', 'http']
-
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 25
-    soft_limit = 20
-
-[[vm]]
-  memory = '1gb'
-  cpu_kind = 'shared'
-  cpus = 1
+    port = 3000
