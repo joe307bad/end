@@ -1,4 +1,4 @@
-import { Input, YStack } from 'tamagui';
+import { Input, View, YStack } from 'tamagui';
 import { Logo, PrimaryButton } from '@end/ui/shared';
 import React, { useCallback, useEffect, useState } from 'react';
 import { execute, servicesFactory } from '@end/data/core';
@@ -52,7 +52,9 @@ export function Register({
       space="$0.5"
       style={{ alignItems: 'center' }}
     >
-      <Logo Hexagon={Hexagon} />
+      <View margin="$2">
+        <Logo Hexagon={Hexagon} />
+      </View>
       <YStack maxWidth={438} width="100%" space="$0.5">
         <Input
           placeholder="Username"
