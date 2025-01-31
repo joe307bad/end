@@ -203,9 +203,9 @@ function AppRoutes() {
       return ['dev', 'dev'];
     }
 
-    if (process.env.END_WEB_STAGING) {
+    if (process.env.END_WEB_VERSION) {
       if (!process.env.END_COMMIT_SHA) {
-        throw Error('END_WEB_STAGING requires END_COMMIT_SHA');
+        throw Error('END_WEB_VERSION requires END_COMMIT_SHA');
       }
       return ['staging', process.env.END_COMMIT_SHA];
     }
