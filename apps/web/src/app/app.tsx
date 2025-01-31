@@ -198,6 +198,25 @@ function AppRoutes() {
   const { services } = useEndApi();
   const warStore = useSnapshot(services.warService.store);
 
+  const [env, version]: ['prod' | 'staging' | 'dev', string] = (() => {
+    if (process.env.NODE_ENV) {
+      return ['dev', 'dev'];
+    }
+
+    if (process.env.END_WEB_STAGING) {
+      if (!process.env.END_COMMIT_SHA) {
+        throw Error('END_WEB_STAGING requires END_COMMIT_SHA');
+      }
+      return ['staging', process.env.END_COMMIT_SHA];
+    }
+
+    if (!process.env.END_VERSION) {
+      throw Error('Prod env requires END_VERSION');
+    }
+
+    return ['prod', process.env.END_VERSION];
+  })();
+
   const router = useMemo(
     () =>
       createBrowserRouter(
@@ -208,23 +227,18 @@ function AppRoutes() {
               <Container>
                 <WithNavigate>
                   {(n) => (
-                    <>
-                      <Landing
-                        version={process.env.END_VERSION ?? '0.0.0'}
-                        services={services}
-                        goToRegister={() => n('/register')}
-                        goToHome={() => {
-                          const queryParams = new URLSearchParams(
-                            window.location.search
-                          );
-                          const returnPath = queryParams.get('return_path');
-                          n(returnPath ? returnPath : '/home');
-                        }}
-                      />
-                      {/*<Link to={'#'}>*/}
-                      {/*  <Badge title="Download the Android app" />*/}
-                      {/*</Link>*/}
-                    </>
+                    <Landing
+                      version={version}
+                      services={services}
+                      goToRegister={() => n('/register')}
+                      goToHome={() => {
+                        const queryParams = new URLSearchParams(
+                          window.location.search
+                        );
+                        const returnPath = queryParams.get('return_path');
+                        n(returnPath ? returnPath : '/home');
+                      }}
+                    />
                   )}
                 </WithNavigate>
               </Container>
@@ -275,7 +289,7 @@ function AppRoutes() {
             ),
           },
         ],
-        { ...(process.env.END_VERSION ? { basename: '/app' } : undefined) }
+        { ...(env === 'prod' ? { basename: '/app' } : undefined) }
       ),
     [warStore.userId]
   );

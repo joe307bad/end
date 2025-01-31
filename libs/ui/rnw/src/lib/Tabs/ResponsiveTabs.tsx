@@ -1,4 +1,4 @@
-import { Section } from 'tamagui';
+import { Section, useMedia } from 'tamagui';
 import { Pressable, View } from 'react-native';
 import { tw } from '../components';
 import { CircleDot } from 'lucide-react-native';
@@ -15,12 +15,13 @@ export function ResponsiveTabs({
   setMenuOpen: Dispatch<SetStateAction<boolean>>;
 }) {
   const { bp } = useResponsive(menuOpen, 1000);
+  const media = useMedia();
   return (
     <Section
-      paddingTop={62}
+      paddingTop={media['sm'] ? 0 : 62}
       style={bp([
         'z-9 max-w-full',
-        `relative w-full ${menuOpen ? 'h-[75%]' : ''}`,
+        `relative w-full ${menuOpen ? 'h-[75%] mt-[-30px]' : ''}`,
         '',
         'absolute w-[500px] pb-5 right-[20px] w-[500px] h-full',
       ])}
@@ -39,7 +40,7 @@ export function ResponsiveTabs({
           }
           style={bp(['block text-white self-end', '', '', 'hidden'])}
         >
-          <CircleDot color="white" size="$2" />
+          <CircleDot color="white" />
         </Pressable>
       </View>
     </Section>
