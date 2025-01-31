@@ -60,7 +60,9 @@ export function Nav({
 }: {
   full?: boolean;
   menuOpen: boolean | null;
-  toggleMenu: (value: ((prevState: boolean | null) => boolean | null) | boolean | null) => void;
+  toggleMenu: (
+    value: ((prevState: boolean | null) => boolean | null) | boolean | null
+  ) => void;
   title?: string;
   activePage?: string | null;
   children: JSX.Element;
@@ -81,7 +83,7 @@ export function Nav({
 
   return (
     <XStack
-      paddingHorizontal={media['sm'] ? '$1' : 0}
+      {...(full ? undefined : { paddingHorizontal: media['sm'] ? '$1' : 0 })}
       height="100%"
       width="100%"
     >
@@ -97,7 +99,7 @@ export function Nav({
             {title}
           </H1>
         ) : null}
-        <View maxWidth="100%" width={full ? '100%' : 500}>
+        <View height="100%" maxWidth="100%" width={full ? '100%' : 500}>
           {children}
         </View>
       </YStack>
@@ -106,6 +108,7 @@ export function Nav({
         right={0}
         maxHeight="100%"
         height="100%"
+        zIndex="99"
       >
         <View
           onPress={() => toggleMenu((prev: boolean | null) => !prev)}
