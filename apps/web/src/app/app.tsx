@@ -48,7 +48,7 @@ import { useSnapshot } from 'valtio/react';
 import { Citadel } from '../pages/Citadel';
 import { jwtDecode } from 'jwt-decode';
 import { Nav } from '@end/ui/shared';
-// trigger web
+
 function WithNavigate({
   children,
 }: {
