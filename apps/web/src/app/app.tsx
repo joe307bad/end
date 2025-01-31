@@ -199,7 +199,7 @@ function AppRoutes() {
   const warStore = useSnapshot(services.warService.store);
 
   const [env, version]: ['prod' | 'staging' | 'dev', string] = (() => {
-    if (process.env.NODE_ENV) {
+    if (process.env.NODE_ENV === 'development') {
       return ['dev', 'dev'];
     }
 
@@ -328,7 +328,10 @@ const LinkWrapper: FC<{
   }
 
   const href = (() => {
-    if (h.startsWith('/app') && process.env.NODE_ENV === 'development') {
+    if (
+      h.startsWith('/app') &&
+      (process.env.NODE_ENV === 'development' || process.env.END_WEB_STAGING)
+    ) {
       return h.slice(4);
     }
     return h;
