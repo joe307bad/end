@@ -44,6 +44,7 @@ module.exports = {
     new DefinePlugin({
       ALL_ROUTES: JSON.stringify(getRoutes()),
       'process.env.WEBSOCKET_URL': JSON.stringify(process.env.WEBSOCKET_URL),
+      'process.env.END_WEB_VERSION': JSON.stringify(process.env.END_WEB_VERSION),
       'process.env.API_BASE_URL': JSON.stringify(process.env.API_BASE_URL),
       'process.env.END_VERSION': JSON.stringify(process.env.END_VERSION),
       'process.env.END_COMMIT_SHA': JSON.stringify(process.env.END_COMMIT_SHA),

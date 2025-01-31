@@ -7,6 +7,7 @@ import {
   Spacer,
   ListItem,
   ScrollView,
+  useMedia,
 } from 'tamagui';
 import { TabsContent } from './TabsContent';
 import { tw } from '../components';
@@ -58,10 +59,11 @@ export function TabsContainer({
   }, []);
 
   const onSync = useCallback(() => execute(services.syncService.sync()), []);
+  const media = useMedia();
 
   return (
     <Section
-      paddingTop={62}
+      paddingTop={media['sm'] ? 0 : 62}
       style={bp([
         'z-8 max-w-full',
         'relative w-full h-[50%]',

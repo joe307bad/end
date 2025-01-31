@@ -1,4 +1,15 @@
-import { Text, View, H3, H2, XStack, YStack, ListItem, Spinner } from 'tamagui';
+import {
+  Text,
+  View,
+  H3,
+  H2,
+  H1,
+  XStack,
+  YStack,
+  ListItem,
+  Spinner,
+  useMedia,
+} from 'tamagui';
 import React, { ComponentType } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trophy } from 'lucide-react-native';
@@ -120,6 +131,7 @@ export function Citadel() {
   const navigate = useNavigate();
   const { services: s } = useEndApi();
   const store = useSnapshot(s.endApi.store);
+  const media = useMedia();
 
   if (store.citadel === 'fetching') {
     return <Spinner margin="$2" />;
@@ -150,10 +162,16 @@ export function Citadel() {
       width="100%"
       paddingTop="$1"
       paddingBottom="$1"
-      mobileProps={{flexDirection: 'column-reverse'}}
+      mobileProps={{ flexDirection: 'column-reverse' }}
     >
       <View maxWidth="100%" width={500}>
-        <H2 paddingBottom="$1">Latest victors</H2>
+        <H1
+          {...(media['sm'] ? { fontSize: 35 } : undefined)}
+          letterSpacing="$1"
+          paddingBottom="$1"
+        >
+          Latest victors
+        </H1>
         <YStack space="$1">
           {citadel.latestWars?.map((war) => (
             <View
@@ -173,7 +191,13 @@ export function Citadel() {
       </View>
       <YStack maxWidth="100%" width={500} space="$3">
         <View>
-          <H2 paddingBottom="$1">Battle win rate leaders</H2>
+          <H1
+            {...(media['sm'] ? { fontSize: 35 } : undefined)}
+            letterSpacing="$1"
+            paddingBottom="$1"
+          >
+            Battle win rate leaders
+          </H1>
           <YStack space="$1">
             {toPairs(citadel.leaderboards?.battleWinRate ?? {})
               .slice(0, 3)
@@ -191,7 +215,13 @@ export function Citadel() {
           </YStack>
         </View>
         <View>
-          <H2 paddingBottom="$1">Most captured planets</H2>
+          <H1
+            {...(media['sm'] ? { fontSize: 35 } : undefined)}
+            letterSpacing="$1"
+            paddingBottom="$1"
+          >
+            Most captured planets
+          </H1>
           <YStack space="$1">
             {toPairs(citadel.leaderboards?.totalPlanetsCaptured ?? {})
               .slice(0, 3)
