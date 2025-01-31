@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useWindowDimensions } from 'react-native';
 import { OrbitControls } from '@react-three/drei';
-import { H1, View } from 'tamagui';
+import { H1, useMedia, View } from 'tamagui';
 import { useEndApi } from '@end/data/web';
 import { execute } from '@end/data/core';
 import { useNavigate } from 'react-router-dom';
@@ -19,6 +19,7 @@ export default function Home() {
   const { services } = useEndApi();
   const { warService } = services;
   const warStore = useSnapshot(warService.store);
+  const media = useMedia();
 
   const [cameraResponsiveness, responsiveness] = useMemo(() => {
     if (width < 835) {
@@ -70,7 +71,13 @@ export default function Home() {
 
   return (
     <View overflow="hidden" height="100%" width="100%">
-      <H1 letterSpacing="$1" zIndex={9} position="absolute" padding="$1">
+      <H1
+        letterSpacing="$1"
+        zIndex={9}
+        position="absolute"
+        padding="$1"
+        {...(media['sm'] ? { fontSize: 30, padding: '$0.5', marginLeft: 10 } : undefined)}
+      >
         {getOrUndefined(warStore.name)}
       </H1>
       <Canvas

@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy api and web
+    name: Deploy site -> prod and web -> staging
     runs-on: ubuntu-latest
     env:
       WEBSOCKET_URL: ${{ secrets.WEBSOCKET_URL }}
@@ -19,6 +19,7 @@ jobs:
       REDIS_HOST: ${{ secrets.REDIS_HOST }}
       REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
       END_COMMIT_SHA: ${{ github.sha }}
+      END_WEB_VERSION: 'staging'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -49,6 +50,7 @@ jobs:
           envkey_REDIS_HOST: ${{ secrets.REDIS_HOST }}
           envkey_REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           envkey_END_COMMIT_SHA: ${{ github.sha }}
+          envkey_END_WEB_VERSION: 'staging'
 
       - run: git pull --rebase
       - run: yarn build:contentlayer

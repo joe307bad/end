@@ -224,9 +224,9 @@ export function GameTabsV2({
 
   if (!warStore.active) {
     return (
-      <ResponsiveTabs menuOpen={menuOpen} setMenuOpen={setMenuOpen}>
+      <V padding="$1">
         <Scoreboard />
-      </ResponsiveTabs>
+      </V>
     );
   }
 
@@ -491,7 +491,7 @@ function Scoreboard() {
   const { warService } = services;
   const warDerived = useSnapshot(warService.derived);
   return (
-    <YStack width="100%" height="100%" space="$1">
+    <YStack backgroundColor="transparent" width="100%" height="100%" space="$1">
       <V>
         {warDerived.scoreboard.map(({ totalTroops, userName, color }, i) => (
           <V
