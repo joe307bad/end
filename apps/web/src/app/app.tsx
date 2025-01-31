@@ -330,7 +330,7 @@ const LinkWrapper: FC<{
   const href = (() => {
     if (
       h.startsWith('/app') &&
-      (process.env.NODE_ENV === 'development' || process.env.END_WEB_STAGING)
+      (process.env.NODE_ENV === 'development' || process.env.END_WEB_VERSION)
     ) {
       return h.slice(4);
     }
