@@ -1,4 +1,4 @@
-name: Build and Attach Release Artifacts
+name: Deploy web -> prod and attach release artifacts
 
 on:
   release:
@@ -10,6 +10,7 @@ jobs:
   build-release:
     runs-on: ubuntu-latest
     env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
       WEBSOCKET_URL: ${{ secrets.WEBSOCKET_URL }}
       API_BASE_URL: ${{ secrets.API_BASE_URL }}
       END_VERSION: ${{ github.event.release.tag_name }}
@@ -31,6 +32,7 @@ jobs:
       - name: Make envfile
         uses: SpicyPizza/create-envfile@v1.3
         with:
+          envkey_FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
           envkey_WEBSOCKET_URL: ${{ secrets.WEBSOCKET_URL }}
           envkey_API_BASE_URL: ${{ secrets.API_BASE_URL }}
           envkey_END_VERSION: ${{ github.event.release.tag_name }}
