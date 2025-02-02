@@ -14,3 +14,7 @@ primary_region = 'iad'
 
   [[services.ports]]
     port = 3000
+
+[[vm]]
+  size = "shared-cpu-2x"
+  memory = "2gb"

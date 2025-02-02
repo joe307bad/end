@@ -321,7 +321,7 @@ export class CitadelService {
       const planetId = planetsByWar[war.warId];
       const planet = planetData.find((p) => p._id === planetId);
       return {
-        warId: war._id.toString(),
+        warId: war.warId.toString(),
         completed: war.completed_at,
         userName:
           war.context.players.find((p) => p.id === war.context.victor)
