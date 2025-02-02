@@ -18,7 +18,7 @@ export default function DevlogPage({
   page: Devlog | undefined;
   source: any;
   routes: { url: string; title: string; type: string }[];
-  version;
+  version: string;
 }) {
   useLiveReload();
 

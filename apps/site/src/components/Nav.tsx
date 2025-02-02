@@ -21,7 +21,7 @@ export function Nav({
   title?: string;
   children: JSX.Element;
   routes: { url: string; title: string; type: string }[];
-  version;
+  version: string;
 }) {
   const [menuOpen, toggleMenu]: [
     boolean | null,
