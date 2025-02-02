@@ -5,11 +5,7 @@ const { createContentlayerPlugin } = require('next-contentlayer2');
 const nextConfig = {
   nx: {
     svgr: false,
-  },
-  rewrites: () =>
-    Promise.resolve([
-      { source: '/b/:slug', destination: '/app-source/index.html', permanent: true },
-    ]),
+  }
 };
 
 const contentLayerConfig = () =>
