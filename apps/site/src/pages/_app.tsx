@@ -9,7 +9,7 @@ function CustomApp({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
-        <title>end | strategy game of conquest and interactive fiction</title>
+        <title>void | strategy game of conquest and interactive fiction</title>
       </Head>
       <main style={{ height: '100%' }} className="app">
         <TamaguiProvider config={tamaguiConfig} disableInjectCSS>
