@@ -55,6 +55,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./end-artifacts.zip
-          asset_name: end-artifacts.zip
+          asset_path: ./void-artifacts.zip
+          asset_name: void-artifacts.zip
           asset_content_type: application/zip
