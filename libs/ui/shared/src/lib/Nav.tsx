@@ -57,6 +57,7 @@ export function Nav({
   toggleMenu,
   LinkWrapper,
   router,
+  version
 }: {
   full?: boolean;
   menuOpen: boolean | null;
@@ -73,6 +74,7 @@ export function Nav({
     router?: { navigate: (to: string) => Promise<any> };
   }>;
   router?: { navigate: (to: string) => Promise<any> };
+  version: string
 }) {
   const grouped = groupBy<{ type: string; title: string; url: string }>(
     // @ts-ignore
@@ -202,7 +204,7 @@ export function Nav({
               })()}
             </YStack>
           ))}
-          <Badge marginBottom="$1" color="purple" title="0.0.0" />
+          <Badge marginBottom="$1" color="purple" title={version} />
         </YStack>
       </View>
     </XStack>

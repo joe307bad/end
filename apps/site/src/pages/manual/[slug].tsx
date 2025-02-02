@@ -13,15 +13,22 @@ export default function ManualPage({
   page,
   source,
   routes,
+  version,
 }: {
   page: Manual | undefined;
   source: any;
   routes: { url: string; title: string; type: string }[];
+  version: string;
 }) {
   useLiveReload();
 
   return (
-    <Nav routes={routes} activePage={page?.url} title={page?.title}>
+    <Nav
+      version={version}
+      routes={routes}
+      activePage={page?.url}
+      title={page?.title}
+    >
       <View id="markdown">
         <MDXRemote {...source} />
       </View>
@@ -40,12 +47,17 @@ export async function getStaticProps(context: GetStaticPropsContext) {
   const data = (() => {
     try {
       // @ts-ignore
-      return JSON.parse(readFileSync(path.resolve(process.cwd(), '../../dist/routes.json'), 'utf8'));
+      return JSON.parse(
+        readFileSync(
+          path.resolve(process.cwd(), '../../dist/routes.json'),
+          'utf8'
+        )
+      );
     } catch (e: any) {
       console.error(e.message);
       return '{}';
     }
-  })()
+  })();
   // @ts-ignore
   const compiledMdx = await serialize(page.body.raw);
   return {

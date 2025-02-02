@@ -13,15 +13,22 @@ export default function Page({
   page,
   source,
   routes,
+  version,
 }: {
   page: TPage | undefined;
   source: any;
   routes: { url: string; title: string; type: string }[];
+  version: string;
 }) {
   useLiveReload();
 
   return (
-    <Nav routes={routes} activePage={page?.url} title={page?.title}>
+    <Nav
+      version={version}
+      routes={routes}
+      activePage={page?.url}
+      title={page?.title}
+    >
       <View id="markdown">
         <MDXRemote {...source} />
       </View>
@@ -54,6 +61,8 @@ export async function getStaticProps(context: GetStaticPropsContext) {
       page,
       routes: data.routes ?? null,
       source: compiledMdx,
+      // @ts-ignore
+      version: process?.env?.END_VERSION ?? 'END_VERSION not found',
     },
   };
 }
@@ -62,6 +71,5 @@ export async function getStaticPaths() {
   const paths = allPages.map((p) => ({
     params: { slug: p.url.replace('/', '') },
   }));
-;
   return { paths, fallback: false };
 }

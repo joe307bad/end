@@ -302,6 +302,7 @@ function AppRoutes() {
     <DatabaseProvider database={services.endApi.database}>
       <Nav
         full
+        version={version}
         routes={routes}
         menuOpen={menuOpen}
         toggleMenu={toggleMenu}
@@ -346,6 +347,7 @@ const LinkWrapper: FC<{
         }
 
         e.preventDefault();
+        console.log({ href });
         router?.navigate(href);
       }}
       href={href}

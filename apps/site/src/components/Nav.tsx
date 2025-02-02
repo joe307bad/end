@@ -15,11 +15,13 @@ export function Nav({
   title,
   children,
   routes,
+  version,
 }: {
   activePage?: string;
   title?: string;
   children: JSX.Element;
   routes: { url: string; title: string; type: string }[];
+  version;
 }) {
   const [menuOpen, toggleMenu]: [
     boolean | null,
@@ -38,6 +40,7 @@ export function Nav({
       toggleMenu={toggleMenu}
       LinkWrapper={LinkWrapper}
       routes={routes}
+      version={version}
     >
       {children}
     </N>
