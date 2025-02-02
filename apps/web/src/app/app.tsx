@@ -182,6 +182,17 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
   if (token === 'LOADING') {
     return null;
   }
+
+  const returnPath = (() => {
+    const path = window.location.pathname;
+
+    if (path.startsWith('/app')) {
+      return path.slice(4);
+    }
+
+    return path;
+  })();
+
   return token ? (
     <PageRouteComponent userId={jwtDecode(token).sub}>
       {children}
@@ -189,7 +200,7 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
   ) : (
     <Navigate
       to={`/?return_path=${encodeURIComponent(
-        window.location.pathname + window.location.search
+        returnPath + window.location.search
       )}`}
     />
   );
@@ -329,26 +340,26 @@ const LinkWrapper: FC<{
     return <a href={h}>{children}</a>;
   }
 
-  const href = (() => {
-    if (h.startsWith('/app')) {
-      return h.slice(4);
-    }
-    return h;
-  })();
-
   return (
     <a
       onClick={async (e) => {
-        if (href === '') {
+        if (h === '') {
           await deleteToken();
           router?.navigate('/', { replace: true });
         }
 
         e.preventDefault();
 
-        router?.navigate(href);
+        const hh = (() => {
+          if (h.startsWith('/app')) {
+            return h.slice(4);
+          }
+          return h;
+        })();
+
+        router?.navigate(hh);
       }}
-      href={href}
+      href={h}
     >
       {children}
     </a>
