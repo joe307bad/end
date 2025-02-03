@@ -10,3 +10,4 @@ primary_region = 'iad'
 
 [[services.ports]]
   port = 80
+  force_https = true

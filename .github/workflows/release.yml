@@ -58,3 +58,5 @@ jobs:
           asset_path: ./void-artifacts-${{ github.event.release.tag_name }}.zip
           asset_name: void-artifacts-${{ github.event.release.tag_name }}.zip
           asset_content_type: application/zip
+
+      - run: yarn deploy:site
