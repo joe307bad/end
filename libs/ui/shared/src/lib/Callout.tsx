@@ -1,4 +1,4 @@
-import { ReactElement } from 'react';
+import React, { ReactElement } from 'react';
 import { View, Text, XStack } from 'tamagui';
 import PanTool from '@mui/icons-material/PanTool';
 
