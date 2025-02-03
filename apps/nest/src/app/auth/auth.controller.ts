@@ -17,6 +17,6 @@ export class AuthController {
   @Post('register')
   @Public()
   register(@Body() signInDto: Record<string, string>) {
-    return this.authService.register(signInDto.userName, signInDto.password);
+    return this.authService.register(signInDto.userName, signInDto.password, signInDto.code);
   }
 }

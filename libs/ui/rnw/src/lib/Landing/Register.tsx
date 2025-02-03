@@ -1,5 +1,5 @@
-import { Input, View, YStack } from 'tamagui';
-import { Logo, PrimaryButton } from '@end/ui/shared';
+import { Anchor, Input, View, YStack, Text } from 'tamagui';
+import { Callout, Logo, PrimaryButton } from '@end/ui/shared';
 import React, { useCallback, useEffect, useState } from 'react';
 import { execute, servicesFactory } from '@end/data/core';
 import { useToastController } from '@tamagui/toast';
@@ -17,6 +17,7 @@ export function Register({
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [code, setCode] = useState('');
   const toast = useToastController();
   const { setToken } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -27,23 +28,23 @@ export function Register({
 
   const register = useCallback(() => {
     setLoading(true);
-    execute(services.endApi.register(userName, password, confirmPassword))
+    execute(services.endApi.register(userName, password, confirmPassword, code))
       .then(async (res: any) => {
         setLoading(false);
         if (res?.access_token) {
           await setToken(res.access_token);
           goToHome?.();
         } else {
-          // toast.show('An error occurred. Try again.', {
-          //   message: (res as any)?.message,
-          // });
+          toast.show('An error occurred. Try again.', {
+            message: (res as any)?.message,
+          });
         }
       })
       .catch((e) => {
         setLoading(false);
-        // toast.show('An error occurred. Try again.', { message: e?.message });
+        toast.show('An error occurred. Try again.', { message: e?.message });
       });
-  }, [userName, password, confirmPassword]);
+  }, [userName, password, confirmPassword, code]);
 
   return (
     <YStack
@@ -72,6 +73,27 @@ export function Register({
           placeholder="Confirm Password"
           onChange={(e) => setConfirmPassword(e.nativeEvent.text)}
           secureTextEntry={true}
+          padding="$0.5"
+          onKeyPress={(event: any) => {}}
+        />
+        <Callout type="warning">
+          <Text>
+            Void is currently in closed alpha. You need a code to register. If
+            you are interested in being a part of the early void universe,
+            please DM me on X{' '}
+            <Anchor
+              borderBottomWidth="$0.5"
+              borderColor="white"
+              href="https://x.com/joe307bad"
+            >
+              @joe307bad
+            </Anchor>
+            .
+          </Text>
+        </Callout>
+        <Input
+          placeholder="Code"
+          onChange={(e) => setCode(e.nativeEvent.text)}
           padding="$0.5"
           onKeyPress={(event: any) => {}}
         />
