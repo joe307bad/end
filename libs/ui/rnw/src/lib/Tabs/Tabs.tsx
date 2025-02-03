@@ -127,7 +127,7 @@ export function TabsContainer({
                   }))}
                 />
                 <Spacer />
-                <PrimaryButton onPress={startGame}>Start game</PrimaryButton>
+                <PrimaryButton onPress={startGame}>Start war</PrimaryButton>
               </ScrollView>
             </TabsContent>
             <TabsContent value="tab2" style={tw`h-full`}>

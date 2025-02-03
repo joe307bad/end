@@ -46,7 +46,7 @@ export class War extends BaseModel implements IWar {
   victor!: Relation<User>;
   @field('players')
   players!: number;
-  @relation('war_turns', 'turn_id')
+  @relation('users', 'turn_id')
   turn!: Relation<User>;
   @field('status')
   status!: WarState;
@@ -96,23 +96,10 @@ export class WarUser extends BaseModel {
   @relation('users', 'user_id') user!: IUser;
 }
 
-export class WarTurn extends BaseModel {
-  static override table = 'war_turns';
-  static override associations: Associations = {
-    wars: { type: 'belongs_to', key: 'war_id' },
-    users: { type: 'belongs_to', key: 'user_id' },
-  };
-  @field('war_id') warId!: string;
-  @field('user_id') userId!: string;
-
-  @relation('wars', 'war_id') war!: IWar;
-  @relation('users', 'user_id') user!: IUser;
-}
-
 export const databaseFactory = (adapter: DatabaseAdapter) =>
   new Database({
     adapter,
-    modelClasses: [Planet, War, User, WarUser, WarTurn],
+    modelClasses: [Planet, War, User, WarUser],
   });
 
 const baseColumns = (schema: ColumnSchema[]): ColumnSchema[] => [
@@ -155,13 +142,6 @@ export const schema = appSchema({
     }),
     tableSchema({
       name: 'war_users',
-      columns:  baseColumns([
-        { name: 'user_id', type: 'string' },
-        { name: 'war_id', type: 'string' },
-      ]),
-    }),
-    tableSchema({
-      name: 'war_turns',
       columns:  baseColumns([
         { name: 'user_id', type: 'string' },
         { name: 'war_id', type: 'string' },
