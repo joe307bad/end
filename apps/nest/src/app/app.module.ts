@@ -8,6 +8,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { SyncModule } from './sync/sync.module';
 import { ConquestModule } from './conquest/conquest.module';
 import { CitadelModule } from './citadel/citadel.module';
+import { CodeModule } from './code/code.module';
 
 require('dotenv').config();
 
@@ -28,6 +29,7 @@ const password = process.env.REDIS_PASSWORD
     SyncModule,
     ConquestModule,
     CitadelModule,
+    CodeModule,
   ],
   controllers: [AppController],
   providers: [],

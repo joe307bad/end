@@ -6,10 +6,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthGuard } from './auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { SharedModule } from '../shared/shared.module';
+import { CodeModule } from '../code/code.module';
 
 @Module({
   imports: [
     SharedModule,
+    CodeModule,
     UsersModule,
     JwtModule.register({
       global: true,
