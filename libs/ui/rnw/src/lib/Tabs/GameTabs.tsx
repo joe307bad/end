@@ -53,7 +53,7 @@ function TileInfo({
   return (
     <XStack {...rest}>
       <V paddingRight="$0.5">
-        <Hexagon color={color} size="$1" />
+        <Hexagon color={color} />
       </V>
       <Text overflow="hidden" whiteSpace="nowrap" textOverflow="ellipsis">
         {name}

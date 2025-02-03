@@ -65,6 +65,8 @@ export async function getStaticProps(context: GetStaticPropsContext) {
       page,
       routes: data.routes ?? null,
       source: compiledMdx,
+      // @ts-ignore
+      version: process?.env?.END_VERSION ?? 'END_VERSION not found',
     },
   };
 }
