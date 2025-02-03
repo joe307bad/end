@@ -10,12 +10,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { generateRandomId } from '../shared';
 import { Entity } from '../shared/schemas/entity.schema';
+import { CodeService } from '../code/code.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private codeService: CodeService,
     @InjectModel(Entity.name) private entityModel: Model<Entity>
   ) {}
 
@@ -41,8 +43,15 @@ export class AuthService {
 
   async register(
     userName: string,
-    password: string
+    password: string,
+    code: string
   ): Promise<{ access_token: string; password_id: string }> {
+    const codeId = await this.codeService.codeExists(code);
+
+    if (!codeId) {
+      throw new HttpException('Invalid code', 400);
+    }
+
     const existingUser = await this.usersService.checkUsernameAvailability(
       userName
     );
@@ -60,8 +69,8 @@ export class AuthService {
       table: 'users',
       userName: userName,
       password_id: _id,
-      created_on_server: Date.now(),
-      created_at: Date.now(),
+      created_on_server: now,
+      created_at: now,
     });
     const payload = { sub: userId };
 
