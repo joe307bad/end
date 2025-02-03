@@ -15,16 +15,11 @@ import {
   XStack,
   Popover,
   H4,
-  StackProps
+  StackProps,
 } from 'tamagui';
 import { Badge } from '@end/ui/shared';
-import { combineLatest, map, Observable, of } from 'rxjs';
-import React, {
-  ComponentType,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { combineLatest, from, map, Observable, of } from 'rxjs';
+import React, { ComponentType, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEndApi } from '@end/data/web';
 import { getReadableDate, WarState } from '@end/war/core';
@@ -225,10 +220,12 @@ function PlanetLineItemEnhanced({
   planet,
   warId,
   status,
+  turn,
 }: {
   planet: Planet;
   warId: string;
   status: WarState;
+  turn: string;
 }) {
   return (
     <XStack flex={1}>
@@ -242,7 +239,7 @@ function PlanetLineItemEnhanced({
         {planet.name}
       </H4>
       <View alignItems="center">
-        <Status warId={warId} status={status} />
+        <Status turn={turn} warId={warId} status={status} />
       </View>
     </XStack>
   );
@@ -259,11 +256,13 @@ const PlanetLineItem = compose(
     }): {
       planet: Observable<Planet>;
       warId: Observable<string>;
+      turn: Observable<string>;
       status: Observable<string>;
     } => {
       return {
         planet: war.planet.observe(),
         warId: of(war.id),
+        turn: war.turn.observe().pipe(map((t) => t?.id ?? null)),
         status: of(war.status),
       };
     }
