@@ -57,7 +57,7 @@ export function Nav({
   toggleMenu,
   LinkWrapper,
   router,
-  version
+  version,
 }: {
   full?: boolean;
   menuOpen: boolean | null;
@@ -74,7 +74,7 @@ export function Nav({
     router?: { navigate: (to: string) => Promise<any> };
   }>;
   router?: { navigate: (to: string) => Promise<any> };
-  version: string
+  version: string;
 }) {
   const grouped = groupBy<{ type: string; title: string; url: string }>(
     // @ts-ignore
@@ -106,7 +106,8 @@ export function Nav({
         </View>
       </YStack>
       <View
-        position={media['sm'] ? 'absolute' : 'relative'}
+        // @ts-ignore
+        position="fixed"
         right={0}
         maxHeight="100%"
         height="100%"
