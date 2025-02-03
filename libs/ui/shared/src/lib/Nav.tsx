@@ -106,6 +106,7 @@ export function Nav({
         </View>
       </YStack>
       <View
+        // @ts-ignore
         position="fixed"
         right={0}
         maxHeight="100%"
