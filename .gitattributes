@@ -2,3 +2,5 @@
 *.js linguist-vendored
 *.mjs linguist-detectable=false
 *.mjs linguist-vendored
+*.js -linguist-detectable
+*.mjs -linguist-detectable
