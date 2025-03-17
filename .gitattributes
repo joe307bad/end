@@ -1,2 +1,4 @@
 *.js linguist-detectable=false
 *.js linguist-vendored
+*.mjs linguist-detectable=false
+*.mjs linguist-vendored
